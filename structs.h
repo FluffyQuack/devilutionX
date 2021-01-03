@@ -180,6 +180,7 @@ typedef struct ItemStruct {
 typedef struct PlayerStruct {
 	int _pmode;
 	char walkpath[MAX_PATH_LENGTH];
+	BOOLEAN startOfPathfinding; //Fluffy: If true, we just started pathfinding
 	BOOLEAN plractive;
 	int destAction;
 	int destParam1;
