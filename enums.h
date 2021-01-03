@@ -2882,9 +2882,12 @@ typedef enum player_graphic {
 	PFILE_MAGIC     = 1 << 6,
 	PFILE_DEATH     = 1 << 7,
 	PFILE_BLOCK     = 1 << 8,
+	PFILE_STAND_CASUAL	= 1 << 9, //Fluffy: Standing casually, used to be town-only
+	PFILE_WALK_CASUAL = 1 << 10, //Fluffy: Walking casually, used to be town-only
 	// everything except PFILE_DEATH
 	// 0b1_0111_1111
-	PFILE_NONDEATH = 0x17F
+	//PFILE_NONDEATH = 0x17F
+	PFILE_NONDEATH = PFILE_STAND | PFILE_WALK | PFILE_ATTACK | PFILE_HIT | PFILE_LIGHTNING | PFILE_FIRE | PFILE_MAGIC | PFILE_DEATH | PFILE_BLOCK | PFILE_STAND_CASUAL | PFILE_WALK_CASUAL //Fluffy
 } player_graphic;
 
 typedef enum anim_weapon_id {

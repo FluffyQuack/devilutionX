@@ -312,6 +312,15 @@ typedef struct PlayerStruct {
 	unsigned char *_pBAnim[8];
 	int _pBFrames;
 	int _pBWidth;
+
+	//Fluffy
+	unsigned char *_pNAnim_c[8]; //Casual standing animation
+	int _pNFrames_c;
+	int _pNWidth_c;
+	unsigned char *_pWAnim_c[8]; //Casual walking animation
+	int _pWFrames_c;
+	int _pWWidth_c;
+
 	ItemStruct InvBody[NUM_INVLOC];
 	ItemStruct InvList[NUM_INV_GRID_ELEM];
 	int _pNumInv;
@@ -356,6 +365,8 @@ typedef struct PlayerStruct {
 	unsigned char *_pHData;
 	unsigned char *_pDData;
 	unsigned char *_pBData;
+	unsigned char *_pNData_c; //Fluffy: Standing casually
+	unsigned char *_pWData_c; //Fluffy: Walking casually
 	void *pReserved;
 } PlayerStruct;
 

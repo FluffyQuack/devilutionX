@@ -177,19 +177,13 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 		}
 
 		switch (i) {
-		case PFILE_STAND:
+		case PFILE_STAND: //Fluffy: This now always loads combat standing stance
 			szCel = "AS";
-			if (leveltype == DTYPE_TOWN) {
-				szCel = "ST";
-			}
 			pData = p->_pNData;
 			pAnim = (BYTE *)p->_pNAnim;
 			break;
-		case PFILE_WALK:
+		case PFILE_WALK: //Fluffy: This now always loads combat walk animation
 			szCel = "AW";
-			if (leveltype == DTYPE_TOWN) {
-				szCel = "WL";
-			}
 			pData = p->_pWData;
 			pAnim = (BYTE *)p->_pWAnim;
 			break;
@@ -253,6 +247,18 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			pData = p->_pBData;
 			pAnim = (BYTE *)p->_pBAnim;
 			break;
+
+		//Fluffy: Load casual standing and walking animations
+		case PFILE_STAND_CASUAL:
+			szCel = "ST";
+			pData = p->_pNData_c;
+			pAnim = (BYTE *)p->_pNAnim_c;
+			break;
+		case PFILE_WALK_CASUAL:
+			szCel = "WL";
+			pData = p->_pWData_c;
+			pAnim = (BYTE *)p->_pWAnim_c;
+			break;
 		default:
 			app_fatal("PLR:2");
 			break;
@@ -294,6 +300,7 @@ void InitPlrGFXMem(int pnum)
 		}
 	}
 	plr[pnum]._pNData = DiabloAllocPtr(plr_sframe_size);
+	plr[pnum]._pNData_c = DiabloAllocPtr(plr_sframe_size);
 
 	if (!(plr_gfx_flag & 0x2)) { //WALK
 		plr_gfx_flag |= 0x2;
@@ -304,6 +311,7 @@ void InitPlrGFXMem(int pnum)
 		}
 	}
 	plr[pnum]._pWData = DiabloAllocPtr(plr_wframe_size);
+	plr[pnum]._pWData_c = DiabloAllocPtr(plr_wframe_size);
 
 	if (!(plr_gfx_flag & 0x4)) { //ATTACK
 		plr_gfx_flag |= 0x4;
@@ -410,6 +418,8 @@ void FreePlayerGFX(int pnum)
 	MemFreeDbg(plr[pnum]._pTData);
 	MemFreeDbg(plr[pnum]._pDData);
 	MemFreeDbg(plr[pnum]._pBData);
+	MemFreeDbg(plr[pnum]._pNData_c); //Fluffy: Free data for casual walk/stand animations
+	MemFreeDbg(plr[pnum]._pWData_c);
 	plr[pnum]._pGFXLoad = 0;
 }
 
@@ -452,8 +462,8 @@ void SetPlrAnims(int pnum)
 		app_fatal("SetPlrAnims: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pNWidth = 96;
-	plr[pnum]._pWWidth = 96;
+	plr[pnum]._pNWidth = plr[pnum]._pNWidth_c = 96;
+	plr[pnum]._pWWidth = plr[pnum]._pWWidth_c = 96;
 	plr[pnum]._pAWidth = 128;
 	plr[pnum]._pHWidth = 96;
 	plr[pnum]._pSWidth = 96;
@@ -462,7 +472,7 @@ void SetPlrAnims(int pnum)
 
 	pc = plr[pnum]._pClass;
 
-	if (leveltype == DTYPE_TOWN) {
+	/*if (leveltype == DTYPE_TOWN) {
 		plr[pnum]._pNFrames = PlrGFXAnimLens[pc][7];
 		plr[pnum]._pWFrames = PlrGFXAnimLens[pc][8];
 		plr[pnum]._pDFrames = PlrGFXAnimLens[pc][4];
@@ -478,11 +488,25 @@ void SetPlrAnims(int pnum)
 		plr[pnum]._pAFNum = PlrGFXAnimLens[pc][9];
 	}
 	plr[pnum]._pSFNum = PlrGFXAnimLens[pc][10];
+	*/
+
+	//Fluffy: We define all animation lengths
+	plr[pnum]._pNFrames_c = PlrGFXAnimLens[pc][7];
+	plr[pnum]._pWFrames_c = PlrGFXAnimLens[pc][8];
+	plr[pnum]._pNFrames = PlrGFXAnimLens[pc][0];
+	plr[pnum]._pWFrames = PlrGFXAnimLens[pc][2];
+	plr[pnum]._pAFrames = PlrGFXAnimLens[pc][1];
+	plr[pnum]._pHFrames = PlrGFXAnimLens[pc][6];
+	plr[pnum]._pSFrames = PlrGFXAnimLens[pc][5];
+	plr[pnum]._pDFrames = PlrGFXAnimLens[pc][4];
+	plr[pnum]._pBFrames = PlrGFXAnimLens[pc][3];
+	plr[pnum]._pAFNum = PlrGFXAnimLens[pc][9];
+	plr[pnum]._pSFNum = PlrGFXAnimLens[pc][10];
 
 	gn = plr[pnum]._pgfxnum & 0xF;
 	if (pc == PC_WARRIOR) {
 		if (gn == ANIM_ID_BOW) {
-			if (leveltype != DTYPE_TOWN) {
+			/*if (leveltype != DTYPE_TOWN)*/ {
 				plr[pnum]._pNFrames = 8;
 			}
 			plr[pnum]._pAWidth = 96;
@@ -893,8 +917,14 @@ void InitPlayer(int pnum, BOOL FirstTime)
 
 		if (plr[pnum]._pHitPoints >> 6 > 0) {
 			plr[pnum]._pmode = PM_STAND;
-			NewPlrAnim(pnum, plr[pnum]._pNAnim[DIR_S], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
-			plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames - 1) + 1;
+			if (leveltype == DTYPE_TOWN) //Fluffy
+			{
+				NewPlrAnim(pnum, plr[pnum]._pNAnim_c[DIR_S], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth);
+				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames_c - 1) + 1;
+			} else {
+				NewPlrAnim(pnum, plr[pnum]._pNAnim[DIR_S], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames - 1) + 1;
+			}
 			plr[pnum]._pAnimCnt = random_(2, 3);
 		} else {
 			plr[pnum]._pmode = PM_DEATH;
@@ -1086,7 +1116,17 @@ void StartStand(int pnum, int dir)
 			LoadPlrGFX(pnum, PFILE_STAND);
 		}
 
-		NewPlrAnim(pnum, plr[pnum]._pNAnim[dir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+		//Fluffy
+		if (!(plr[pnum]._pGFXLoad & PFILE_STAND_CASUAL)) {
+			LoadPlrGFX(pnum, PFILE_STAND_CASUAL);
+		}
+
+		//Fluffy
+		if (leveltype == DTYPE_TOWN)
+			NewPlrAnim(pnum, plr[pnum]._pNAnim_c[dir], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth_c);
+		else
+			NewPlrAnim(pnum, plr[pnum]._pNAnim[dir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+
 		plr[pnum]._pmode = PM_STAND;
 		FixPlayerLocation(pnum, dir);
 		FixPlrWalkTags(pnum);
@@ -1235,7 +1275,11 @@ void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int
 		LoadPlrGFX(pnum, PFILE_WALK);
 	}
 
-	NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+	//Fluffy
+	if (leveltype == DTYPE_TOWN)
+		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
+	else
+		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
 	plr[pnum]._pdir = EndDir;
 	plr[pnum]._pVar6 = 0;
@@ -1313,7 +1357,12 @@ void StartWalk2(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	if (!(plr[pnum]._pGFXLoad & PFILE_WALK)) {
 		LoadPlrGFX(pnum, PFILE_WALK);
 	}
-	NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+
+	//Fluffy
+	if (leveltype == DTYPE_TOWN)
+		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
+	else
+		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
 	plr[pnum]._pdir = EndDir;
 	plr[pnum]._pVar8 = 0;
@@ -1394,7 +1443,12 @@ void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	if (!(plr[pnum]._pGFXLoad & PFILE_WALK)) {
 		LoadPlrGFX(pnum, PFILE_WALK);
 	}
-	NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+
+	//Fluffy
+	if (leveltype == DTYPE_TOWN)
+		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
+	else
+		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
 	plr[pnum]._pdir = EndDir;
 	plr[pnum]._pVar8 = 0;
@@ -3707,7 +3761,7 @@ void CheckPlrSpell()
 	}
 }
 
-void SyncPlrAnim(int pnum)
+void SyncPlrAnim(int pnum) //Fluffy: This is called when setting up the state of the world during a savegame load
 {
 	int dir, sType;
 
@@ -3717,13 +3771,21 @@ void SyncPlrAnim(int pnum)
 
 	dir = plr[pnum]._pdir;
 	switch (plr[pnum]._pmode) {
-	case PM_STAND:
-		plr[pnum]._pAnimData = plr[pnum]._pNAnim[dir];
+	case PM_NEWLVL:
+	case PM_QUIT:
+	case PM_STAND: //Fluffy: Change animation depending on if we're in the town or not
+		if (leveltype == DTYPE_TOWN)
+			plr[pnum]._pAnimData = plr[pnum]._pNAnim_c[dir];
+		else
+			plr[pnum]._pAnimData = plr[pnum]._pNAnim[dir];
 		break;
 	case PM_WALK:
 	case PM_WALK2:
 	case PM_WALK3:
-		plr[pnum]._pAnimData = plr[pnum]._pWAnim[dir];
+		if (leveltype == DTYPE_TOWN)
+			plr[pnum]._pAnimData = plr[pnum]._pWAnim_c[dir];
+		else
+			plr[pnum]._pAnimData = plr[pnum]._pWAnim[dir];
 		break;
 	case PM_ATTACK:
 		plr[pnum]._pAnimData = plr[pnum]._pAAnim[dir];
@@ -3749,14 +3811,8 @@ void SyncPlrAnim(int pnum)
 	case PM_GOTHIT:
 		plr[pnum]._pAnimData = plr[pnum]._pHAnim[dir];
 		break;
-	case PM_NEWLVL:
-		plr[pnum]._pAnimData = plr[pnum]._pNAnim[dir];
-		break;
 	case PM_DEATH:
 		plr[pnum]._pAnimData = plr[pnum]._pDAnim[dir];
-		break;
-	case PM_QUIT:
-		plr[pnum]._pAnimData = plr[pnum]._pNAnim[dir];
 		break;
 	default:
 		app_fatal("SyncPlrAnim");

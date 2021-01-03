@@ -431,6 +431,14 @@ void LoadPlayer(int i)
 	CopyInt(tbuff, &pPlayer->_pBFrames);
 	CopyInt(tbuff, &pPlayer->_pBWidth);
 
+	//Fluffy
+	tbuff += 4 * 8; // Skip pointers _pNAnim_c
+	CopyInt(tbuff, &pPlayer->_pNFrames_c);
+	CopyInt(tbuff, &pPlayer->_pNWidth_c);
+	tbuff += 4 * 8; // Skip pointers _pWAnim_c
+	CopyInt(tbuff, &pPlayer->_pWFrames_c);
+	CopyInt(tbuff, &pPlayer->_pWWidth_c);
+
 	LoadItems(NUM_INVLOC, pPlayer->InvBody);
 	LoadItems(NUM_INV_GRID_ELEM, pPlayer->InvList);
 	CopyInt(tbuff, &pPlayer->_pNumInv);
@@ -482,6 +490,8 @@ void LoadPlayer(int i)
 	// Omit pointer _pHData
 	// Omit pointer _pDData
 	// Omit pointer _pBData
+	// Omit pointer _pNData_c
+	// Omit pointer _pWData_c
 	// Omit pointer pReserved
 }
 
@@ -1160,6 +1170,14 @@ void SavePlayer(int i)
 	CopyInt(&pPlayer->_pBFrames, tbuff);
 	CopyInt(&pPlayer->_pBWidth, tbuff);
 
+	//Fluffy
+	tbuff += 4 * 8; // Skip pointers _pNAnim_c
+	CopyInt(&pPlayer->_pNFrames_c, tbuff);
+	CopyInt(&pPlayer->_pNWidth_c, tbuff);
+	tbuff += 4 * 8; // Skip pointers _pWAnim_c
+	CopyInt(&pPlayer->_pWFrames_c, tbuff);
+	CopyInt(&pPlayer->_pWWidth_c, tbuff);
+
 	SaveItems(pPlayer->InvBody, NUM_INVLOC);
 	SaveItems(pPlayer->InvList, NUM_INV_GRID_ELEM);
 	CopyInt(&pPlayer->_pNumInv, tbuff);
@@ -1212,6 +1230,8 @@ void SavePlayer(int i)
 	// Omit pointer _pHData
 	// Omit pointer _pDData
 	// Omit pointer _pBData
+	// Omit pointer _pNData_c
+	// Omit pointer _pWData_c
 	// Omit pointer pReserved
 }
 

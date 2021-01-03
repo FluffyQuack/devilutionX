@@ -586,19 +586,30 @@ void CalcPlrItemVals(int p, BOOL Loadgfx)
 		plr[p]._pgfxnum = g;
 		plr[p]._pGFXLoad = 0;
 		LoadPlrGFX(p, PFILE_STAND);
+		LoadPlrGFX(p, PFILE_STAND_CASUAL); //Fluffy: Load casual stand animation
 		SetPlrAnims(p);
 
 		d = plr[p]._pdir;
 
-		assert(plr[p]._pNAnim[d]);
-		plr[p]._pAnimData = plr[p]._pNAnim[d];
-
-		plr[p]._pAnimLen = plr[p]._pNFrames;
+		if (leveltype == DTYPE_TOWN) //Fluffy
+		{
+			assert(plr[p]._pNAnim_c[d]);
+			plr[p]._pAnimData = plr[p]._pNAnim_c[d];
+			plr[p]._pAnimLen = plr[p]._pNFrames_c;
+			plr[p]._pAnimWidth = plr[p]._pNWidth_c;
+			plr[p]._pAnimWidth2 = (plr[p]._pNWidth_c - 64) >> 1;
+		} else {
+			assert(plr[p]._pNAnim[d]);
+			plr[p]._pAnimData = plr[p]._pNAnim[d];
+			plr[p]._pAnimLen = plr[p]._pNFrames;
+			plr[p]._pAnimWidth = plr[p]._pNWidth;
+			plr[p]._pAnimWidth2 = (plr[p]._pNWidth - 64) >> 1;
+		}
+		
 		plr[p]._pAnimFrame = 1;
 		plr[p]._pAnimCnt = 0;
 		plr[p]._pAnimDelay = 3;
-		plr[p]._pAnimWidth = plr[p]._pNWidth;
-		plr[p]._pAnimWidth2 = (plr[p]._pNWidth - 64) >> 1;
+		
 	} else {
 		plr[p]._pgfxnum = g;
 	}

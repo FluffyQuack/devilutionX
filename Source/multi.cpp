@@ -924,6 +924,7 @@ void recv_plrinfo(int pnum, TCmdPlrInfoHdr *p, BOOL recv)
 	EventPlrMsg(szEvent, plr[pnum]._pName, plr[pnum]._pLevel);
 
 	LoadPlrGFX(pnum, PFILE_STAND);
+	LoadPlrGFX(pnum, PFILE_STAND_CASUAL); //Fluffy
 	SyncInitPlr(pnum);
 
 	if (plr[pnum].plrlevel == currlevel) {

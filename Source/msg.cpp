@@ -2357,6 +2357,7 @@ DWORD On_PLAYER_JOINLEVEL(TCmd *pCmd, int pnum)
 			plr[pnum]._pGFXLoad = 0;
 			if (currlevel == plr[pnum].plrlevel) {
 				LoadPlrGFX(pnum, PFILE_STAND);
+				LoadPlrGFX(pnum, PFILE_STAND_CASUAL); //Fluffy
 				SyncInitPlr(pnum);
 				if ((plr[pnum]._pHitPoints >> 6) > 0)
 					StartStand(pnum, 0);
