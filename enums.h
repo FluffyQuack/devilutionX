@@ -2484,8 +2484,8 @@ typedef enum item_misc_id {
 	IMISC_REJUV     = 0x12,
 	IMISC_FULLREJUV = 0x13,
 	IMISC_USELAST   = 0x14,
-	IMISC_SCROLL    = 0x15,
-	IMISC_SCROLLT   = 0x16,
+	IMISC_SCROLL    = 0x15, //Teleport scroll?
+	IMISC_SCROLLT   = 0x16, //Offensive spells?
 	IMISC_STAFF     = 0x17,
 	IMISC_BOOK      = 0x18,
 	IMISC_RING      = 0x19,

@@ -710,23 +710,37 @@ BOOL LeftMouseCmd(BOOL bShift)
 
 	assert(MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH);
 
+	//Fluffy: Cleaned some of this code and made it possible to attack in town
+	if (pcursitem != -1 && pcurs == CURSOR_HAND)
+		NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
+	if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1))
+		NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
+
+	bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
+	if (bShift)
+	{
+		if (plr[myplr]._pwtype == WT_RANGED)
+			NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
+		else
+		{
+			if (pcursmonst != -1)
+			{
+				if (CanTalkToMonst(pcursmonst))
+					NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
+				else
+					NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
+			}
+			else
+				NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
+		}
+	}
+
 	if (leveltype == DTYPE_TOWN) {
-		if (pcursitem != -1 && pcurs == CURSOR_HAND)
-			NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
 		if (pcursmonst != -1)
 			NetSendCmdLocParam1(TRUE, CMD_TALKXY, cursmx, cursmy, pcursmonst);
-		if (pcursitem == -1 && pcursmonst == -1 && pcursplr == -1)
-			return TRUE;
 	} else {
-		bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
-		if (pcursitem != -1 && pcurs == CURSOR_HAND && !bShift) {
-			NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
-		} else if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1)) {
-			NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
-		} else if (plr[myplr]._pwtype == WT_RANGED) {
-			if (bShift) {
-				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
-			} else if (pcursmonst != -1) {
+		if (plr[myplr]._pwtype == WT_RANGED) {
+			if (pcursmonst != -1) {
 				if (CanTalkToMonst(pcursmonst)) {
 					NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 				} else {
@@ -736,26 +750,16 @@ BOOL LeftMouseCmd(BOOL bShift)
 				NetSendCmdParam1(TRUE, CMD_RATTACKPID, pcursplr);
 			}
 		} else {
-			if (bShift) {
-				if (pcursmonst != -1) {
-					if (CanTalkToMonst(pcursmonst)) {
-						NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
-					} else {
-						NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
-					}
-				} else {
-					NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
-				}
-			} else if (pcursmonst != -1) {
+			if (pcursmonst != -1) {
 				NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 			} else if (pcursplr != -1 && !FriendlyMode) {
 				NetSendCmdParam1(TRUE, CMD_ATTACKPID, pcursplr);
 			}
 		}
-		if (!bShift && pcursitem == -1 && pcursobj == -1 && pcursmonst == -1 && pcursplr == -1)
-			return TRUE;
 	}
 
+	if (!bShift && pcursitem == -1 && pcursobj == -1 && pcursmonst == -1 && pcursplr == -1)
+		return TRUE;
 	return FALSE;
 }
 

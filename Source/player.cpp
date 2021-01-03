@@ -187,42 +187,27 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			pData = p->_pWData;
 			pAnim = (BYTE *)p->_pWAnim;
 			break;
-		case PFILE_ATTACK:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
+		case PFILE_ATTACK: //Fluffy: Modified this and all the other animations to let them be loaded in town
 			szCel = "AT";
 			pData = p->_pAData;
 			pAnim = (BYTE *)p->_pAAnim;
 			break;
 		case PFILE_HIT:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
 			szCel = "HT";
 			pData = p->_pHData;
 			pAnim = (BYTE *)p->_pHAnim;
 			break;
 		case PFILE_LIGHTNING:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
 			szCel = "LM";
 			pData = p->_pLData;
 			pAnim = (BYTE *)p->_pLAnim;
 			break;
 		case PFILE_FIRE:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
 			szCel = "FM";
 			pData = p->_pFData;
 			pAnim = (BYTE *)p->_pFAnim;
 			break;
 		case PFILE_MAGIC:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
 			szCel = "QM";
 			pData = p->_pTData;
 			pAnim = (BYTE *)p->_pTAnim;
@@ -236,9 +221,6 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			pAnim = (BYTE *)p->_pDAnim;
 			break;
 		case PFILE_BLOCK:
-			if (leveltype == DTYPE_TOWN) {
-				continue;
-			}
 			if (!p->_pBlockFlag) {
 				continue;
 			}
@@ -1586,7 +1568,7 @@ void StartSpell(int pnum, int d, int cx, int cy)
 		return;
 	}
 
-	if (leveltype != DTYPE_TOWN) {
+	if (1) { //Fluffy: Allow for spells to be cast in town
 		switch (spelldata[plr[pnum]._pSpell].sType) {
 		case STYPE_FIRE:
 			if (!(plr[pnum]._pGFXLoad & PFILE_FIRE)) {
@@ -2190,16 +2172,12 @@ BOOL PM_DoWalk(int pnum)
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	if (plr[pnum]._pVar8 == anim_len / 2) { //Check if we're at the end of the animation
+	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
+	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
+	    || (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 		plr[pnum]._px += plr[pnum]._pVar1;
 		plr[pnum]._py += plr[pnum]._pVar2;
-
-		/*//Fluffy: Fast walking in town (move two tiles at a time)
-		if (leveltype == DTYPE_TOWN) {
-			plr[pnum]._px += plr[pnum]._pVar1;
-			plr[pnum]._py += plr[pnum]._pVar2;
-		}*/
 
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 
@@ -2253,7 +2231,9 @@ BOOL PM_DoWalk2(int pnum)
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	if (plr[pnum]._pVar8 == anim_len / 2) {
+	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
+	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
+	    || (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
 		dPlayer[plr[pnum]._pVar1][plr[pnum]._pVar2] = 0;
 
 		if (leveltype != DTYPE_TOWN) {
@@ -2305,17 +2285,13 @@ BOOL PM_DoWalk3(int pnum)
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	if (plr[pnum]._pVar8 == anim_len / 2) {
+	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
+	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
+		|| (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 		dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
 		plr[pnum]._px = plr[pnum]._pVar1;
 		plr[pnum]._py = plr[pnum]._pVar2;
-
-		/*//Fluffy: Fast walking in town (move two tiles at a time)
-		if (leveltype == DTYPE_TOWN) {
-			plr[pnum]._px += plr[pnum]._pVar1;
-			plr[pnum]._py += plr[pnum]._pVar2;
-		}*/
 
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 
@@ -2951,7 +2927,7 @@ BOOL PM_DoSpell(int pnum)
 
 	plr[pnum]._pVar8++;
 
-	if (leveltype == DTYPE_TOWN) {
+	if (0) { //Fluffy: Since we allow for normal casting in towns, this code isn't needed
 		if (plr[pnum]._pVar8 > plr[pnum]._pSFrames) {
 			StartWalkStand(pnum);
 			ClearPlrPVars(pnum);
@@ -3745,6 +3721,8 @@ void CheckPlrSpell()
 		return;
 	}
 
+	//Fluffy: Commented this out to allow for any spell casting in town
+	/*
 	if (leveltype == DTYPE_TOWN && !spelldata[rspell].sTownSpell) {
 		if (plr[myplr]._pClass == PC_WARRIOR) {
 			PlaySFX(PS_WARR27);
@@ -3757,6 +3735,7 @@ void CheckPlrSpell()
 		}
 		return;
 	}
+	*/
 
 	if (!sgbControllerActive) {
 		if (pcurs != CURSOR_HAND

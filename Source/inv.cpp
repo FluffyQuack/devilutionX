@@ -2060,8 +2060,12 @@ BOOL UseScroll()
 
 	if (pcurs != CURSOR_HAND)
 		return FALSE;
+
+	//Fluffy: Commented this out to allow for scroll usage in town, but it doesn't seem to actually matter
+	/*
 	if (leveltype == DTYPE_TOWN && !spelldata[plr[myplr]._pRSpell].sTownSpell)
 		return FALSE;
+		*/
 
 	for (i = 0; i < plr[myplr]._pNumInv; i++) {
 		if (plr[myplr].InvList[i]._itype != ITYPE_NONE
@@ -2200,14 +2204,25 @@ BOOL UseInvItem(int pnum, int cii)
 		dropGoldValue = 0;
 	}
 
+	//Fluffy: Disallow town portal in town (it doesn't seem to cause any issues leaving this in, but it's a bit silly, and also, now we can re-implement a couple of voice clips which would otherwise be unused)
 	if (Item->_iMiscId == IMISC_SCROLL && currlevel == 0 && !spelldata[Item->_iSpell].sTownSpell) {
+		if (plr[myplr]._pClass == PC_WARRIOR)
+			PlaySFX(PS_WARR27);
+#ifndef SPAWN
+		else if (plr[myplr]._pClass == PC_ROGUE)
+			PlaySFX(PS_ROGUE27);
+		else if (plr[myplr]._pClass == PC_SORCERER)
+			PlaySFX(PS_MAGE27);
+#endif
 		return TRUE;
 	}
 
+	//Fluffy: Commented this out to allow offensive scrolls in town
+	/*
 	if (Item->_iMiscId == IMISC_SCROLLT && currlevel == 0 && !spelldata[Item->_iSpell].sTownSpell) {
 		return TRUE;
 	}
-
+	*/
 	idata = ItemCAnimTbl[Item->_iCurs];
 	if (Item->_iMiscId == IMISC_BOOK)
 		PlaySFX(IS_RBOOK);
