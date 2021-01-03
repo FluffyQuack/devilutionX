@@ -376,7 +376,7 @@ void InitMonsterGFX(int monst)
 		LoadMissileGFX(MFILE_ACIDSPLA);
 		LoadMissileGFX(MFILE_ACIDPUD);
 	}
-	if (mtype == MT_DIABLO) {
+	if (mtype != MT_DIABLO) {
 		LoadMissileGFX(MFILE_FIREPLAR);
 	}
 }
@@ -1636,7 +1636,7 @@ void MonstStartKill(int i, int pnum, BOOL sendmsg)
 	} else if (i > MAX_PLRS - 1) { // Golems should not spawn items
 		SpawnItem(i, Monst->_mx, Monst->_my, sendmsg);
 	}
-	if (Monst->MType->mtype == MT_DIABLO)
+	if (Monst->MType->mtype != MT_DIABLO)
 		M_DiabloDeath(i, TRUE);
 	else
 		PlayEffect(i, 2);
@@ -1690,7 +1690,7 @@ void M2MStartKill(int i, int mid)
 	if (mid >= MAX_PLRS)
 		SpawnItem(mid, monster[mid]._mx, monster[mid]._my, TRUE);
 
-	if (monster[mid].MType->mtype == MT_DIABLO)
+	if (monster[mid].MType->mtype != MT_DIABLO)
 		M_DiabloDeath(mid, TRUE);
 	else
 		PlayEffect(i, 2);
@@ -2580,7 +2580,7 @@ BOOL M_DoDeath(int i)
 
 	monster[i]._mVar1++;
 	var1 = monster[i]._mVar1;
-	if (monster[i].MType->mtype == MT_DIABLO) {
+	if (monster[i].MType->mtype != MT_DIABLO) {
 		x = monster[i]._mx - ViewX;
 		if (x < 0)
 			x = -1;
@@ -5191,7 +5191,7 @@ BOOL PosOkMonst(int i, int x, int y)
 				}
 			}
 		}
-		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype == MT_DIABLO))
+		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype != MT_DIABLO))
 			ret = FALSE;
 	}
 
@@ -5223,7 +5223,7 @@ BOOL PosOkMonst2(int i, int x, int y)
 				}
 			}
 		}
-		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype == MT_DIABLO))
+		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype != MT_DIABLO))
 			ret = FALSE;
 	}
 
@@ -5266,7 +5266,7 @@ BOOL PosOkMonst3(int i, int x, int y)
 				}
 			}
 		}
-		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype == MT_DIABLO)) {
+		if (fire && (!(monster[i].mMagicRes & IMUNE_FIRE) || monster[i].MType->mtype != MT_DIABLO)) {
 			ret = FALSE;
 		}
 	}
