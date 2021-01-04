@@ -288,7 +288,7 @@ void LoadPlayer(int i)
 
 	CopyInt(tbuff, &pPlayer->_pmode);
 	CopyBytes(tbuff, MAX_PATH_LENGTH, pPlayer->walkpath);
-	CopyBytes(tbuff, 1, &pPlayer->startOfPathfinding); //Fluffy
+	CopyBytes(tbuff, 1, &pPlayer->walkedLastTick); //Fluffy
 	CopyBytes(tbuff, 1, &pPlayer->plractive);
 	tbuff += 2; // Alignment
 	CopyInt(tbuff, &pPlayer->destAction);
@@ -1031,7 +1031,7 @@ void SavePlayer(int i)
 
 	CopyInt(&pPlayer->_pmode, tbuff);
 	CopyBytes(&pPlayer->walkpath, MAX_PATH_LENGTH, tbuff);
-	CopyBytes(&pPlayer->startOfPathfinding, 1, tbuff); //Fluffy
+	CopyBytes(&pPlayer->walkedLastTick, 1, tbuff); //Fluffy
 	CopyBytes(&pPlayer->plractive, 1, tbuff);
 	tbuff += 2; // Alignment
 	CopyInt(&pPlayer->destAction, tbuff);

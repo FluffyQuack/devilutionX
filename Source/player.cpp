@@ -454,25 +454,7 @@ void SetPlrAnims(int pnum)
 
 	pc = plr[pnum]._pClass;
 
-	/*if (leveltype == DTYPE_TOWN) {
-		plr[pnum]._pNFrames = PlrGFXAnimLens[pc][7];
-		plr[pnum]._pWFrames = PlrGFXAnimLens[pc][8];
-		plr[pnum]._pDFrames = PlrGFXAnimLens[pc][4];
-		plr[pnum]._pSFrames = PlrGFXAnimLens[pc][5];
-	} else {
-		plr[pnum]._pNFrames = PlrGFXAnimLens[pc][0];
-		plr[pnum]._pWFrames = PlrGFXAnimLens[pc][2];
-		plr[pnum]._pAFrames = PlrGFXAnimLens[pc][1];
-		plr[pnum]._pHFrames = PlrGFXAnimLens[pc][6];
-		plr[pnum]._pSFrames = PlrGFXAnimLens[pc][5];
-		plr[pnum]._pDFrames = PlrGFXAnimLens[pc][4];
-		plr[pnum]._pBFrames = PlrGFXAnimLens[pc][3];
-		plr[pnum]._pAFNum = PlrGFXAnimLens[pc][9];
-	}
-	plr[pnum]._pSFNum = PlrGFXAnimLens[pc][10];
-	*/
-
-	//Fluffy: We define all animation lengths
+	//Fluffy: Define all animation lengths
 	plr[pnum]._pNFrames_c = PlrGFXAnimLens[pc][7];
 	plr[pnum]._pWFrames_c = PlrGFXAnimLens[pc][8];
 	plr[pnum]._pNFrames = PlrGFXAnimLens[pc][0];
@@ -1259,13 +1241,16 @@ void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int
 	plr[pnum]._pVar2 = yadd;
 	plr[pnum]._pVar3 = EndDir;
 
-	if (!(plr[pnum]._pGFXLoad & PFILE_WALK)) {
+	//Fluffy: Make sure to load both walk animations
+	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
 		LoadPlrGFX(pnum, PFILE_WALK);
+		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
 	}
 
 	//Fluffy
 	int animFrame, animCnt;
-	if (!plr[pnum].startOfPathfinding) {
+	
+	if (plr[pnum].walkedLastTick) {
 		animFrame = plr[pnum]._pAnimFrame;
 		animCnt = plr[pnum]._pAnimCnt;
 	}
@@ -1275,7 +1260,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int
 	else
 		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
-	if (!plr[pnum].startOfPathfinding) {
+	if (plr[pnum].walkedLastTick) {
 		plr[pnum]._pAnimFrame = animFrame;
 		plr[pnum]._pAnimCnt = animCnt;
 	}
@@ -1353,13 +1338,15 @@ void StartWalk2(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	plr[pnum]._pVar7 = yoff * 256;
 	plr[pnum]._pVar3 = EndDir;
 
-	if (!(plr[pnum]._pGFXLoad & PFILE_WALK)) {
+	//Fluffy: Make sure to load both walk animations
+	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
 		LoadPlrGFX(pnum, PFILE_WALK);
+		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
 	}
 
 	//Fluffy
 	int animFrame, animCnt;
-	if (!plr[pnum].startOfPathfinding) {
+	if (plr[pnum].walkedLastTick) {
 		animFrame = plr[pnum]._pAnimFrame;
 		animCnt = plr[pnum]._pAnimCnt;
 	}
@@ -1369,7 +1356,7 @@ void StartWalk2(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	else
 		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
-	if (!plr[pnum].startOfPathfinding) {
+	if (plr[pnum].walkedLastTick) {
 		plr[pnum]._pAnimFrame = animFrame;
 		plr[pnum]._pAnimCnt = animCnt;
 	}
@@ -1450,13 +1437,15 @@ void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	plr[pnum]._pVar7 = yoff * 256;
 	plr[pnum]._pVar3 = EndDir;
 
-	if (!(plr[pnum]._pGFXLoad & PFILE_WALK)) {
+	//Fluffy: Make sure to load both walk animations
+	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
 		LoadPlrGFX(pnum, PFILE_WALK);
+		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
 	}
 
 	//Fluffy
 	int animFrame, animCnt;
-	if (!plr[pnum].startOfPathfinding) {
+	if (plr[pnum].walkedLastTick) {
 		animFrame = plr[pnum]._pAnimFrame;
 		animCnt = plr[pnum]._pAnimCnt;
 	}
@@ -1466,7 +1455,7 @@ void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 	else
 		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
-	if (!plr[pnum].startOfPathfinding) {
+	if (plr[pnum].walkedLastTick) {
 		plr[pnum]._pAnimFrame = animFrame;
 		plr[pnum]._pAnimCnt = animCnt;
 	}
@@ -3142,9 +3131,7 @@ void CheckNewPath(int pnum)
 
 			for (i = 1; i < MAX_PATH_LENGTH; i++) {
 				plr[pnum].walkpath[i - 1] = plr[pnum].walkpath[i];
-				plr[pnum].startOfPathfinding = 0;
 			}
-
 			plr[pnum].walkpath[MAX_PATH_LENGTH - 1] = WALK_NONE;
 
 			if (plr[pnum]._pmode == PM_STAND) {
@@ -3537,6 +3524,11 @@ void ProcessPlayers()
 				CheckNewPath(pnum);
 			} while (tplayer);
 
+			if (plr[pnum]._pmode == PM_WALK || plr[pnum]._pmode == PM_WALK2 || plr[pnum]._pmode == PM_WALK3)
+				plr[pnum].walkedLastTick = 1;
+			else
+				plr[pnum].walkedLastTick = 0;
+
 			plr[pnum]._pAnimCnt++;
 			if (plr[pnum]._pAnimCnt > plr[pnum]._pAnimDelay) {
 				plr[pnum]._pAnimCnt = 0;
@@ -3654,8 +3646,6 @@ void MakePlrPath(int pnum, int xx, int yy, BOOL endspace)
 	if (!path) {
 		return;
 	}
-
-	plr[pnum].startOfPathfinding = 1; //Fluffy
 
 	if (!endspace) {
 		path--;
