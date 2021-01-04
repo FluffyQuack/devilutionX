@@ -610,6 +610,11 @@ void multi_handle_events(_SNETEVENT *pEvt)
 		sgGameInitInfo.dwSeed = gameData->dwSeed;
 		sgGameInitInfo.bDiff = gameData->bDiff;
 		sgGameInitInfo.bRate = gameData->bRate;
+
+		//Fluffy: Load game setup variables from host into game init struct (I'm pretty sure this is only done with clients)
+		sgGameInitInfo.fastWalkInTown = gameData->fastWalkInTown;
+		sgGameInitInfo.allowAttacksInTown= gameData->allowAttacksInTown;
+
 		sgbPlayerTurnBitTbl[pEvt->playerid] = TRUE;
 		break;
 	case EVENT_TYPE_PLAYER_LEAVE_GAME:
@@ -649,6 +654,11 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 		sgGameInitInfo.dwSeed = time(NULL);
 		sgGameInitInfo.bDiff = gnDifficulty;
 		sgGameInitInfo.bRate = ticks_per_sec;
+
+		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
+		sgGameInitInfo.fastWalkInTown = gameSetup_fastWalkInTown;
+		sgGameInitInfo.allowAttacksInTown = gameSetup_allowAttacksInTown;
+
 		memset(&ProgramData, 0, sizeof(ProgramData));
 		ProgramData.size = sizeof(ProgramData);
 #ifdef SPAWN
@@ -724,6 +734,11 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gnDifficulty = sgGameInitInfo.bDiff;
 	ticks_per_sec = sgGameInitInfo.bRate;
 	tick_delay = 1000 / ticks_per_sec;
+
+	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
+	gameSetup_fastWalkInTown = sgGameInitInfo.fastWalkInTown;
+	gameSetup_allowAttacksInTown = sgGameInitInfo.allowAttacksInTown;
+
 	SetRndSeed(sgGameInitInfo.dwSeed);
 
 	for (i = 0; i < NUMLEVELS; i++) {

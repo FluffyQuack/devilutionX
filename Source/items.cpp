@@ -591,7 +591,7 @@ void CalcPlrItemVals(int p, BOOL Loadgfx)
 
 		d = plr[p]._pdir;
 
-		if (leveltype == DTYPE_TOWN) //Fluffy
+		if (leveltype == DTYPE_TOWN)
 		{
 			assert(plr[p]._pNAnim_c[d]);
 			plr[p]._pAnimData = plr[p]._pNAnim_c[d];

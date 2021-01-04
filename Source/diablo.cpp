@@ -45,6 +45,10 @@ int color_cycle_timer;
 int ticks_per_sec = 20;
 WORD tick_delay = 50;
 
+//Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
+BOOL gameSetup_fastWalkInTown = true;
+BOOL gameSetup_allowAttacksInTown = true;
+
 /* rdata */
 
 /**
@@ -710,14 +714,14 @@ BOOL LeftMouseCmd(BOOL bShift)
 
 	assert(MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH);
 
-	//Fluffy: Cleaned some of this code and made it possible to attack in town
+	//Fluffy: Cleaned some of this code and made it possible to attack in town (if gameSetup_allowAttacksInTown is true)
 	if (pcursitem != -1 && pcurs == CURSOR_HAND)
 		NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
 	if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1))
 		NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
 
 	bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
-	if (bShift)
+	if (bShift && (leveltype != DTYPE_TOWN || gameSetup_allowAttacksInTown == true))
 	{
 		if (plr[myplr]._pwtype == WT_RANGED)
 			NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
@@ -758,6 +762,7 @@ BOOL LeftMouseCmd(BOOL bShift)
 		}
 	}
 
+	//Fluffy TODO: Very minor bug here. If gameSetup_allowAttacksInTown is true then you can't walk by shift clicking
 	if (!bShift && pcursitem == -1 && pcursobj == -1 && pcursmonst == -1 && pcursplr == -1)
 		return TRUE;
 	return FALSE;

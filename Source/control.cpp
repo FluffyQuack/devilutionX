@@ -304,11 +304,9 @@ void DrawSpell()
 			st = RSPLTYPE_INVALID;
 	}
 
-	//Fluffy: Commented this out to allow for spells in town (this would have greyed out the spell icon on UI)
-	/*
-	if (currlevel == 0 && st != RSPLTYPE_INVALID && !spelldata[spl].sTownSpell)
+	//Fluffy: Grey out spell icon UI if we can't cast spells in town
+	if (currlevel == 0 && st != RSPLTYPE_INVALID && !spelldata[spl].sTownSpell && gameSetup_allowAttacksInTown == false)
 		st = RSPLTYPE_INVALID;
-	*/
 
 	if (plr[myplr]._pRSpell < 0)
 		st = RSPLTYPE_INVALID;
@@ -365,8 +363,8 @@ void DrawSpellList()
 				SetSpellTrans(trans);
 			}
 
-			//Fluffy: Commented this out to allow for spells in town (this would grey out spells in spell selection)
-			if (currlevel == 0 && !spelldata[j].sTownSpell)
+			//Fluffy: Grey out spells in spell selection if we can't cast in town
+			if (currlevel == 0 && !spelldata[j].sTownSpell && gameSetup_allowAttacksInTown == false)
 				SetSpellTrans(RSPLTYPE_INVALID);
 
 			DrawSpellCel(x, y, pSpellCels, SpellITbl[j], SPLICONLENGTH);
@@ -1787,11 +1785,9 @@ char GetSBookTrans(int ii, BOOL townok)
 			st = RSPLTYPE_INVALID;
 		}
 
-		//Fluffy: Commented this out to allow for spells in town (this would grey out spells in spell book)
-		/*
-		if (townok && currlevel == 0 && st != RSPLTYPE_INVALID && !spelldata[ii].sTownSpell) {
+		//Fluffy: Grey out spells in spell book if we can't cast in town
+		if (townok && currlevel == 0 && st != RSPLTYPE_INVALID && !spelldata[ii].sTownSpell && gameSetup_allowAttacksInTown == false)
 			st = RSPLTYPE_INVALID;
-			*/
 	}
 
 	return st;

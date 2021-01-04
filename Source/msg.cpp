@@ -1360,7 +1360,7 @@ DWORD On_SBSPELL(TCmd *pCmd, int pnum)
 	TCmdParam1 *p = (TCmdParam1 *)pCmd;
 
 	if (gbBufferMsgs != 1) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam1].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			plr[pnum]._pSpell = p->wParam1;
 			plr[pnum]._pSplType = plr[pnum]._pSBkSplType;
 			plr[pnum]._pSplFrom = 1;
@@ -1757,7 +1757,7 @@ DWORD On_SPELLXYD(TCmd *pCmd, int pnum)
 	TCmdLocParam3 *p = (TCmdLocParam3 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam1].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELLWALL;
 			plr[pnum].destParam1 = p->x;
@@ -1779,7 +1779,7 @@ DWORD On_SPELLXY(TCmd *pCmd, int pnum)
 	TCmdLocParam2 *p = (TCmdLocParam2 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam1].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELL;
 			plr[pnum].destParam1 = p->x;
@@ -1800,7 +1800,7 @@ DWORD On_TSPELLXY(TCmd *pCmd, int pnum)
 	TCmdLocParam2 *p = (TCmdLocParam2 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam1].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELL;
 			plr[pnum].destParam1 = p->x;
@@ -1920,7 +1920,7 @@ DWORD On_SPELLID(TCmd *pCmd, int pnum)
 	TCmdParam3 *p = (TCmdParam3 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam2].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELLMON;
 			plr[pnum].destParam1 = p->wParam1;
@@ -1940,7 +1940,7 @@ DWORD On_SPELLPID(TCmd *pCmd, int pnum)
 	TCmdParam3 *p = (TCmdParam3 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam2].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELLPLR;
 			plr[pnum].destParam1 = p->wParam1;
@@ -1960,7 +1960,7 @@ DWORD On_TSPELLID(TCmd *pCmd, int pnum)
 	TCmdParam3 *p = (TCmdParam3 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam2].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELLMON;
 			plr[pnum].destParam1 = p->wParam1;
@@ -1980,7 +1980,7 @@ DWORD On_TSPELLPID(TCmd *pCmd, int pnum)
 	TCmdParam3 *p = (TCmdParam3 *)pCmd;
 
 	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel) {
-		if (1) { //Fluffy: Allow attacking in town
+		if (currlevel != 0 || spelldata[p->wParam2].sTownSpell || gameSetup_allowAttacksInTown == true) { //Fluffy: Allow attacking in town
 			ClrPlrPath(pnum);
 			plr[pnum].destAction = ACTION_SPELLPLR;
 			plr[pnum].destParam1 = p->wParam1;

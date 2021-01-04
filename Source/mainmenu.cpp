@@ -134,6 +134,15 @@ void mainmenu_loop()
 	music_stop();
 }
 
+static void LoadGameSetupVariableFromConfig(char *name, BOOL *variable)
+{
+	int temp = *variable;
+	if (SRegLoadValue("devilutionx", name, 0, &temp))
+		*variable = (BOOL) temp;
+	else
+		SRegSaveValue("devilutionx", name, 0, temp);
+}
+
 BOOL mainmenu_single_player()
 {
 	gbMaxPlayers = 1;
@@ -142,6 +151,10 @@ BOOL mainmenu_single_player()
 		SRegSaveValue("devilutionx", "game speed", 0, ticks_per_sec);
 	}
 	tick_delay = 1000 / ticks_per_sec;
+
+	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
+	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
+	LoadGameSetupVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
 
 	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
 }

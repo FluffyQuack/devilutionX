@@ -1179,8 +1179,8 @@ void PM_ChangeOffset(int pnum)
 	px = plr[pnum]._pVar6 / 256;
 	py = plr[pnum]._pVar7 / 256;
 
-	//Fluffy: Fast walking in town
-	if (leveltype == DTYPE_TOWN) {
+	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
+	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
 		plr[pnum]._pVar6 += plr[pnum]._pxvel * 2;
 		plr[pnum]._pVar7 += plr[pnum]._pyvel * 2;
 	} else {
@@ -1557,7 +1557,7 @@ void StartSpell(int pnum, int d, int cx, int cy)
 		return;
 	}
 
-	if (1) { //Fluffy: Allow for spells to be cast in town
+	if (leveltype != DTYPE_TOWN || gameSetup_allowAttacksInTown == true) { //Fluffy: Potentially allow for spells to be cast in town
 		switch (spelldata[plr[pnum]._pSpell].sType) {
 		case STYPE_FIRE:
 			if (!(plr[pnum]._pGFXLoad & PFILE_FIRE)) {
@@ -2157,13 +2157,21 @@ BOOL PM_DoWalk(int pnum)
 	}
 
 	anim_len = 8;
-	if (currlevel != 0) {
+	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
-	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
-	    || (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
+	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
+	BOOL newTile = 0;
+	if (leveltype == DTYPE_TOWN) {
+		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
+			newTile = 1;
+		else if (plr[pnum]._pVar8 == anim_len)
+			newTile = 1;
+	} else if (plr[pnum]._pVar8 == anim_len)
+		newTile = 1;
+
+	if (newTile) {
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 		plr[pnum]._px += plr[pnum]._pVar1;
 		plr[pnum]._py += plr[pnum]._pVar2;
@@ -2216,13 +2224,21 @@ BOOL PM_DoWalk2(int pnum)
 	}
 
 	anim_len = 8;
-	if (currlevel != 0) {
+	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
-	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
-	    || (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
+	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
+	BOOL newTile = 0;
+	if (leveltype == DTYPE_TOWN) {
+		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
+			newTile = 1;
+		else if (plr[pnum]._pVar8 == anim_len)
+			newTile = 1;
+	} else if (plr[pnum]._pVar8 == anim_len)
+		newTile = 1;
+
+	if (newTile) {
 		dPlayer[plr[pnum]._pVar1][plr[pnum]._pVar2] = 0;
 
 		if (leveltype != DTYPE_TOWN) {
@@ -2270,13 +2286,21 @@ BOOL PM_DoWalk3(int pnum)
 	}
 
 	anim_len = 8;
-	if (currlevel != 0) {
+	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
 		anim_len = AnimLenFromClass[plr[pnum]._pClass];
 	}
 
-	//Fluffy: If in town, then we walk twice as fast, and thus change tile twice as often
-	if ((leveltype == DTYPE_TOWN && plr[pnum]._pVar8 == anim_len / 2)
-		|| (leveltype != DTYPE_TOWN && plr[pnum]._pVar8 == anim_len)) {
+	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
+	BOOL newTile = 0;
+	if (leveltype == DTYPE_TOWN) {
+		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
+			newTile = 1;
+		else if (plr[pnum]._pVar8 == anim_len)
+			newTile = 1;
+	} else if (plr[pnum]._pVar8 == anim_len)
+		newTile = 1;
+
+	if (newTile) {
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 		dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
 		plr[pnum]._px = plr[pnum]._pVar1;
@@ -2916,7 +2940,7 @@ BOOL PM_DoSpell(int pnum)
 
 	plr[pnum]._pVar8++;
 
-	if (0) { //Fluffy: Since we allow for normal casting in towns, this code isn't needed
+	if (leveltype == DTYPE_TOWN && gameSetup_allowAttacksInTown == 0) { //Fluffy: I don't fully understand what this code does but if we do a full cast animation, then we need the "else" to play out
 		if (plr[pnum]._pVar8 > plr[pnum]._pSFrames) {
 			StartWalkStand(pnum);
 			ClearPlrPVars(pnum);
@@ -3711,9 +3735,8 @@ void CheckPlrSpell()
 		return;
 	}
 
-	//Fluffy: Commented this out to allow for any spell casting in town
-	/*
-	if (leveltype == DTYPE_TOWN && !spelldata[rspell].sTownSpell) {
+	//Fluffy: If gameSetup_allowAttacksInTown is false then disallow casting in town, and have player character say a line
+	if (leveltype == DTYPE_TOWN && !spelldata[rspell].sTownSpell && gameSetup_allowAttacksInTown == false) {
 		if (plr[myplr]._pClass == PC_WARRIOR) {
 			PlaySFX(PS_WARR27);
 #ifndef SPAWN
@@ -3725,7 +3748,6 @@ void CheckPlrSpell()
 		}
 		return;
 	}
-	*/
 
 	if (!sgbControllerActive) {
 		if (pcurs != CURSOR_HAND

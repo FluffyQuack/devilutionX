@@ -50,6 +50,10 @@ extern int color_cycle_timer;
 extern int ticks_per_sec;
 extern WORD tick_delay;
 
+//Fluffy: New global variables which are updated when loading config file (or loaded via network if we joined a network game)
+extern BOOL gameSetup_fastWalkInTown;
+extern BOOL gameSetup_allowAttacksInTown;
+
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
 void run_game_loop(unsigned int uMsg);
