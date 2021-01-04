@@ -15,8 +15,6 @@
 
 #include "DiabloUI/diabloui.h"
 
-#include <direct.h> //Fluffy debug: For setting working directory
-
 namespace dvl {
 
 std::string basePath;
@@ -48,12 +46,6 @@ static Mix_Chunk *SFileChunk = NULL;
 
 void GetBasePath(char *buffer, size_t size)
 {
-	//Fluffy debug: SDL_GetBasePath() returns the path of where the executable is contained rather than current working directory, which is inconvenient for how we wanna do debugging
-	char workingDir[MAX_PATH];
-	_getcwd(workingDir, MAX_PATH);
-	snprintf(buffer, size, "%s\\", workingDir);
-	return;
-
 	if (basePath.length()) {
 		snprintf(buffer, size, "%s", basePath.c_str());
 		return;
