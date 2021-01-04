@@ -180,7 +180,7 @@ typedef struct ItemStruct {
 typedef struct PlayerStruct {
 	int _pmode;
 	char walkpath[MAX_PATH_LENGTH];
-	BOOLEAN startOfPathfinding; //Fluffy: If true, we just started pathfinding
+	BOOLEAN walkedLastTick; //Fluffy: If true, this player moved last tick (this is used for keeping animation frame when resuming walk animation)
 	BOOLEAN plractive;
 	int destAction;
 	int destParam1;
@@ -206,10 +206,10 @@ typedef struct PlayerStruct {
 	int _nextdir;
 	int _pgfxnum;
 	unsigned char *_pAnimData;
-	int _pAnimDelay;
-	int _pAnimCnt;
+	int _pAnimDelay; //By default, all animations advance by one frame for each tick. This value lets you set by how many ticks each frame should get delayed (apparently the last frame of an animation is only ever one tick long)
+	int _pAnimCnt; //For controlling the tick delay of animation frames
 	int _pAnimLen;
-	int _pAnimFrame;
+	int _pAnimFrame; //Current frame we're at in the animation. We always start at 1
 	int _pAnimWidth;
 	int _pAnimWidth2;
 	int _peflag;
@@ -288,29 +288,29 @@ typedef struct PlayerStruct {
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
 	int _pGFXLoad;
-	unsigned char *_pNAnim[8];
+	unsigned char *_pNAnim[8]; //Stand animation
 	int _pNFrames;
 	int _pNWidth;
-	unsigned char *_pWAnim[8];
+	unsigned char *_pWAnim[8]; //Walk animation
 	int _pWFrames;
 	int _pWWidth;
-	unsigned char *_pAAnim[8];
+	unsigned char *_pAAnim[8]; //Attack animation
 	int _pAFrames;
 	int _pAWidth;
 	int _pAFNum;
-	unsigned char *_pLAnim[8];
-	unsigned char *_pFAnim[8];
-	unsigned char *_pTAnim[8];
+	unsigned char *_pLAnim[8]; //Lightning spell cast animation
+	unsigned char *_pFAnim[8]; //Fire spell cast animation
+	unsigned char *_pTAnim[8]; //Generic spell cast animation
 	int _pSFrames;
 	int _pSWidth;
 	int _pSFNum;
-	unsigned char *_pHAnim[8];
+	unsigned char *_pHAnim[8]; //Getting hit animation
 	int _pHFrames;
 	int _pHWidth;
-	unsigned char *_pDAnim[8];
+	unsigned char *_pDAnim[8]; //Death animation
 	int _pDFrames;
 	int _pDWidth;
-	unsigned char *_pBAnim[8];
+	unsigned char *_pBAnim[8]; //Block animation
 	int _pBFrames;
 	int _pBWidth;
 
