@@ -23,7 +23,7 @@ extern int turn_upper_bit;
 extern BOOLEAN sgbThreadIsRunning;
 extern DWORD gdwLargestMsgSize;
 extern DWORD gdwNormalMsgSize;
-extern int last_tick;
+extern unsigned long long last_tick_highResolution; //Fluffy;
 
 void nthread_terminate_game(const char *pszFcn);
 DWORD nthread_send_and_recv_turn(DWORD cur_turn, int turn_delta);

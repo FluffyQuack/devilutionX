@@ -43,7 +43,7 @@ int sgnTimeoutCurs;
 char sgbMouseDown;
 int color_cycle_timer;
 int ticks_per_sec = 20;
-WORD tick_delay = 50;
+unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
@@ -73,7 +73,10 @@ int arrowdebug;
 int frameflag;
 int frameend;
 int framerate;
-int framestart;
+unsigned long long framestart; //Fluffy: Gave this higher precision
+unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick deltas
+unsigned long long frame_timeOfPreviousFrameRender = 0; //Fluffy For tracking frame render deltas
+double frame_gameplayTickFrameTime = 0; //Fluffy
 /** Specifies whether players are in non-PvP mode. */
 BOOL FriendlyMode = TRUE;
 /** Default quick messages */
@@ -1726,6 +1729,15 @@ extern void plrctrls_after_game_logic();
 
 void game_logic()
 {
+	//Fluffy: Calculate delta between current and previous gameplay tick
+	unsigned long long curTime = SDL_GetPerformanceCounter();
+	if (frame_timeOfPreviousGamePlayTick != 0)
+		frame_gameplayTickFrameTime = (double) ((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
+	frame_timeOfPreviousGamePlayTick = curTime;
+
+	unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick frametimes
+	double frame_gameplayTickFrameTime = 0; //Fluffy
+
 	if (!ProcessInput()) {
 		return;
 	}

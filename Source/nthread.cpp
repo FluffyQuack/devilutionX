@@ -23,7 +23,7 @@ char sgbPacketCountdown;
 BOOLEAN sgbThreadIsRunning;
 DWORD gdwLargestMsgSize;
 DWORD gdwNormalMsgSize;
-int last_tick;
+unsigned long long last_tick_highResolution; //Fluffy
 
 /* data */
 static SDL_Thread *sghThread = NULL;
@@ -79,7 +79,8 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 	*pfSendAsync = FALSE;
 	sgbPacketCountdown--;
 	if (sgbPacketCountdown) {
-		last_tick += tick_delay;
+		last_tick_highResolution += tick_delay_highResolution; //Fluffy
+
 		return TRUE;
 	}
 	sgbSyncCountdown--;
@@ -87,7 +88,7 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 	if (sgbSyncCountdown != 0) {
 
 		*pfSendAsync = TRUE;
-		last_tick += tick_delay;
+		last_tick_highResolution += tick_delay_highResolution; //Fluffy
 		return TRUE;
 	}
 	if (!SNetReceiveTurns(0, MAX_PLRS, (char **)glpMsgTbl, gdwMsgLenTbl, (LPDWORD)player_state)) {
@@ -100,12 +101,12 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 	} else {
 		if (!sgbTicsOutOfSync) {
 			sgbTicsOutOfSync = TRUE;
-			last_tick = SDL_GetTicks();
+			last_tick_highResolution = SDL_GetPerformanceCounter(); //Fluffy
 		}
 		sgbSyncCountdown = 4;
 		multi_msg_countdown();
 		*pfSendAsync = TRUE;
-		last_tick += tick_delay;
+		last_tick_highResolution += tick_delay_highResolution; //Fluffy
 		return TRUE;
 	}
 }
@@ -122,6 +123,7 @@ void nthread_start(BOOL set_turn_upper_bit)
 	_SNETCAPS caps;
 
 	last_tick = SDL_GetTicks();
+	last_tick_highResolution = SDL_GetPerformanceCounter(); //Fluffy
 	sgbPacketCountdown = 1;
 	sgbSyncCountdown = 1;
 	sgbTicsOutOfSync = TRUE;
@@ -172,7 +174,8 @@ void nthread_start(BOOL set_turn_upper_bit)
 
 unsigned int nthread_handler(void *data)
 {
-	int delta;
+	//Fluffy: Rewrote this to use high resolution timer
+	unsigned long long delta;
 	BOOL received;
 
 	if (nthread_should_run) {
@@ -182,12 +185,14 @@ unsigned int nthread_handler(void *data)
 				break;
 			nthread_send_and_recv_turn(0, 0);
 			if (nthread_recv_turns(&received))
-				delta = last_tick - SDL_GetTicks();
+				delta = last_tick_highResolution - SDL_GetPerformanceCounter();
 			else
-				delta = tick_delay;
+				delta = tick_delay_highResolution;
+
 			sgMemCrit.Leave();
-			if (delta > 0)
-				SDL_Delay(delta);
+			unsigned long long milliseconds = (delta * 1000) / SDL_GetPerformanceFrequency(); //Delta as milliseconds
+			if (milliseconds - 1)
+				SDL_Delay(milliseconds - 1); //Just in case SDL_Delay isn't that precise with delaying we'll leave one millisecond as margin
 			if (!nthread_should_run)
 				return 0;
 		}
@@ -223,16 +228,18 @@ void nthread_ignore_mutex(BOOL bStart)
 
 BOOL nthread_has_500ms_passed(BOOL unused)
 {
-	DWORD currentTickCount;
-	int ticksElapsed;
+	//Fluffy: Rewrote this to use high resolution timer
+	unsigned long long currentTime, elapsedTime;
 
-	currentTickCount = SDL_GetTicks();
-	ticksElapsed = currentTickCount - last_tick;
-	if (gbMaxPlayers == 1 && ticksElapsed > 500) {
-		last_tick = currentTickCount;
-		ticksElapsed = 0;
+	currentTime = SDL_GetPerformanceCounter();
+	if (currentTime < last_tick_highResolution)
+		return false;
+	elapsedTime = currentTime - last_tick_highResolution;
+	if (gbMaxPlayers == 1 && elapsedTime > SDL_GetPerformanceFrequency() / 2) { //Checking if elapsedTimer is over a half second, aka 500ms
+		last_tick_highResolution = currentTime;
+		elapsedTime = 0;
 	}
-	return ticksElapsed >= 0;
+	return true;
 }
 
 DEVILUTION_END_NAMESPACE

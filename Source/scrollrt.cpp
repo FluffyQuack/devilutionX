@@ -1330,7 +1330,13 @@ void ScrollView()
 void EnableFrameCount()
 {
 	frameflag = frameflag == 0;
-	framestart = SDL_GetTicks();
+	framestart = SDL_GetPerformanceCounter(); //Fluffy
+}
+
+static void RenderDebugLine(int *x, int *y, char *line)
+{
+	PrintGameStr(*x, *y, line, COL_RED);
+	*y += 15;
 }
 
 /**
@@ -1338,21 +1344,38 @@ void EnableFrameCount()
  */
 static void DrawFPS()
 {
-	DWORD tc, frames;
-	char String[12];
+	//Fluffy: Calculate delta between current and previous displayed frame
+	double renderDelta = 0;
+	{
+		unsigned long long curTime = SDL_GetPerformanceCounter();
+		if (frame_timeOfPreviousFrameRender != 0)
+			renderDelta = (double)((curTime - frame_timeOfPreviousFrameRender) * 1000) / SDL_GetPerformanceFrequency();
+		frame_timeOfPreviousFrameRender = curTime;
+	}
+
+	//Fluffy: Updated this code to use high precision timer
+	unsigned long long timeDiff;
+	char String[100];
 	HDC hdc;
+	unsigned long long tc;
 
 	if (frameflag && gbActive && pPanelText) {
 		frameend++;
-		tc = SDL_GetTicks();
-		frames = tc - framestart;
-		if (tc - framestart >= 1000) {
+		tc = SDL_GetPerformanceCounter();
+		timeDiff = tc - framestart;
+		if (timeDiff >= SDL_GetPerformanceFrequency()) {
 			framestart = tc;
-			framerate = 1000 * frameend / frames;
+			//framerate = 1000 * frameend / frames;
+			framerate = frameend;
 			frameend = 0;
 		}
-		snprintf(String, 12, "%d FPS", framerate);
-		PrintGameStr(8, 65, String, COL_RED);
+		int x = 8, y = 65;
+		snprintf(String, 100, "%d FPS", framerate);
+		RenderDebugLine(&x, &y, String);
+		snprintf(String, 100, "%0.3f gametick delta", frame_gameplayTickFrameTime);
+		RenderDebugLine(&x, &y, String);
+		snprintf(String, 100, "%0.3f render delta", renderDelta);
+		RenderDebugLine(&x, &y, String);
 	}
 }
 

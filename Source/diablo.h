@@ -48,7 +48,7 @@ extern int PauseMode;
 extern char sgbMouseDown;
 extern int color_cycle_timer;
 extern int ticks_per_sec;
-extern WORD tick_delay;
+extern unsigned long long tick_delay_highResolution; //Fluffy
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we joined a network game)
 extern BOOL gameSetup_fastWalkInTown;
@@ -110,7 +110,10 @@ extern int arrowdebug;
 extern int frameflag;
 extern int frameend;
 extern int framerate;
-extern int framestart;
+extern unsigned long long framestart; //Fluffy: Gave this higher precision
+extern unsigned long long frame_timeOfPreviousGamePlayTick; //Fluffy
+extern unsigned long long frame_timeOfPreviousFrameRender; //Fluffy
+extern double frame_gameplayTickFrameTime; //Fluffy
 extern BOOL FriendlyMode;
 extern char *spszMsgTbl[4];
 extern char *spszMsgHotKeyTbl[4];

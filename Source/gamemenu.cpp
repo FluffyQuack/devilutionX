@@ -340,7 +340,7 @@ void gamemenu_speed(BOOL bActivate)
 	}
 
 	SRegSaveValue("devilutionx", "game speed", 0, ticks_per_sec);
-	tick_delay = 1000 / ticks_per_sec;
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
 }
 
 void gamemenu_color_cycling(BOOL bActivate)

@@ -277,7 +277,7 @@ void multi_net_ping()
 	sglTimeoutStart = SDL_GetTicks();
 }
 
-int multi_handle_delta()
+int multi_handle_delta() //If this returns true, then we proceed with simulating one tick of gameplay
 {
 	int i;
 	BOOL received;
@@ -733,7 +733,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	}
 	gnDifficulty = sgGameInitInfo.bDiff;
 	ticks_per_sec = sgGameInitInfo.bRate;
-	tick_delay = 1000 / ticks_per_sec;
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
 
 	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
 	gameSetup_fastWalkInTown = sgGameInitInfo.fastWalkInTown;
