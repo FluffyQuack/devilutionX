@@ -8,6 +8,12 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *tbuff;
+#define VERSION 1
+static int version; //Version of savegame we're currently loading
+/*
+* Version 0 = Savegame from base game
+* Version 1 = Savegame from FluffyMod adding some additional values
+*/
 
 /**
  * @brief Load game state
@@ -27,8 +33,17 @@ void LoadGame(BOOL firstflag)
 	LoadBuff = pfile_read(szName, &dwLen);
 	tbuff = LoadBuff;
 
-	if (ILoad() != 'RETL')
+	//Fluffy: Check if this is a save from the base game or FluffyMod
+	int magic = ILoad();
+	if (magic == 'RETL')
+		version = 0;
+	else if (magic == 'RETF')
+		version = 1;
+	else
 		app_fatal("Invalid save file");
+
+	//Fluffy: If FluffyMod, then we load a version number
+	version = ILoad();
 
 	setlevel = OLoad();
 	setlvlnum = WLoad();
@@ -288,7 +303,8 @@ void LoadPlayer(int i)
 
 	CopyInt(tbuff, &pPlayer->_pmode);
 	CopyBytes(tbuff, MAX_PATH_LENGTH, pPlayer->walkpath);
-	CopyBytes(tbuff, 1, &pPlayer->walkedLastTick); //Fluffy
+	if (version >= 1)
+		CopyBytes(tbuff, 1, &pPlayer->walkedLastTick); //Fluffy
 	CopyBytes(tbuff, 1, &pPlayer->plractive);
 	tbuff += 2; // Alignment
 	CopyInt(tbuff, &pPlayer->destAction);
@@ -433,12 +449,14 @@ void LoadPlayer(int i)
 	CopyInt(tbuff, &pPlayer->_pBWidth);
 
 	//Fluffy
-	tbuff += 4 * 8; // Skip pointers _pNAnim_c
-	CopyInt(tbuff, &pPlayer->_pNFrames_c);
-	CopyInt(tbuff, &pPlayer->_pNWidth_c);
-	tbuff += 4 * 8; // Skip pointers _pWAnim_c
-	CopyInt(tbuff, &pPlayer->_pWFrames_c);
-	CopyInt(tbuff, &pPlayer->_pWWidth_c);
+	if (version >= 1) {
+		tbuff += 4 * 8; // Skip pointers _pNAnim_c
+		CopyInt(tbuff, &pPlayer->_pNFrames_c);
+		CopyInt(tbuff, &pPlayer->_pNWidth_c);
+		tbuff += 4 * 8; // Skip pointers _pWAnim_c
+		CopyInt(tbuff, &pPlayer->_pWFrames_c);
+		CopyInt(tbuff, &pPlayer->_pWWidth_c);
+	}
 
 	LoadItems(NUM_INVLOC, pPlayer->InvBody);
 	LoadItems(NUM_INV_GRID_ELEM, pPlayer->InvList);
@@ -860,7 +878,9 @@ void SaveGame()
 	BYTE *SaveBuff = DiabloAllocPtr(dwLen);
 	tbuff = SaveBuff;
 
-	ISave('RETL');
+	ISave('RETF'); //Fluffy: New magic to indicate this is a FluffyMod save
+	int version = VERSION;
+	WSave(version);
 	OSave(setlevel);
 	WSave(setlvlnum);
 	WSave(currlevel);
