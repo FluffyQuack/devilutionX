@@ -113,7 +113,8 @@ extern int framerate;
 extern unsigned long long framestart; //Fluffy: Gave this higher precision
 extern unsigned long long frame_timeOfPreviousGamePlayTick; //Fluffy
 extern unsigned long long frame_timeOfPreviousFrameRender; //Fluffy
-extern double frame_gameplayTickFrameTime; //Fluffy
+extern double frame_gameplayTickDelta; //Fluffy
+extern double frame_renderDelta; //Fluffy
 extern BOOL FriendlyMode;
 extern char *spszMsgTbl[4];
 extern char *spszMsgHotKeyTbl[4];

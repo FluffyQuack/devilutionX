@@ -254,6 +254,14 @@ void LimitFrameRate()
 
 void RenderPresent()
 {
+	//Fluffy: Calculate delta between current and previous displayed frame
+	{
+		unsigned long long curTime = SDL_GetPerformanceCounter();
+		if (frame_timeOfPreviousFrameRender != 0)
+			frame_renderDelta = (double)((curTime - frame_timeOfPreviousFrameRender) * 1000) / SDL_GetPerformanceFrequency();
+		frame_timeOfPreviousFrameRender = curTime;
+	}
+
 	SDL_Surface *surface = GetOutputSurface();
 	assert(!SDL_MUSTLOCK(surface));
 

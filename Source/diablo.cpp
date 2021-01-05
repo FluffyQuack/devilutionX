@@ -76,7 +76,8 @@ int framerate;
 unsigned long long framestart; //Fluffy: Gave this higher precision
 unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick deltas
 unsigned long long frame_timeOfPreviousFrameRender = 0; //Fluffy For tracking frame render deltas
-double frame_gameplayTickFrameTime = 0; //Fluffy
+double frame_gameplayTickDelta = 0; //Fluffy
+double frame_renderDelta = 0; //Fluffy
 /** Specifies whether players are in non-PvP mode. */
 BOOL FriendlyMode = TRUE;
 /** Default quick messages */
@@ -1732,7 +1733,7 @@ void game_logic()
 	//Fluffy: Calculate delta between current and previous gameplay tick
 	unsigned long long curTime = SDL_GetPerformanceCounter();
 	if (frame_timeOfPreviousGamePlayTick != 0)
-		frame_gameplayTickFrameTime = (double) ((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
+		frame_gameplayTickDelta = (double)((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
 	frame_timeOfPreviousGamePlayTick = curTime;
 
 	unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick frametimes

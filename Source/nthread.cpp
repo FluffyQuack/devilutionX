@@ -122,7 +122,6 @@ void nthread_start(BOOL set_turn_upper_bit)
 	DWORD largestMsgSize;
 	_SNETCAPS caps;
 
-	last_tick = SDL_GetTicks();
 	last_tick_highResolution = SDL_GetPerformanceCounter(); //Fluffy
 	sgbPacketCountdown = 1;
 	sgbSyncCountdown = 1;

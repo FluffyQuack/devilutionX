@@ -1344,15 +1344,6 @@ static void RenderDebugLine(int *x, int *y, char *line)
  */
 static void DrawFPS()
 {
-	//Fluffy: Calculate delta between current and previous displayed frame
-	double renderDelta = 0;
-	{
-		unsigned long long curTime = SDL_GetPerformanceCounter();
-		if (frame_timeOfPreviousFrameRender != 0)
-			renderDelta = (double)((curTime - frame_timeOfPreviousFrameRender) * 1000) / SDL_GetPerformanceFrequency();
-		frame_timeOfPreviousFrameRender = curTime;
-	}
-
 	//Fluffy: Updated this code to use high precision timer
 	unsigned long long timeDiff;
 	char String[100];
@@ -1365,16 +1356,15 @@ static void DrawFPS()
 		timeDiff = tc - framestart;
 		if (timeDiff >= SDL_GetPerformanceFrequency()) {
 			framestart = tc;
-			//framerate = 1000 * frameend / frames;
 			framerate = frameend;
 			frameend = 0;
 		}
 		int x = 8, y = 65;
 		snprintf(String, 100, "%d FPS", framerate);
 		RenderDebugLine(&x, &y, String);
-		snprintf(String, 100, "%0.3f gametick delta", frame_gameplayTickFrameTime);
+		snprintf(String, 100, "%0.2f gametick delta", frame_gameplayTickDelta);
 		RenderDebugLine(&x, &y, String);
-		snprintf(String, 100, "%0.3f render delta", renderDelta);
+		snprintf(String, 100, "%0.2f render delta", frame_renderDelta);
 		RenderDebugLine(&x, &y, String);
 	}
 }
