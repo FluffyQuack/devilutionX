@@ -199,9 +199,9 @@ typedef struct PlayerStruct {
 	int _poldx; //Player's old X position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
 	int _poldy; //Player's old Y position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
 	int _pxoff; //X offset render (basically, the player's sub-tile position)
-	int xRenderOffset_Interpolated; //Interpolated version of player's X offset position
+	int _pxoff_interpolated; //Interpolated version of player's X offset position
 	int _pyoff; //Y offset render (basically, the player's sub-tile position)
-	int yRenderOffset_Interpolated; //Interpolated version of player's Y offset position
+	int _pyoff_interpolated; //Interpolated version of player's Y offset position
 	int _pxvel; //Player's X velocity while walking
 	int _pyvel; //Player's Y velocity while walking
 	int _pdir; //Facing of the player (0..7 starting from DIR_S)

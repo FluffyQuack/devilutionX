@@ -497,8 +497,8 @@ void DrawAutomapPlr()
 
 	//x = (plr[myplr]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X;
 	//y = (plr[myplr]._pyoff * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
-	x = (plr[myplr].xRenderOffset_Interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff_interpolated * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy
-	y = (plr[myplr].yRenderOffset_Interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff_interpolated * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
+	x = (plr[myplr]._pxoff_interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff_interpolated * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy
+	y = (plr[myplr]._pyoff_interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff_interpolated * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
 
 	if (PANELS_COVER) {
 		if (invflag || sbookflag)
