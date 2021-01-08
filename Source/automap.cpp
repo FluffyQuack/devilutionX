@@ -223,7 +223,8 @@ void DrawAutomap()
 	if ((SCREEN_WIDTH / 2) % d >= (AutoMapScale << 5) / 100)
 		cells++;
 
-	if (ScrollInfo._sxoff + ScrollInfo._syoff)
+	//if (ScrollInfo._sxoff + ScrollInfo._syoff)
+	if (ScrollInfo._sxoff_interpolated + ScrollInfo._syoff_interpolated) //Fluffy
 		cells++;
 	mapx = AutoMapX - cells;
 	mapy = AutoMapY - 1;
@@ -244,8 +245,10 @@ void DrawAutomap()
 		sy -= AmLine8;
 	}
 
-	sx += AutoMapScale * ScrollInfo._sxoff / 100 >> 1;
-	sy += AutoMapScale * ScrollInfo._syoff / 100 >> 1;
+	//sx += AutoMapScale * ScrollInfo._sxoff / 100 >> 1;
+	//sy += AutoMapScale * ScrollInfo._syoff / 100 >> 1;
+	sx += AutoMapScale * ScrollInfo._sxoff_interpolated / 100 >> 1; //Fluffy
+	sy += AutoMapScale * ScrollInfo._syoff_interpolated / 100 >> 1; //Fluffy
 	if (PANELS_COVER) {
 		if (invflag || sbookflag) {
 			sx -= SCREEN_WIDTH / 4;
@@ -492,8 +495,10 @@ void DrawAutomapPlr()
 	px = x - 2 * AutoMapXOfs - ViewX;
 	py = y - 2 * AutoMapYOfs - ViewY;
 
-	x = (plr[myplr]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X;
-	y = (plr[myplr]._pyoff * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
+	//x = (plr[myplr]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X;
+	//y = (plr[myplr]._pyoff * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
+	x = (plr[myplr].xRenderOffset_Interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff_interpolated * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy
+	y = (plr[myplr].yRenderOffset_Interpolated * AutoMapScale / 100 >> 1) + (ScrollInfo._syoff_interpolated * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
 
 	if (PANELS_COVER) {
 		if (invflag || sbookflag)

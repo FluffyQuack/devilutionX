@@ -84,6 +84,7 @@ void LoadAllGFX();
 void CreateLevel(int lvldir);
 void LoadGameLevel(BOOL firstflag, int lvldir);
 void game_loop(BOOL bStartup);
+void Diablo_InterpolateBetweenGameplayTicks(bool gameSimulated); //Fluffy
 void game_logic();
 void timeout_cursor(BOOL bTimeout);
 void diablo_color_cyc_logic();
@@ -112,9 +113,12 @@ extern int frameend;
 extern int framerate;
 extern unsigned long long framestart; //Fluffy: Gave this higher precision
 extern unsigned long long frame_timeOfPreviousGamePlayTick; //Fluffy
+extern unsigned long long frame_timeOfPreviousInterpolate; //Fluffy: For tracking delta between interpolation updates
 extern unsigned long long frame_timeOfPreviousFrameRender; //Fluffy
 extern double frame_gameplayTickDelta; //Fluffy
 extern double frame_renderDelta; //Fluffy
+extern double frame_interpolationDelta; //Fluffy
+extern double frame_timeSinceGameplayTick; //Fluffy
 extern BOOL FriendlyMode;
 extern char *spszMsgTbl[4];
 extern char *spszMsgHotKeyTbl[4];

@@ -231,10 +231,13 @@ void CheckCursMove()
 
 	// Adjust by player offset and tile grid alignment
 	CalcTileOffset(&xo, &yo);
-	sx -= ScrollInfo._sxoff - xo;
-	sy -= ScrollInfo._syoff - yo;
+	//sx -= ScrollInfo._sxoff - xo;
+	//sy -= ScrollInfo._syoff - yo;
+	sx -= ScrollInfo._sxoff_interpolated - xo; //Fluffy
+	sy -= ScrollInfo._syoff_interpolated - yo;
 
 	// Predict the next frame when walking to avoid input jitter
+	//Fluffy TODO: This probably needs to be changed if we're using interpolation
 	fx = plr[myplr]._pVar6 / 256;
 	fy = plr[myplr]._pVar7 / 256;
 	fx -= (plr[myplr]._pVar6 + plr[myplr]._pxvel) / 256;
