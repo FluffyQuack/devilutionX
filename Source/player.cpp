@@ -876,8 +876,8 @@ void InitPlayer(int pnum, BOOL FirstTime)
 
 		plr[pnum]._pxoff = 0;
 		plr[pnum]._pyoff = 0;
-		plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
-		plr[pnum].yRenderOffset_Interpolated = 0;
+		plr[pnum]._pxoff_interpolated = 0; //Fluffy
+		plr[pnum]._pyoff_interpolated = 0;
 		plr[pnum]._pxvel = 0;
 		plr[pnum]._pyvel = 0;
 
@@ -1067,8 +1067,8 @@ void FixPlayerLocation(int pnum, int bDir)
 	plr[pnum]._ptargy = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
-	plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
-	plr[pnum].yRenderOffset_Interpolated = 0;
+	plr[pnum]._pxoff_interpolated = 0; //Fluffy
+	plr[pnum]._pyoff_interpolated = 0;
 	plr[pnum]._pdir = bDir;
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
@@ -1126,8 +1126,8 @@ void StartWalkStand(int pnum)
 	plr[pnum]._pfuty = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
-	plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
-	plr[pnum].yRenderOffset_Interpolated = 0;
+	plr[pnum]._pxoff_interpolated = 0; //Fluffy
+	plr[pnum]._pyoff_interpolated = 0;
 
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
@@ -1195,18 +1195,11 @@ void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset(
 
 	int px = plr[pnum]._pVar6 / 256, py = plr[pnum]._pVar7 / 256;
 
-	int var6, var7;
-	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
-	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
-		var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel * 2;
-		var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel * 2;
-	} else {
-		var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel;
-		var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel;
-	}
+	int var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel;
+	int var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel;
 
-	plr[pnum].xRenderOffset_Interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, var6 / 256, frame_timeSinceGameplayTick / 50.0);
-	plr[pnum].yRenderOffset_Interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, var7 / 256, frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, var6 / 256, frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, var7 / 256, frame_timeSinceGameplayTick / 50.0);
 
 	if (pnum == myplr && ScrollInfo._sdir) {
 		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff_next, frame_timeSinceGameplayTick / 50.0);
@@ -1226,30 +1219,21 @@ void PM_ChangeOffset(int pnum)
 	px = plr[pnum]._pVar6 / 256;
 	py = plr[pnum]._pVar7 / 256;
 
-	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
-	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
-		plr[pnum]._pVar6 += plr[pnum]._pxvel * 2;
-		plr[pnum]._pVar7 += plr[pnum]._pyvel * 2;
-	} else {
-		plr[pnum]._pVar6 += plr[pnum]._pxvel;
-		plr[pnum]._pVar7 += plr[pnum]._pyvel;
-	}
-	plr[pnum]._pxoff = plr[pnum]._pVar6 / 256;
-	plr[pnum]._pyoff = plr[pnum]._pVar7 / 256;
+	plr[pnum]._pVar6 += plr[pnum]._pxvel;
+	plr[pnum]._pVar7 += plr[pnum]._pyvel;
+	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = plr[pnum]._pVar6 / 256;
+	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = plr[pnum]._pVar7 / 256;
 
 	px -= plr[pnum]._pVar6 >> 8;
 	py -= plr[pnum]._pVar7 >> 8;
 
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff += px;
-		ScrollInfo._syoff += py;
+		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff += px;
+		ScrollInfo._syoff_interpolated = ScrollInfo._syoff += py;
 
 		//Fluffy: For interpolation to next frame
 		ScrollInfo._sxoff_next = ScrollInfo._sxoff + px;
 		ScrollInfo._syoff_next = ScrollInfo._syoff + py;
-
-		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff;
-		ScrollInfo._syoff_interpolated = ScrollInfo._syoff;
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -1261,8 +1245,14 @@ __attribute__((no_sanitize("shift-base")))
 #endif
 void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant) //Fluffy: Rewrite of StartWalk1/2/3 since they were mostly identical
 {
-	int px, py;
+	//xoff and yoff are set in this function to make it seem like it's being rendered on the same tile (as it can suddenly belong to a different tile at the start of moving the character)
 
+	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
+	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
+		xvel *= 2;
+		yvel *= 2;
+	}
+	
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("StartWalk: illegal player %d", pnum);
 	}
@@ -1273,8 +1263,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	}
 
 	SetPlayerOld(pnum);
-	px = xadd + plr[pnum]._px;
-	py = yadd + plr[pnum]._py;
+	int px = xadd + plr[pnum]._px;
+	int py = yadd + plr[pnum]._py;
 
 	if (!PlrDirOK(pnum, EndDir)) {
 		return;
@@ -1288,27 +1278,25 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		ScrollInfo._sdy = plr[pnum]._py - ViewY;
 	}
 
-	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright
+	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright movement
 		dPlayer[px][py] = -(pnum + 1);
 		plr[pnum]._pmode = PM_WALK;
 		plr[pnum]._pxvel = xvel;
 		plr[pnum]._pyvel = yvel;
-		plr[pnum]._pxoff = 0;
-		plr[pnum]._pyoff = 0;
-		plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
-		plr[pnum].yRenderOffset_Interpolated = 0;
+		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = 0;
+		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = 0;
 		plr[pnum]._pVar1 = xadd;
 		plr[pnum]._pVar2 = yadd;
 		plr[pnum]._pVar3 = EndDir;
-	} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright
+	} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright movement
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
 		plr[pnum]._pVar1 = plr[pnum]._px;
 		plr[pnum]._pVar2 = plr[pnum]._py;
 		plr[pnum]._px = px;
 		plr[pnum]._py = py;
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = yoff;
 
 		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 		PM_ChangeLightOff(pnum);
@@ -1319,7 +1307,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar6 = xoff * 256;
 		plr[pnum]._pVar7 = yoff * 256;
 		plr[pnum]._pVar3 = EndDir;
-	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right
+	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
 		int x = mapx + plr[pnum]._px;
 		int y = mapy + plr[pnum]._py;
 
@@ -1328,8 +1316,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar4 = x;
 		plr[pnum]._pVar5 = y;
 		dFlags[x][y] |= BFLAG_PLAYERLR;
-		plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = yoff;
 
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, x, y);
@@ -2059,25 +2047,23 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 {
 	int anim_len = 8;
 	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
-		anim_len = AnimLenFromClass[plr[pnum]._pClass];
+		anim_len = AnimLenFromClass[plr[pnum]._pClass]; //As of now, this always returns 8 as every character has the same walk animation length
 	}
 
 	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-	BOOL newTile = 0;
-	if (leveltype == DTYPE_TOWN) {
-		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
-			newTile = 1;
-		else if (plr[pnum]._pVar8 == anim_len)
-			newTile = 1;
-	} else if (plr[pnum]._pVar8 == anim_len)
-		newTile = 1;
+	int moveProgress = plr[pnum]._pVar8;
+	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown)
+		moveProgress *= 2;
 
-	return newTile;
+	if (moveProgress >= anim_len)
+		return 1;
+	else
+		return 0;
 }
 
 static BOOL PM_DoWalk_Interpolate(int pnum, int variant) //Fluffy: Same as PM_DoWalk() but for interpolation. We check if player reaches new tile here
 {
-	//Fluffy TODO:
+	//Fluffy TODO
 	return 0;
 }
 
@@ -3279,7 +3265,7 @@ void ValidatePlayer() //This is a series of anti-cheat checks
 
 void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is called every frame
 {
-	//return;
+	return;
 	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
 			switch (plr[pnum]._pmode)

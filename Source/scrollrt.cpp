@@ -453,8 +453,8 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
 			//px = sx + p->_pxoff - p->_pAnimWidth2;
 			//py = sy + p->_pyoff;
-			px = sx + p->xRenderOffset_Interpolated - p->_pAnimWidth2; //Fluffy
-			py = sy + p->yRenderOffset_Interpolated;
+			px = sx + p->_pxoff_interpolated - p->_pAnimWidth2; //Fluffy
+			py = sy + p->_pyoff_interpolated;
 
 			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
@@ -671,8 +671,8 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	PlayerStruct *pPlayer = &plr[p];
 	//int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	//int py = sy + pPlayer->_pyoff;
-	int px = sx + pPlayer->xRenderOffset_Interpolated - pPlayer->_pAnimWidth2; //Fluffy
-	int py = sy + pPlayer->yRenderOffset_Interpolated;
+	int px = sx + pPlayer->_pxoff_interpolated - pPlayer->_pAnimWidth2; //Fluffy
+	int py = sy + pPlayer->_pyoff_interpolated;
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 }
