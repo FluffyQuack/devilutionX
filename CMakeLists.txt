@@ -247,7 +247,9 @@ add_library(devilution STATIC
   Source/towners.cpp
   Source/track.cpp
   Source/trigs.cpp
-  Source/wave.cpp)
+  Source/wave.cpp
+  Source/Misc/misc.cpp
+  )
 
 set(devilutionx_SRCS
   SourceX/dx.cpp
@@ -262,6 +264,7 @@ set(devilutionx_SRCS
   SourceX/controls/plrctrls.cpp
   SourceX/controls/touch.cpp
   SourceX/display.cpp
+ 
   SourceX/miniwin/misc_msg.cpp
   SourceX/thread.cpp
   SourceX/sound.cpp

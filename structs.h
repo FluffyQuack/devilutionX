@@ -188,33 +188,35 @@ typedef struct PlayerStruct {
 	int destParam3;
 	int destParam4;
 	int plrlevel;
-	int _px;
-	int _py;
-	int _pfutx;
-	int _pfuty;
-	int _ptargx;
-	int _ptargy;
-	int _pownerx;
-	int _pownery;
-	int _poldx;
-	int _poldy;
-	int _pxoff;
-	int _pyoff;
-	int _pxvel;
-	int _pyvel;
-	int _pdir;
-	int _nextdir;
-	int _pgfxnum;
+	int _px; //Tile (X) position of player
+	int _py; //Tile (Y) position of player
+	int _pfutx; //Future (X) position of player. Defined at start of walking animation
+	int _pfuty; //Future (Y) position of player. Defined at start of walking animation
+	int _ptargx; //Target (X) position for player during pathfinding. This indicates the final tile player should stand on at the end of the entire path. Defined at the start of pathfinding.
+	int _ptargy; //Target (Y) position for player during pathfinding. This indicates the final tile player should stand on at the end of the entire path. Defined at the start of pathfinding.
+	int _pownerx; //X position which is equal to the player position whenever they do input (or maybe only when starting pathfinding). This is only referenced by enemy AI for an enemy called "SNEAK"
+	int _pownery; //Y position which is equal to the player position whenever they do input (or maybe only when starting pathfinding). This is only referenced by enemy AI for an enemy called "SNEAK"
+	int _poldx; //Player's old X position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
+	int _poldy; //Player's old Y position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
+	int _pxoff; //X offset render (basically, the player's sub-tile position)
+	int xRenderOffset_Interpolated; //Interpolated version of player's X offset position
+	int _pyoff; //Y offset render (basically, the player's sub-tile position)
+	int yRenderOffset_Interpolated; //Interpolated version of player's Y offset position
+	int _pxvel; //Player's X velocity while walking
+	int _pyvel; //Player's Y velocity while walking
+	int _pdir; //Facing of the player (0..7 starting from DIR_S)
+	int _nextdir; //Unused
+	int _pgfxnum; //Defines what variant of the sprite the player is using. Lower values define weapon (starting with ANIM_ID_UNARMED) and higher values define armour (starting with ANIM_ID_LIGHT_ARMOR)
 	unsigned char *_pAnimData;
 	int _pAnimDelay; //By default, all animations advance by one frame for each tick. This value lets you set by how many ticks each frame should get delayed (apparently the last frame of an animation is only ever one tick long)
 	int _pAnimCnt; //For controlling the tick delay of animation frames
-	int _pAnimLen;
+	int _pAnimLen; //Quantity of frames in animation
 	int _pAnimFrame; //Current frame we're at in the animation. We always start at 1
 	int _pAnimWidth;
 	int _pAnimWidth2;
-	int _peflag;
-	int _plid;
-	int _pvid;
+	int _peflag; //Unused
+	int _plid; //Related to light rendering?
+	int _pvid; //Related to line of sight?
 	int _pSpell;
 	char _pSplType;
 	char _pSplFrom;
@@ -226,9 +228,9 @@ typedef struct PlayerStruct {
 	int _pSBkSpell;
 	char _pSBkSplType;
 	char _pSplLvl[64];
-	uint64_t _pMemSpells;
-	uint64_t _pAblSpells;
-	uint64_t _pScrlSpells;
+	uint64_t _pMemSpells; //Ownership of spells (1 bit is one spell) (This and the following includes ownership of ALL spells and skills)
+	uint64_t _pAblSpells; //Ownership of abilities (1 bit is one spell)
+	uint64_t _pScrlSpells; //Ownership of spells/skills via scrolls (gets updated as you use scrolls or do anything with inventory?)
 	UCHAR _pSpellFlags;
 	int _pSplHotKey[4];
 	char _pSplTHotKey[4];
@@ -236,7 +238,7 @@ typedef struct PlayerStruct {
 	BOOLEAN _pBlockFlag;
 	BOOLEAN _pInvincible;
 	char _pLightRad;
-	BOOLEAN _pLvlChanging;
+	BOOLEAN _pLvlChanging; //Set to true when the player starts loading another level, and set to false as the player finishes loading
 	char _pName[PLR_NAME_LEN];
 	// plr_class enum value.
 	// TODO: this could very well be `enum plr_class _pClass`
@@ -277,14 +279,14 @@ typedef struct PlayerStruct {
 	char _pLghtResist;
 	int _pGold;
 	BOOL _pInfraFlag;
-	int _pVar1;
-	int _pVar2;
-	int _pVar3;
-	int _pVar4;
-	int _pVar5;
-	int _pVar6;
-	int _pVar7;
-	int _pVar8;
+	int _pVar1; //Used for referring to X position of player when finishing moving one tile (also used to define target coordinates for spells and ranged attacks)
+	int _pVar2; //Used for referring to Y position of player when finishing moving one tile (also used to define target coordinates for spells and ranged attacks)
+	int _pVar3; //Player's direction when ending movement. Also used for defining direction of SPL_FIREWALL spell when casting it.
+	int _pVar4; //Used for storing X position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
+	int _pVar5; //Used for storing Y position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
+	int _pVar6; //Player's X offset value defining their exact rendering position (relative to what tile they're on)
+	int _pVar7; //Player's Y offset value defining their exact rendering position (relative to what tile they're on)
+	int _pVar8; //I think this is used as an alternative to animLength depending on what state the player is in
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
 	int _pGFXLoad;
@@ -335,7 +337,7 @@ typedef struct PlayerStruct {
 	int _pIBonusToHit;
 	int _pIBonusAC;
 	int _pIBonusDamMod;
-	uint64_t _pISpells;
+	uint64_t _pISpells; //Ownership of spells/skills via charged staff
 	int _pIFlags;
 	int _pIGetHit;
 	char _pISplLvlAdd;
@@ -356,7 +358,7 @@ typedef struct PlayerStruct {
 	short wReserved[8];
 	DWORD pDiabloKillLevel;
 	int pDifficulty;
-	int dwReserved[7];
+	int dwReserved[7]; //Unused
 	unsigned char *_pNData;
 	unsigned char *_pWData;
 	unsigned char *_pAData;
@@ -368,7 +370,7 @@ typedef struct PlayerStruct {
 	unsigned char *_pBData;
 	unsigned char *_pNData_c; //Fluffy: Standing casually
 	unsigned char *_pWData_c; //Fluffy: Walking casually
-	void *pReserved;
+	void *pReserved; //Unused
 } PlayerStruct;
 
 //////////////////////////////////////////////////
@@ -1116,11 +1118,17 @@ typedef struct QuestTalkData {
 //////////////////////////////////////////////////
 
 typedef struct ScrollStruct {
-	int _sxoff;
-	int _syoff;
+	int _sxoff; //X offset when rendering camera position
+	int _syoff; //Y offset when rendering camera position
 	int _sdx;
 	int _sdy;
 	int _sdir;
+
+	//Fluffy
+	int _sxoff_next;
+	int _syoff_next;
+	int _sxoff_interpolated;
+	int _syoff_interpolated;
 } ScrollStruct;
 
 typedef struct THEME_LOC {

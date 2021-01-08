@@ -451,8 +451,11 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 				break;
 			}
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
-			px = sx + p->_pxoff - p->_pAnimWidth2;
-			py = sy + p->_pyoff;
+			//px = sx + p->_pxoff - p->_pAnimWidth2;
+			//py = sy + p->_pyoff;
+			px = sx + p->xRenderOffset_Interpolated - p->_pAnimWidth2; //Fluffy
+			py = sy + p->yRenderOffset_Interpolated;
+
 			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
 	}
@@ -666,8 +669,10 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int p = dPlayer[x][y + oy];
 	p = p > 0 ? p - 1 : -(p + 1);
 	PlayerStruct *pPlayer = &plr[p];
-	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
-	int py = sy + pPlayer->_pyoff;
+	//int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
+	//int py = sy + pPlayer->_pyoff;
+	int px = sx + pPlayer->xRenderOffset_Interpolated - pPlayer->_pAnimWidth2; //Fluffy
+	int py = sy + pPlayer->yRenderOffset_Interpolated;
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 }
@@ -1063,8 +1068,10 @@ static void DrawGame(int x, int y)
 		gpBufEnd = &gpBuffer[BUFFER_WIDTH * (VIEWPORT_HEIGHT / 2 + SCREEN_Y)];
 
 	// Adjust by player offset and tile grid alignment
-	sx = ScrollInfo._sxoff + tileOffsetX + SCREEN_X;
-	sy = ScrollInfo._syoff + tileOffsetY + SCREEN_Y;
+	//sx = ScrollInfo._sxoff + tileOffsetX + SCREEN_X;
+	//sy = ScrollInfo._syoff + tileOffsetY + SCREEN_Y;
+	sx = ScrollInfo._sxoff_interpolated + tileOffsetX + SCREEN_X; //Fluffy
+	sy = ScrollInfo._syoff_interpolated + tileOffsetY + SCREEN_Y;
 
 	columns = tileColums;
 	rows = tileRows;
@@ -1366,6 +1373,17 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 		snprintf(String, 100, "%0.2f render delta", frame_renderDelta);
 		RenderDebugLine(&x, &y, String);
+		snprintf(String, 100, "%0.2f time since gametick", frame_timeSinceGameplayTick);
+		RenderDebugLine(&x, &y, String);
+		snprintf(String, 100, "%0.2f interpolation delta", frame_interpolationDelta);
+		RenderDebugLine(&x, &y, String);
+
+		if (myplr == 0) {
+			snprintf(String, 100, "%i offsetX", plr[myplr]._pxoff);
+			RenderDebugLine(&x, &y, String);
+			snprintf(String, 100, "%i offsetY", plr[myplr]._pyoff);
+			RenderDebugLine(&x, &y, String);
+		}
 	}
 }
 

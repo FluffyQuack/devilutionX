@@ -277,8 +277,13 @@ void multi_net_ping()
 	sglTimeoutStart = SDL_GetTicks();
 }
 
-int multi_handle_delta() //If this returns true, then we proceed with simulating one tick of gameplay
+int multi_handle_delta() //If this returns true, then we proceed with simulating one tick of gameplay. This never returns false when playing singleplayer
 {
+	/*
+	- If this function returns true, then we proceed with simulating one tick of gameplay
+	- This never returns false in singleplayer
+	- I assume this is related to receiving network packets from other players about their input
+	*/
 	int i;
 	BOOL received;
 

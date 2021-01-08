@@ -12,6 +12,12 @@ DEVILUTION_BEGIN_NAMESPACE
 extern "C" {
 #endif
 
+typedef enum do_walk_variants { //Fluffy
+	DO_WALK_VARIANT_UP,
+	DO_WALK_VARIANT_DOWN,
+	DO_WALK_VARIANT_HORIZONTAL,
+} do_walk_variants;
+
 extern int plr_lframe_size;
 extern int plr_wframe_size;
 extern BYTE plr_gfx_flag;
@@ -97,6 +103,7 @@ BOOL PM_DoDeath(int pnum);
 void CheckNewPath(int pnum);
 BOOL PlrDeathModeOK(int p);
 void ValidatePlayer();
+void ProcessPlayers_Interpolate();
 void ProcessPlayers();
 void CheckCheatStats(int pnum);
 void ClrPlrPath(int pnum);

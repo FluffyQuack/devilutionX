@@ -75,9 +75,12 @@ int frameend;
 int framerate;
 unsigned long long framestart; //Fluffy: Gave this higher precision
 unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick deltas
+unsigned long long frame_timeOfPreviousInterpolate = 0; //Fluffy: For tracking delta between interpolation updates
 unsigned long long frame_timeOfPreviousFrameRender = 0; //Fluffy For tracking frame render deltas
 double frame_gameplayTickDelta = 0; //Fluffy
 double frame_renderDelta = 0; //Fluffy
+double frame_interpolationDelta = 0; //Fluffy: Delta between each interpolation (this includes delta between last gameplay tick and interpolation as well)
+double frame_timeSinceGameplayTick = 0; //Fluffy: How long ago since we started a gameplay tick
 /** Specifies whether players are in non-PvP mode. */
 BOOL FriendlyMode = TRUE;
 /** Default quick messages */
@@ -212,6 +215,7 @@ void run_game_loop(unsigned int uMsg)
 			break;
 		if (!nthread_has_500ms_passed(FALSE)) {
 			ProcessInput();
+			Diablo_InterpolateBetweenGameplayTicks(false); //Fluffy: When we skip updating the game simulation, we'll want to interpolate a lot of values to give the impression of smoother gameplay
 			DrawAndBlit();
 			continue;
 		}
@@ -219,6 +223,7 @@ void run_game_loop(unsigned int uMsg)
 		multi_process_network_packets();
 		game_loop(gbGameLoopStartup);
 		gbGameLoopStartup = FALSE;
+		Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: We need to make sure interpolation values get updated every single frame, so we also do it when game simulation is updated
 		DrawAndBlit();
 	}
 
@@ -477,6 +482,10 @@ void diablo_init_screen()
 	ScrollInfo._sdy = 0;
 	ScrollInfo._sxoff = 0;
 	ScrollInfo._syoff = 0;
+	ScrollInfo._sxoff_next = 0; //Fluffy
+	ScrollInfo._syoff_next = 0;
+	ScrollInfo._sxoff_interpolated = 0;
+	ScrollInfo._syoff_interpolated = 0;
 	ScrollInfo._sdir = SDIR_NONE;
 
 	ClrDiabloMsg();
@@ -1708,6 +1717,11 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 
 void game_loop(BOOL bStartup)
 {
+	/*
+	- bStartup is only true during the very first gameplay tick in the session
+	- nthread_has_500ms_passed() is ignored in this function while playing singleplayer (because of the gbMaxPlayers == 1 check)
+	- multi_handle_delta() always returns true in singleplayer
+	*/
 	int i;
 
 	i = bStartup ? 60 : 3;
@@ -1728,6 +1742,64 @@ void game_loop(BOOL bStartup)
 // Controller support:
 extern void plrctrls_after_game_logic();
 
+void Diablo_InterpolateBetweenGameplayTicks(bool gameSimulated) //Fluffy
+{
+	/*
+	- As the function name implies, this updates some graphical values (which has no bearing on gameplay) between gameplay ticks in order to generate more smooth-looking gameplay
+	- If gameSimulated is true that means this is the same frame as a gameplay tick (this is called after the gameplay update)
+	*/
+
+	//Calculate delta between now and last game play tick so we know by how much we should interpolate values
+	unsigned long long curTime = SDL_GetPerformanceCounter();
+	if (frame_timeOfPreviousGamePlayTick != 0)
+		frame_timeSinceGameplayTick = (double)((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
+
+	//Also calculate the delta since last interpolation
+	if (frame_timeOfPreviousInterpolate != 0)
+		frame_interpolationDelta = (double)((curTime - frame_timeOfPreviousInterpolate) * 1000) / SDL_GetPerformanceFrequency();
+	frame_timeOfPreviousInterpolate = curTime;
+
+	if (gbProcessPlayers)
+		ProcessPlayers_Interpolate();
+
+	//The following commented-out code is from game_logic(), shown here as reference
+	/*
+	if (!ProcessInput()) {
+		return;
+	}
+	if (gbProcessPlayers) {
+		ProcessPlayers();
+	}
+	if (leveltype != DTYPE_TOWN) {
+		ProcessMonsters();
+		ProcessObjects();
+		ProcessMissiles();
+		ProcessItems();
+		ProcessLightList();
+		ProcessVisionList();
+	} else {
+		ProcessTowners();
+		ProcessItems();
+		ProcessMissiles();
+	}
+
+#ifdef _DEBUG
+	if (debug_mode_key_inverted_v && GetAsyncKeyState(DVL_VK_SHIFT) & 0x8000) {
+		ScrollView();
+	}
+#endif
+
+	sound_update();
+	ClearPlrMsg();
+	CheckTriggers();
+	CheckQuests();
+	force_redraw |= 1;
+	pfile_update(FALSE);
+
+	plrctrls_after_game_logic();
+	*/
+}
+
 void game_logic()
 {
 	//Fluffy: Calculate delta between current and previous gameplay tick
@@ -1736,13 +1808,10 @@ void game_logic()
 		frame_gameplayTickDelta = (double)((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
 	frame_timeOfPreviousGamePlayTick = curTime;
 
-	unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick frametimes
-	double frame_gameplayTickFrameTime = 0; //Fluffy
-
 	if (!ProcessInput()) {
 		return;
 	}
-	if (gbProcessPlayers) {
+	if (gbProcessPlayers) { //gbProcessPlayers is almost always true. Set to false if Diablo dies
 		ProcessPlayers();
 	}
 	if (leveltype != DTYPE_TOWN) {

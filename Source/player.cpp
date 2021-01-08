@@ -4,6 +4,7 @@
  * Implementation of player functionality, leveling, actions, creation, loading, etc.
  */
 #include "all.h"
+#include "misc\misc.cpp" //For smooth interpolation
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -11,7 +12,7 @@ int plr_lframe_size;
 int plr_wframe_size;
 BYTE plr_gfx_flag = 0;
 int plr_aframe_size;
-int myplr;
+int myplr; //The local player
 PlayerStruct plr[MAX_PLRS];
 int plr_fframe_size;
 int plr_qframe_size;
@@ -633,6 +634,7 @@ void CreatePlayer(int pnum, char c)
 
 	if (c == PC_WARRIOR) {
 		plr[pnum]._pAblSpells = (__int64)1 << (SPL_REPAIR - 1);
+		
 #ifndef SPAWN
 	} else if (c == PC_ROGUE) {
 		plr[pnum]._pAblSpells = (__int64)1 << (SPL_DISARM - 1);
@@ -874,6 +876,8 @@ void InitPlayer(int pnum, BOOL FirstTime)
 
 		plr[pnum]._pxoff = 0;
 		plr[pnum]._pyoff = 0;
+		plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
+		plr[pnum].yRenderOffset_Interpolated = 0;
 		plr[pnum]._pxvel = 0;
 		plr[pnum]._pyvel = 0;
 
@@ -958,6 +962,10 @@ void InitPlayer(int pnum, BOOL FirstTime)
 		deathflag = FALSE;
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
+		ScrollInfo._sxoff_next = 0; //Fluffy
+		ScrollInfo._syoff_next = 0;
+		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 	}
 }
@@ -1059,10 +1067,16 @@ void FixPlayerLocation(int pnum, int bDir)
 	plr[pnum]._ptargy = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
+	plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
+	plr[pnum].yRenderOffset_Interpolated = 0;
 	plr[pnum]._pdir = bDir;
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
+		ScrollInfo._sxoff_next = 0; //Fluffy
+		ScrollInfo._syoff_next = 0;
+		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1112,10 +1126,16 @@ void StartWalkStand(int pnum)
 	plr[pnum]._pfuty = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
+	plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
+	plr[pnum].yRenderOffset_Interpolated = 0;
 
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
+		ScrollInfo._sxoff_next = 0; //Fluffy
+		ScrollInfo._syoff_next = 0;
+		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1167,6 +1187,33 @@ void PM_ChangeLightOff(int pnum)
 	ChangeLightOff(plr[pnum]._plid, x, y);
 }
 
+void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset() which is called every frame
+{
+	if ((DWORD)pnum >= MAX_PLRS) {
+		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
+	}
+
+	int px = plr[pnum]._pVar6 / 256, py = plr[pnum]._pVar7 / 256;
+
+	int var6, var7;
+	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
+	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
+		var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel * 2;
+		var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel * 2;
+	} else {
+		var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel;
+		var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel;
+	}
+
+	plr[pnum].xRenderOffset_Interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, var6 / 256, frame_timeSinceGameplayTick / 50.0);
+	plr[pnum].yRenderOffset_Interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, var7 / 256, frame_timeSinceGameplayTick / 50.0);
+
+	if (pnum == myplr && ScrollInfo._sdir) {
+		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff_next, frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff_next, frame_timeSinceGameplayTick / 50.0);
+	}
+}
+
 void PM_ChangeOffset(int pnum)
 {
 	int px, py;
@@ -1196,12 +1243,23 @@ void PM_ChangeOffset(int pnum)
 	if (pnum == myplr && ScrollInfo._sdir) {
 		ScrollInfo._sxoff += px;
 		ScrollInfo._syoff += py;
+
+		//Fluffy: For interpolation to next frame
+		ScrollInfo._sxoff_next = ScrollInfo._sxoff + px;
+		ScrollInfo._syoff_next = ScrollInfo._syoff + py;
+
+		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff;
+		ScrollInfo._syoff_interpolated = ScrollInfo._syoff;
 	}
 
 	PM_ChangeLightOff(pnum);
 }
 
-void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int sdir)
+//Fluffy TODO: What is this halp?
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("shift-base")))
+#endif
+void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant) //Fluffy: Rewrite of StartWalk1/2/3 since they were mostly identical
 {
 	int px, py;
 
@@ -1215,7 +1273,6 @@ void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int
 	}
 
 	SetPlayerOld(pnum);
-
 	px = xadd + plr[pnum]._px;
 	py = yadd + plr[pnum]._py;
 
@@ -1231,211 +1288,63 @@ void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int
 		ScrollInfo._sdy = plr[pnum]._py - ViewY;
 	}
 
-	dPlayer[px][py] = -(pnum + 1);
-	plr[pnum]._pmode = PM_WALK;
-	plr[pnum]._pxvel = xvel;
-	plr[pnum]._pyvel = yvel;
-	plr[pnum]._pxoff = 0;
-	plr[pnum]._pyoff = 0;
-	plr[pnum]._pVar1 = xadd;
-	plr[pnum]._pVar2 = yadd;
-	plr[pnum]._pVar3 = EndDir;
+	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright
+		dPlayer[px][py] = -(pnum + 1);
+		plr[pnum]._pmode = PM_WALK;
+		plr[pnum]._pxvel = xvel;
+		plr[pnum]._pyvel = yvel;
+		plr[pnum]._pxoff = 0;
+		plr[pnum]._pyoff = 0;
+		plr[pnum].xRenderOffset_Interpolated = 0; //Fluffy
+		plr[pnum].yRenderOffset_Interpolated = 0;
+		plr[pnum]._pVar1 = xadd;
+		plr[pnum]._pVar2 = yadd;
+		plr[pnum]._pVar3 = EndDir;
+	} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright
+		dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
+		plr[pnum]._pVar1 = plr[pnum]._px;
+		plr[pnum]._pVar2 = plr[pnum]._py;
+		plr[pnum]._px = px;
+		plr[pnum]._py = py;
+		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
+		plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff = yoff;
 
-	//Fluffy: Make sure to load both walk animations
-	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
-		LoadPlrGFX(pnum, PFILE_WALK);
-		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
-	}
-
-	//Fluffy
-	int animFrame, animCnt;
-	
-	if (plr[pnum].walkedLastTick) {
-		animFrame = plr[pnum]._pAnimFrame;
-		animCnt = plr[pnum]._pAnimCnt;
-	}
-
-	if (leveltype == DTYPE_TOWN)
-		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
-	else
-		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
-
-	if (plr[pnum].walkedLastTick) {
-		plr[pnum]._pAnimFrame = animFrame;
-		plr[pnum]._pAnimCnt = animCnt;
-	}
-
-	plr[pnum]._pdir = EndDir;
-	plr[pnum]._pVar6 = 0;
-	plr[pnum]._pVar7 = 0;
-	plr[pnum]._pVar8 = 0;
-
-	if (pnum != myplr) {
-		return;
-	}
-
-	if (zoomflag) {
-		if (abs(ScrollInfo._sdx) >= 3 || abs(ScrollInfo._sdy) >= 3) {
-			ScrollInfo._sdir = SDIR_NONE;
-		} else {
-			ScrollInfo._sdir = sdir;
-		}
-	} else if (abs(ScrollInfo._sdx) >= 2 || abs(ScrollInfo._sdy) >= 2) {
-		ScrollInfo._sdir = SDIR_NONE;
-	} else {
-		ScrollInfo._sdir = sdir;
-	}
-}
-
-#if defined(__clang__) || defined(__GNUC__)
-__attribute__((no_sanitize("shift-base")))
-#endif
-void StartWalk2(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int EndDir, int sdir)
-{
-	int px, py;
-
-	if ((DWORD)pnum >= MAX_PLRS) {
-		app_fatal("StartWalk2: illegal player %d", pnum);
-	}
-
-	if (plr[pnum]._pInvincible && !plr[pnum]._pHitPoints && pnum == myplr) {
-		SyncPlrKill(pnum, -1);
-		return;
-	}
-
-	SetPlayerOld(pnum);
-	px = xadd + plr[pnum]._px;
-	py = yadd + plr[pnum]._py;
-
-	if (!PlrDirOK(pnum, EndDir)) {
-		return;
-	}
-
-	plr[pnum]._pfutx = px;
-	plr[pnum]._pfuty = py;
-
-	if (pnum == myplr) {
-		ScrollInfo._sdx = plr[pnum]._px - ViewX;
-		ScrollInfo._sdy = plr[pnum]._py - ViewY;
-	}
-
-	dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
-	plr[pnum]._pVar1 = plr[pnum]._px;
-	plr[pnum]._pVar2 = plr[pnum]._py;
-	plr[pnum]._px = px;
-	plr[pnum]._py = py;
-	dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-	plr[pnum]._pxoff = xoff;
-	plr[pnum]._pyoff = yoff;
-
-	ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
-	PM_ChangeLightOff(pnum);
-
-	plr[pnum]._pmode = PM_WALK2;
-	plr[pnum]._pxvel = xvel;
-	plr[pnum]._pyvel = yvel;
-	plr[pnum]._pVar6 = xoff * 256;
-	plr[pnum]._pVar7 = yoff * 256;
-	plr[pnum]._pVar3 = EndDir;
-
-	//Fluffy: Make sure to load both walk animations
-	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
-		LoadPlrGFX(pnum, PFILE_WALK);
-		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
-	}
-
-	//Fluffy
-	int animFrame, animCnt;
-	if (plr[pnum].walkedLastTick) {
-		animFrame = plr[pnum]._pAnimFrame;
-		animCnt = plr[pnum]._pAnimCnt;
-	}
-
-	if (leveltype == DTYPE_TOWN)
-		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
-	else
-		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
-
-	if (plr[pnum].walkedLastTick) {
-		plr[pnum]._pAnimFrame = animFrame;
-		plr[pnum]._pAnimCnt = animCnt;
-	}
-
-	plr[pnum]._pdir = EndDir;
-	plr[pnum]._pVar8 = 0;
-
-	if (pnum != myplr) {
-		return;
-	}
-
-	if (zoomflag) {
-		if (abs(ScrollInfo._sdx) >= 3 || abs(ScrollInfo._sdy) >= 3) {
-			ScrollInfo._sdir = SDIR_NONE;
-		} else {
-			ScrollInfo._sdir = sdir;
-		}
-	} else if (abs(ScrollInfo._sdx) >= 2 || abs(ScrollInfo._sdy) >= 2) {
-		ScrollInfo._sdir = SDIR_NONE;
-	} else {
-		ScrollInfo._sdir = sdir;
-	}
-}
-
-#if defined(__clang__) || defined(__GNUC__)
-__attribute__((no_sanitize("shift-base")))
-#endif
-void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir)
-{
-	int px, py, x, y;
-
-	if ((DWORD)pnum >= MAX_PLRS) {
-		app_fatal("StartWalk3: illegal player %d", pnum);
-	}
-
-	if (plr[pnum]._pInvincible && !plr[pnum]._pHitPoints && pnum == myplr) {
-		SyncPlrKill(pnum, -1);
-		return;
-	}
-
-	SetPlayerOld(pnum);
-	px = xadd + plr[pnum]._px;
-	py = yadd + plr[pnum]._py;
-	x = mapx + plr[pnum]._px;
-	y = mapy + plr[pnum]._py;
-
-	if (!PlrDirOK(pnum, EndDir)) {
-		return;
-	}
-
-	plr[pnum]._pfutx = px;
-	plr[pnum]._pfuty = py;
-
-	if (pnum == myplr) {
-		ScrollInfo._sdx = plr[pnum]._px - ViewX;
-		ScrollInfo._sdy = plr[pnum]._py - ViewY;
-	}
-
-	dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
-	dPlayer[px][py] = -1 - pnum;
-	plr[pnum]._pVar4 = x;
-	plr[pnum]._pVar5 = y;
-	dFlags[x][y] |= BFLAG_PLAYERLR;
-	plr[pnum]._pxoff = xoff;
-	plr[pnum]._pyoff = yoff;
-
-	if (leveltype != DTYPE_TOWN) {
-		ChangeLightXY(plr[pnum]._plid, x, y);
+		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 		PM_ChangeLightOff(pnum);
-	}
 
-	plr[pnum]._pmode = PM_WALK3;
-	plr[pnum]._pxvel = xvel;
-	plr[pnum]._pyvel = yvel;
-	plr[pnum]._pVar1 = px;
-	plr[pnum]._pVar2 = py;
-	plr[pnum]._pVar6 = xoff * 256;
-	plr[pnum]._pVar7 = yoff * 256;
-	plr[pnum]._pVar3 = EndDir;
+		plr[pnum]._pmode = PM_WALK2;
+		plr[pnum]._pxvel = xvel;
+		plr[pnum]._pyvel = yvel;
+		plr[pnum]._pVar6 = xoff * 256;
+		plr[pnum]._pVar7 = yoff * 256;
+		plr[pnum]._pVar3 = EndDir;
+	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right
+		int x = mapx + plr[pnum]._px;
+		int y = mapy + plr[pnum]._py;
+
+		dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
+		dPlayer[px][py] = -1 - pnum;
+		plr[pnum]._pVar4 = x;
+		plr[pnum]._pVar5 = y;
+		dFlags[x][y] |= BFLAG_PLAYERLR;
+		plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff = yoff;
+
+		if (leveltype != DTYPE_TOWN) {
+			ChangeLightXY(plr[pnum]._plid, x, y);
+			PM_ChangeLightOff(pnum);
+		}
+
+		plr[pnum]._pmode = PM_WALK3;
+		plr[pnum]._pxvel = xvel;
+		plr[pnum]._pyvel = yvel;
+		plr[pnum]._pVar1 = px;
+		plr[pnum]._pVar2 = py;
+		plr[pnum]._pVar6 = xoff * 256;
+		plr[pnum]._pVar7 = yoff * 256;
+		plr[pnum]._pVar3 = EndDir;
+	}
 
 	//Fluffy: Make sure to load both walk animations
 	if (!(plr[pnum]._pGFXLoad & PFILE_WALK) || !(plr[pnum]._pGFXLoad & PFILE_WALK_CASUAL)) {
@@ -1462,6 +1371,11 @@ void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int 
 
 	plr[pnum]._pdir = EndDir;
 	plr[pnum]._pVar8 = 0;
+
+	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright
+		plr[pnum]._pVar6 = 0;
+		plr[pnum]._pVar7 = 0;
+	}
 
 	if (pnum != myplr) {
 		return;
@@ -2141,9 +2055,34 @@ BOOL PM_DoStand(int pnum)
 	return FALSE;
 }
 
-BOOL PM_DoWalk(int pnum)
+static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 {
-	int anim_len;
+	int anim_len = 8;
+	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
+		anim_len = AnimLenFromClass[plr[pnum]._pClass];
+	}
+
+	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
+	BOOL newTile = 0;
+	if (leveltype == DTYPE_TOWN) {
+		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
+			newTile = 1;
+		else if (plr[pnum]._pVar8 == anim_len)
+			newTile = 1;
+	} else if (plr[pnum]._pVar8 == anim_len)
+		newTile = 1;
+
+	return newTile;
+}
+
+static BOOL PM_DoWalk_Interpolate(int pnum, int variant) //Fluffy: Same as PM_DoWalk() but for interpolation. We check if player reaches new tile here
+{
+	//Fluffy TODO:
+	return 0;
+}
+
+BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it's all one function
+{
 	BOOL rv;
 
 	if ((DWORD)pnum >= MAX_PLRS) {
@@ -2156,157 +2095,25 @@ BOOL PM_DoWalk(int pnum)
 		PlaySfxLoc(PS_WALK1, plr[pnum]._px, plr[pnum]._py);
 	}
 
-	anim_len = 8;
-	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
-		anim_len = AnimLenFromClass[plr[pnum]._pClass];
-	}
-
-	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-	BOOL newTile = 0;
-	if (leveltype == DTYPE_TOWN) {
-		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
-			newTile = 1;
-		else if (plr[pnum]._pVar8 == anim_len)
-			newTile = 1;
-	} else if (plr[pnum]._pVar8 == anim_len)
-		newTile = 1;
-
+	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
 	if (newTile) {
-		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
-		plr[pnum]._px += plr[pnum]._pVar1;
-		plr[pnum]._py += plr[pnum]._pVar2;
+		if (variant == DO_WALK_VARIANT_UP) //Up, upleft, or upright movement
+		{
+			dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
+			plr[pnum]._px += plr[pnum]._pVar1;
+			plr[pnum]._py += plr[pnum]._pVar2;
 
-		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
+			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
+		} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright movement
+			dPlayer[plr[pnum]._pVar1][plr[pnum]._pVar2] = 0;
+		} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right
+			dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
+			dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
+			plr[pnum]._px = plr[pnum]._pVar1;
+			plr[pnum]._py = plr[pnum]._pVar2;
 
-		if (leveltype != DTYPE_TOWN) {
-			ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
-			ChangeVisionXY(plr[pnum]._pvid, plr[pnum]._px, plr[pnum]._py);
+			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 		}
-
-		if (pnum == myplr && ScrollInfo._sdir) {
-			ViewX = plr[pnum]._px - ScrollInfo._sdx;
-			ViewY = plr[pnum]._py - ScrollInfo._sdy;
-		}
-
-		if (plr[pnum].walkpath[0] != WALK_NONE) {
-			StartWalkStand(pnum);
-		} else {
-			StartStand(pnum, plr[pnum]._pVar3);
-		}
-
-		ClearPlrPVars(pnum);
-
-		if (leveltype != DTYPE_TOWN) {
-			ChangeLightOff(plr[pnum]._plid, 0, 0);
-		}
-		rv = TRUE;
-	} else {
-		PM_ChangeOffset(pnum);
-		rv = FALSE;
-	}
-
-	return rv;
-}
-
-BOOL PM_DoWalk2(int pnum)
-{
-	int anim_len;
-	BOOL rv;
-
-	if ((DWORD)pnum >= MAX_PLRS) {
-		app_fatal("PM_DoWalk2: illegal player %d", pnum);
-	}
-
-	if (plr[pnum]._pAnimFrame == 3
-	    || (plr[pnum]._pWFrames == 8 && plr[pnum]._pAnimFrame == 7)
-	    || (plr[pnum]._pWFrames != 8 && plr[pnum]._pAnimFrame == 4)) {
-		PlaySfxLoc(PS_WALK1, plr[pnum]._px, plr[pnum]._py);
-	}
-
-	anim_len = 8;
-	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
-		anim_len = AnimLenFromClass[plr[pnum]._pClass];
-	}
-
-	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-	BOOL newTile = 0;
-	if (leveltype == DTYPE_TOWN) {
-		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
-			newTile = 1;
-		else if (plr[pnum]._pVar8 == anim_len)
-			newTile = 1;
-	} else if (plr[pnum]._pVar8 == anim_len)
-		newTile = 1;
-
-	if (newTile) {
-		dPlayer[plr[pnum]._pVar1][plr[pnum]._pVar2] = 0;
-
-		if (leveltype != DTYPE_TOWN) {
-			ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
-			ChangeVisionXY(plr[pnum]._pvid, plr[pnum]._px, plr[pnum]._py);
-		}
-
-		if (pnum == myplr && ScrollInfo._sdir) {
-			ViewX = plr[pnum]._px - ScrollInfo._sdx;
-			ViewY = plr[pnum]._py - ScrollInfo._sdy;
-		}
-
-		if (plr[pnum].walkpath[0] != WALK_NONE) {
-			StartWalkStand(pnum);
-		} else {
-			StartStand(pnum, plr[pnum]._pVar3);
-		}
-
-		ClearPlrPVars(pnum);
-		if (leveltype != DTYPE_TOWN) {
-			ChangeLightOff(plr[pnum]._plid, 0, 0);
-		}
-		rv = TRUE;
-	} else {
-		PM_ChangeOffset(pnum);
-		rv = FALSE;
-	}
-
-	return rv;
-}
-
-BOOL PM_DoWalk3(int pnum)
-{
-	int anim_len;
-	BOOL rv;
-
-	if ((DWORD)pnum >= MAX_PLRS) {
-		app_fatal("PM_DoWalk3: illegal player %d", pnum);
-	}
-
-	if (plr[pnum]._pAnimFrame == 3
-	    || (plr[pnum]._pWFrames == 8 && plr[pnum]._pAnimFrame == 7)
-	    || (plr[pnum]._pWFrames != 8 && plr[pnum]._pAnimFrame == 4)) {
-		PlaySfxLoc(PS_WALK1, plr[pnum]._px, plr[pnum]._py);
-	}
-
-	anim_len = 8;
-	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
-		anim_len = AnimLenFromClass[plr[pnum]._pClass];
-	}
-
-	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-	BOOL newTile = 0;
-	if (leveltype == DTYPE_TOWN) {
-		if (plr[pnum]._pVar8 == anim_len / 2 && gameSetup_fastWalkInTown)
-			newTile = 1;
-		else if (plr[pnum]._pVar8 == anim_len)
-			newTile = 1;
-	} else if (plr[pnum]._pVar8 == anim_len)
-		newTile = 1;
-
-	if (newTile) {
-		dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
-		dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
-		plr[pnum]._px = plr[pnum]._pVar1;
-		plr[pnum]._py = plr[pnum]._pVar2;
-
-		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
@@ -3128,28 +2935,36 @@ void CheckNewPath(int pnum)
 
 			switch (plr[pnum].walkpath[0]) {
 			case WALK_N:
-				StartWalk(pnum, 0, -xvel, -1, -1, DIR_N, SDIR_N);
+				StartWalk(pnum, 0, -xvel, 0, 0, -1, -1, 0, 0, DIR_N, SDIR_N, DO_WALK_VARIANT_UP);
+				//StartWalk(pnum, 0, -xvel, -1, -1, DIR_N, SDIR_N);
 				break;
 			case WALK_NE:
-				StartWalk(pnum, xvel, -yvel, 0, -1, DIR_NE, SDIR_NE);
+				StartWalk(pnum, xvel, -yvel, 0, 0, 0, -1, 0, 0, DIR_NE, SDIR_NE, DO_WALK_VARIANT_UP);
+				//StartWalk(pnum, xvel, -yvel, 0, -1, DIR_NE, SDIR_NE);
 				break;
 			case WALK_E:
-				StartWalk3(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E);
+				StartWalk(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E, DO_WALK_VARIANT_HORIZONTAL);
+				//StartWalk3(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E);
 				break;
 			case WALK_SE:
-				StartWalk2(pnum, xvel, yvel, -32, -16, 1, 0, DIR_SE, SDIR_SE);
+				StartWalk(pnum, xvel, yvel, -32, -16, 1, 0, 0, 0, DIR_SE, SDIR_SE, DO_WALK_VARIANT_DOWN);
+				//StartWalk2(pnum, xvel, yvel, -32, -16, 1, 0, DIR_SE, SDIR_SE);
 				break;
 			case WALK_S:
-				StartWalk2(pnum, 0, xvel, 0, -32, 1, 1, DIR_S, SDIR_S);
+				StartWalk(pnum, 0, xvel, 0, -32, 1, 1, 0, 0, DIR_S, SDIR_S, DO_WALK_VARIANT_DOWN);
+				//StartWalk2(pnum, 0, xvel, 0, -32, 1, 1, DIR_S, SDIR_S);
 				break;
 			case WALK_SW:
-				StartWalk2(pnum, -xvel, yvel, 32, -16, 0, 1, DIR_SW, SDIR_SW);
+				StartWalk(pnum, -xvel, yvel, 32, -16, 0, 1, 0, 0, DIR_SW, SDIR_SW, DO_WALK_VARIANT_DOWN);
+				//StartWalk2(pnum, -xvel, yvel, 32, -16, 0, 1, DIR_SW, SDIR_SW);
 				break;
 			case WALK_W:
-				StartWalk3(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W);
+				StartWalk(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W, DO_WALK_VARIANT_HORIZONTAL);
+				//StartWalk3(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W);
 				break;
 			case WALK_NW:
-				StartWalk(pnum, -xvel, -yvel, -1, 0, DIR_NW, SDIR_NW);
+				StartWalk(pnum, -xvel, -yvel, 0, 0, -1, 0, 0, 0, DIR_NW, SDIR_NW, DO_WALK_VARIANT_UP);
+				//StartWalk(pnum, -xvel, -yvel, -1, 0, DIR_NW, SDIR_NW);
 				break;
 			}
 
@@ -3410,7 +3225,7 @@ BOOL PlrDeathModeOK(int p)
 	return FALSE;
 }
 
-void ValidatePlayer()
+void ValidatePlayer() //This is a series of anti-cheat checks
 {
 	__int64 msk;
 	int gt, pc, i, b;
@@ -3462,6 +3277,74 @@ void ValidatePlayer()
 	plr[myplr]._pMemSpells &= msk;
 }
 
+void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is called every frame
+{
+	//return;
+	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
+		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
+			switch (plr[pnum]._pmode)
+			{
+			case PM_WALK:
+			case PM_WALK2:
+			case PM_WALK3:
+				PM_DoWalk_Interpolate(pnum, plr[pnum]._pmode - PM_WALK);
+				PM_ChangeOffset_Interpolate(pnum);
+				break;
+			default:
+				//plr[pnum]._pxoff = 0;
+				//plr[pnum]._pyoff = 0;
+				break;
+				/*
+			case PM_STAND:
+				PM_DoStand(pnum);
+				break;
+			case PM_WALK:
+				PM_DoWalk(pnum);
+				break;
+			case PM_WALK2:
+				PM_DoWalk2(pnum);
+				break;
+			case PM_WALK3:
+				PM_DoWalk3(pnum);
+				break;
+			case PM_ATTACK:
+				PM_DoAttack(pnum);
+				break;
+			case PM_RATTACK:
+				PM_DoRangeAttack(pnum);
+				break;
+			case PM_BLOCK:
+				PM_DoBlock(pnum);
+				break;
+			case PM_SPELL:
+				PM_DoSpell(pnum);
+				break;
+			case PM_GOTHIT:
+				PM_DoGotHit(pnum);
+				break;
+			case PM_DEATH:
+				PM_DoDeath(pnum);
+				break;
+			case PM_NEWLVL:
+				PM_DoNewLvl(pnum);
+				break;
+				*/
+			}
+
+			/*
+			plr[pnum]._pAnimCnt++;
+			if (plr[pnum]._pAnimCnt > plr[pnum]._pAnimDelay) {
+				plr[pnum]._pAnimCnt = 0;
+				plr[pnum]._pAnimFrame++;
+				if (plr[pnum]._pAnimFrame > plr[pnum]._pAnimLen) {
+					plr[pnum]._pAnimFrame = 1;
+				}
+			}
+			*/
+		}
+	}
+}
+
 void ProcessPlayers()
 {
 	int pnum;
@@ -3482,11 +3365,11 @@ void ProcessPlayers()
 		}
 	}
 
-	ValidatePlayer();
+	ValidatePlayer(); //Anti-cheat checks
 
 	for (pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
-			CheckCheatStats(pnum);
+			CheckCheatStats(pnum); //Anti-cheat checks
 
 			if (!PlrDeathModeOK(pnum) && (plr[pnum]._pHitPoints >> 6) <= 0) {
 				SyncPlrKill(pnum, -1);
@@ -3515,13 +3398,16 @@ void ProcessPlayers()
 					tplayer = PM_DoStand(pnum);
 					break;
 				case PM_WALK:
-					tplayer = PM_DoWalk(pnum);
+					//tplayer = PM_DoWalk(pnum);
+					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_UP);
 					break;
 				case PM_WALK2:
-					tplayer = PM_DoWalk2(pnum);
+					//tplayer = PM_DoWalk2(pnum);
+					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_DOWN);
 					break;
 				case PM_WALK3:
-					tplayer = PM_DoWalk3(pnum);
+					//tplayer = PM_DoWalk3(pnum);
+					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_HORIZONTAL);
 					break;
 				case PM_ATTACK:
 					tplayer = PM_DoAttack(pnum);
@@ -3565,7 +3451,7 @@ void ProcessPlayers()
 	}
 }
 
-void CheckCheatStats(int pnum)
+void CheckCheatStats(int pnum) //Series of anti-cheat checks
 {
 	if (plr[pnum]._pStrength > 750) {
 		plr[pnum]._pStrength = 750;

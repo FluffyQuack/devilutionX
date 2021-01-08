@@ -512,6 +512,8 @@ void LoadPlayer(int i)
 	// Omit pointer _pNData_c
 	// Omit pointer _pWData_c
 	// Omit pointer pReserved
+
+	//Fluffy TODO: Update all interpolated values to use values corresponding to current gameplay tick
 }
 
 void LoadMonster(int i)

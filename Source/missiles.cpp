@@ -974,6 +974,13 @@ void CheckMissileCol(int i, int mindam, int maxdam, BOOL shift, int mx, int my, 
 {
 	int oi;
 
+	if (mx < 0 || my < 0 || mx >= MAXDUNX || my > MAXDUNY) {
+		//Fluffy: Adding an out-of-bounds check here since this can crash when firing projectiles in the town.
+		//Fluffy TODO: I should double check if returning and doing nothing else is the correct reaction when going out of bounds.
+		//Fluffy TODO: We probably need more out-of-bounds checks like this too (for instance, whenever the missile moves)
+		return;
+	}
+
 	if (missile[i]._miAnimType != MFILE_FIREWAL && missile[i]._misource != -1) {
 		if (!missile[i]._micaster) {
 			if (dMonster[mx][my] > 0) {
