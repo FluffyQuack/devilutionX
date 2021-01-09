@@ -1245,7 +1245,14 @@ __attribute__((no_sanitize("shift-base")))
 #endif
 void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant) //Fluffy: Rewrite of StartWalk1/2/3 since they were mostly identical
 {
-	//xoff and yoff are set in this function to make it seem like it's being rendered on the same tile (as it can suddenly belong to a different tile at the start of moving the character)
+	/*
+	This code has three variants (for walking upwards, horizontally, and downwards)
+	I haven't confirmed this, but I suspect it handles player positional differently in these directions in order to maintain correct render order
+
+	xoff and yoff are sometimes set to high-ish values at the start of movement to make the player effectively get rendered on a different tile (because, as mentioned above), the player might belong to a different tile immediately during movement)
+
+	If the above theory is correct, then we can simplify this code by making the rendering code do sorting of players and objects before rendering them, and then we can be more freeform wiht how player position is defined
+	*/
 
 	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
 	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
@@ -1340,7 +1347,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		LoadPlrGFX(pnum, PFILE_WALK_CASUAL);
 	}
 
-	//Fluffy
+	//Fluffy: If we walked last gameplay tick, then make sure we resume progress in walk cycle rather than restarting it
 	int animFrame, animCnt;
 	if (plr[pnum].walkedLastTick) {
 		animFrame = plr[pnum]._pAnimFrame;
