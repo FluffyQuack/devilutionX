@@ -238,10 +238,10 @@ void CheckCursMove()
 
 	// Predict the next frame when walking to avoid input jitter
 	//Fluffy TODO: This probably needs to be changed if we're using interpolation
-	fx = plr[myplr]._pVar6 / 256;
-	fy = plr[myplr]._pVar7 / 256;
-	fx -= (plr[myplr]._pVar6 + plr[myplr]._pxvel) / 256;
-	fy -= (plr[myplr]._pVar7 + plr[myplr]._pyvel) / 256;
+	fx = plr[myplr]._pxoff;
+	fy = plr[myplr]._pyoff;
+	fx -= (plr[myplr]._pxoff + (plr[myplr]._pxvel / 256));
+	fy -= (plr[myplr]._pyoff + (plr[myplr]._pyvel / 256));
 	if (ScrollInfo._sdir != SDIR_NONE) {
 		sx -= fx;
 		sy -= fy;
