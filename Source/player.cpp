@@ -2898,35 +2898,27 @@ void CheckNewPath(int pnum)
 			switch (plr[pnum].walkpath[0]) {
 			case WALK_N:
 				StartWalk(pnum, 0, -xvel, 0, 0, -1, -1, 0, 0, DIR_N, SDIR_N, DO_WALK_VARIANT_UP);
-				//StartWalk(pnum, 0, -xvel, -1, -1, DIR_N, SDIR_N);
 				break;
 			case WALK_NE:
 				StartWalk(pnum, xvel, -yvel, 0, 0, 0, -1, 0, 0, DIR_NE, SDIR_NE, DO_WALK_VARIANT_UP);
-				//StartWalk(pnum, xvel, -yvel, 0, -1, DIR_NE, SDIR_NE);
 				break;
 			case WALK_E:
 				StartWalk(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E, DO_WALK_VARIANT_HORIZONTAL);
-				//StartWalk3(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E);
 				break;
 			case WALK_SE:
 				StartWalk(pnum, xvel, yvel, -32, -16, 1, 0, 0, 0, DIR_SE, SDIR_SE, DO_WALK_VARIANT_DOWN);
-				//StartWalk2(pnum, xvel, yvel, -32, -16, 1, 0, DIR_SE, SDIR_SE);
 				break;
 			case WALK_S:
 				StartWalk(pnum, 0, xvel, 0, -32, 1, 1, 0, 0, DIR_S, SDIR_S, DO_WALK_VARIANT_DOWN);
-				//StartWalk2(pnum, 0, xvel, 0, -32, 1, 1, DIR_S, SDIR_S);
 				break;
 			case WALK_SW:
 				StartWalk(pnum, -xvel, yvel, 32, -16, 0, 1, 0, 0, DIR_SW, SDIR_SW, DO_WALK_VARIANT_DOWN);
-				//StartWalk2(pnum, -xvel, yvel, 32, -16, 0, 1, DIR_SW, SDIR_SW);
 				break;
 			case WALK_W:
 				StartWalk(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W, DO_WALK_VARIANT_HORIZONTAL);
-				//StartWalk3(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W);
 				break;
 			case WALK_NW:
 				StartWalk(pnum, -xvel, -yvel, 0, 0, -1, 0, 0, 0, DIR_NW, SDIR_NW, DO_WALK_VARIANT_UP);
-				//StartWalk(pnum, -xvel, -yvel, -1, 0, DIR_NW, SDIR_NW);
 				break;
 			}
 
@@ -3360,15 +3352,12 @@ void ProcessPlayers()
 					tplayer = PM_DoStand(pnum);
 					break;
 				case PM_WALK:
-					//tplayer = PM_DoWalk(pnum);
 					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_UP);
 					break;
 				case PM_WALK2:
-					//tplayer = PM_DoWalk2(pnum);
 					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_DOWN);
 					break;
 				case PM_WALK3:
-					//tplayer = PM_DoWalk3(pnum);
 					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_HORIZONTAL);
 					break;
 				case PM_ATTACK:

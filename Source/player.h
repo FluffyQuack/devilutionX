@@ -12,12 +12,6 @@ DEVILUTION_BEGIN_NAMESPACE
 extern "C" {
 #endif
 
-typedef enum do_walk_variants { //Fluffy
-	DO_WALK_VARIANT_UP,
-	DO_WALK_VARIANT_DOWN,
-	DO_WALK_VARIANT_HORIZONTAL,
-} do_walk_variants;
-
 extern int plr_lframe_size;
 extern int plr_wframe_size;
 extern BYTE plr_gfx_flag;
@@ -62,9 +56,7 @@ void StartStand(int pnum, int dir);
 void StartWalkStand(int pnum);
 void PM_ChangeLightOff(int pnum);
 void PM_ChangeOffset(int pnum);
-void StartWalk(int pnum, int xvel, int yvel, int xadd, int yadd, int EndDir, int sdir);
-void StartWalk2(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int EndDir, int sdir);
-void StartWalk3(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir);
+void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant);
 void StartAttack(int pnum, int d);
 void StartRangeAttack(int pnum, int d, int cx, int cy);
 void StartPlrBlock(int pnum, int dir);
@@ -85,9 +77,7 @@ void RestartTownLvl(int pnum);
 void StartWarpLvl(int pnum, int pidx);
 BOOL PM_DoStand(int pnum);
 BOOL PM_DoNewLvl(int pnum);
-BOOL PM_DoWalk(int pnum);
-BOOL PM_DoWalk2(int pnum);
-BOOL PM_DoWalk3(int pnum);
+BOOL PM_DoWalk(int pnum, int variant);
 BOOL WeaponDur(int pnum, int durrnd);
 BOOL PlrHitMonst(int pnum, int m);
 BOOL PlrHitPlr(int pnum, char p);

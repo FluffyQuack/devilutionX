@@ -2978,4 +2978,10 @@ typedef enum conn_type {
 	SELCONN_LOOPBACK,
 } conn_type;
 
+typedef enum do_walk_variants { //Fluffy
+	DO_WALK_VARIANT_UP,
+	DO_WALK_VARIANT_DOWN,
+	DO_WALK_VARIANT_HORIZONTAL,
+} do_walk_variants;
+
 DEVILUTION_END_NAMESPACE

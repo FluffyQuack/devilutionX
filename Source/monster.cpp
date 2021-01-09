@@ -1875,7 +1875,7 @@ BOOL M_DoStand(int i)
 	return FALSE;
 }
 
-BOOL M_DoWalk(int i)
+BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since they had a lot shared code
 {
 	BOOL rv;
 
@@ -1884,90 +1884,42 @@ BOOL M_DoWalk(int i)
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoWalk: Monster %d \"%s\" MType NULL", i, monster[i].mName);
 
-	rv = FALSE;
-	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) {
-		dMonster[monster[i]._mx][monster[i]._my] = 0;
-		monster[i]._mx += monster[i]._mVar1;
-		monster[i]._my += monster[i]._mVar2;
-		dMonster[monster[i]._mx][monster[i]._my] = i + 1;
-		if (monster[i]._uniqtype != 0)
-			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
-		M_StartStand(i, monster[i]._mdir);
+	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) { //Monster reached a new tile
+
+		if (variant == DO_WALK_VARIANT_UP) { //Upleft, up, or upright movement
+			dMonster[monster[i]._mx][monster[i]._my] = 0;
+			monster[i]._mx += monster[i]._mVar1;
+			monster[i]._my += monster[i]._mVar2;
+			dMonster[monster[i]._mx][monster[i]._my] = i + 1;
+			if (monster[i]._uniqtype != 0)
+				ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
+			M_StartStand(i, monster[i]._mdir);
+		} else if (variant == DO_WALK_VARIANT_DOWN) { //Downleft, down, or downright movement
+			dMonster[monster[i]._mVar1][monster[i]._mVar2] = 0;
+			if (monster[i]._uniqtype != 0)
+				ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
+			M_StartStand(i, monster[i]._mdir);
+		} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
+			dMonster[monster[i]._mx][monster[i]._my] = 0;
+			monster[i]._mx = monster[i]._mVar1;
+			monster[i]._my = monster[i]._mVar2;
+			dFlags[monster[i]._mVar4][monster[i]._mVar5] &= ~BFLAG_MONSTLR;
+			dMonster[monster[i]._mx][monster[i]._my] = i + 1;
+			if (monster[i]._uniqtype)
+				ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
+			M_StartStand(i, monster[i]._mdir);
+		}
+
 		rv = TRUE;
-	} else if (!monster[i]._mAnimCnt) {
+	} else if (!monster[i]._mAnimCnt) { //Monster didn't reach a new tile, so update monster render offset
 		monster[i]._mVar8++;
 		monster[i]._mVar6 += monster[i]._mxvel;
 		monster[i]._mVar7 += monster[i]._myvel;
 		monster[i]._mxoff = monster[i]._mVar6 >> 4;
 		monster[i]._myoff = monster[i]._mVar7 >> 4;
-	}
-
-	if (monster[i]._uniqtype != 0)
-		M_ChangeLightOffset(i);
-
-	return rv;
-}
-
-BOOL M_DoWalk2(int i)
-{
-	BOOL rv;
-
-	if ((DWORD)i >= MAXMONSTERS)
-		app_fatal("M_DoWalk2: Invalid monster %d", i);
-	if (monster[i].MType == NULL)
-		app_fatal("M_DoWalk2: Monster %d \"%s\" MType NULL", i, monster[i].mName);
-
-	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) {
-		dMonster[monster[i]._mVar1][monster[i]._mVar2] = 0;
-		if (monster[i]._uniqtype != 0)
-			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
-		M_StartStand(i, monster[i]._mdir);
-		rv = TRUE;
-	} else {
-		if (!monster[i]._mAnimCnt) {
-			monster[i]._mVar8++;
-			monster[i]._mVar6 += monster[i]._mxvel;
-			monster[i]._mVar7 += monster[i]._myvel;
-			monster[i]._mxoff = monster[i]._mVar6 >> 4;
-			monster[i]._myoff = monster[i]._mVar7 >> 4;
-		}
 		rv = FALSE;
 	}
-	if (monster[i]._uniqtype != 0)
-		M_ChangeLightOffset(i);
 
-	return rv;
-}
-
-BOOL M_DoWalk3(int i)
-{
-	BOOL rv;
-
-	if ((DWORD)i >= MAXMONSTERS)
-		app_fatal("M_DoWalk3: Invalid monster %d", i);
-	if (monster[i].MType == NULL)
-		app_fatal("M_DoWalk3: Monster %d \"%s\" MType NULL", i, monster[i].mName);
-
-	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) {
-		dMonster[monster[i]._mx][monster[i]._my] = 0;
-		monster[i]._mx = monster[i]._mVar1;
-		monster[i]._my = monster[i]._mVar2;
-		dFlags[monster[i]._mVar4][monster[i]._mVar5] &= ~BFLAG_MONSTLR;
-		dMonster[monster[i]._mx][monster[i]._my] = i + 1;
-		if (monster[i]._uniqtype)
-			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
-		M_StartStand(i, monster[i]._mdir);
-		rv = TRUE;
-	} else {
-		if (!monster[i]._mAnimCnt) {
-			monster[i]._mVar8++;
-			monster[i]._mVar6 += monster[i]._mxvel;
-			monster[i]._mVar7 += monster[i]._myvel;
-			monster[i]._mxoff = monster[i]._mVar6 >> 4;
-			monster[i]._myoff = monster[i]._mVar7 >> 4;
-		}
-		rv = FALSE;
-	}
 	if (monster[i]._uniqtype != 0)
 		M_ChangeLightOffset(i);
 
@@ -4560,13 +4512,13 @@ void ProcessMonsters()
 				raflag = M_DoStand(mi);
 				break;
 			case MM_WALK:
-				raflag = M_DoWalk(mi);
+				raflag = M_DoWalk(mi, DO_WALK_VARIANT_UP);
 				break;
 			case MM_WALK2:
-				raflag = M_DoWalk2(mi);
+				raflag = M_DoWalk(mi, DO_WALK_VARIANT_DOWN);
 				break;
 			case MM_WALK3:
-				raflag = M_DoWalk3(mi);
+				raflag = M_DoWalk(mi, DO_WALK_VARIANT_HORIZONTAL);
 				break;
 			case MM_ATTACK:
 				raflag = M_DoAttack(mi);
