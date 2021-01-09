@@ -54,9 +54,9 @@ char PlrGFXAnimLens[][11] = {
 };
 /** Maps from player class to player velocity. */
 int PWVel[3][3] = {
-	{ 8, 4, 2 },
-	{ 8, 4, 2 },
-	{ 8, 4, 2 }
+	{ 2048, 1024, 512 },
+	{ 2048, 1024, 512 },
+	{ 2048, 1024, 512 }
 };
 /** Total number of frames in walk animation. */
 int AnimLenFromClass[3] = {
@@ -1187,12 +1187,12 @@ void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset(
 		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + plr[pnum]._pxvel, frame_timeSinceGameplayTick / 50.0);
-	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + plr[pnum]._pyvel, frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
 
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - plr[pnum]._pxvel, frame_timeSinceGameplayTick / 50.0);
-		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - plr[pnum]._pyvel, frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
 	}
 }
 
@@ -1205,13 +1205,13 @@ void PM_ChangeOffset(int pnum)
 	plr[pnum]._pVar8++; //This is used to track how close we're to reaching the next tile
 
 	//Update player render offset
-	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff += plr[pnum]._pxvel;
-	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff += plr[pnum]._pyvel;
+	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff += plr[pnum]._pxvel / 256;
+	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff += plr[pnum]._pyvel / 256;
 
 	//Update camera scrolling
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff -= plr[pnum]._pxvel;
-		ScrollInfo._syoff_interpolated = ScrollInfo._syoff -= plr[pnum]._pyvel;
+		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff -= plr[pnum]._pxvel / 256;
+		ScrollInfo._syoff_interpolated = ScrollInfo._syoff -= plr[pnum]._pyvel / 256;
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -2890,9 +2890,9 @@ void CheckNewPath(int pnum)
 				xvel = PWVel[plr[pnum]._pClass][1];
 				yvel = PWVel[plr[pnum]._pClass][2];
 			} else {
-				xvel3 = 8;
-				xvel = 4;
-				yvel = 2;
+				xvel3 = 2048;
+				xvel = 1024;
+				yvel = 512;
 			}
 
 			switch (plr[pnum].walkpath[0]) {
@@ -3241,7 +3241,7 @@ void ValidatePlayer() //This is a series of anti-cheat checks
 
 void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is called every frame
 {
-	return;
+	//return;
 	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
 			switch (plr[pnum]._pmode)
