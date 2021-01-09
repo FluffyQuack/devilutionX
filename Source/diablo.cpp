@@ -726,12 +726,13 @@ BOOL LeftMouseCmd(BOOL bShift)
 	assert(MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH);
 
 	//Fluffy: Cleaned some of this code and made it possible to attack in town (if gameSetup_allowAttacksInTown is true)
+	//Fluffy TODO: We should clean this code even more (and make it possible to hold shift to move in town again if gameSetup_allowAttacksInTown is false)
+	bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
 	if (pcursitem != -1 && pcurs == CURSOR_HAND)
 		NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
 	if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1))
 		NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
 
-	bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
 	if (bShift && (leveltype != DTYPE_TOWN || gameSetup_allowAttacksInTown == true))
 	{
 		if (plr[myplr]._pwtype == WT_RANGED)
