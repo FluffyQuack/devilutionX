@@ -482,9 +482,7 @@ void diablo_init_screen()
 	ScrollInfo._sdy = 0;
 	ScrollInfo._sxoff = 0;
 	ScrollInfo._syoff = 0;
-	ScrollInfo._sxoff_next = 0; //Fluffy
-	ScrollInfo._syoff_next = 0;
-	ScrollInfo._sxoff_interpolated = 0;
+	ScrollInfo._sxoff_interpolated = 0; //Fluffy
 	ScrollInfo._syoff_interpolated = 0;
 	ScrollInfo._sdir = SDIR_NONE;
 

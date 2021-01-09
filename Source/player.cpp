@@ -962,9 +962,7 @@ void InitPlayer(int pnum, BOOL FirstTime)
 		deathflag = FALSE;
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo._sxoff_next = 0; //Fluffy
-		ScrollInfo._syoff_next = 0;
-		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._sxoff_interpolated = 0; //Fluffy
 		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 	}
@@ -1073,9 +1071,7 @@ void FixPlayerLocation(int pnum, int bDir)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo._sxoff_next = 0; //Fluffy
-		ScrollInfo._syoff_next = 0;
-		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._sxoff_interpolated = 0; //Fluffy
 		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
@@ -1132,9 +1128,7 @@ void StartWalkStand(int pnum)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo._sxoff_next = 0; //Fluffy
-		ScrollInfo._syoff_next = 0;
-		ScrollInfo._sxoff_interpolated = 0;
+		ScrollInfo._sxoff_interpolated = 0; //Fluffy
 		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
@@ -1193,47 +1187,31 @@ void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset(
 		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
 	}
 
-	int px = plr[pnum]._pVar6 / 256, py = plr[pnum]._pVar7 / 256;
-
-	int var6 = plr[pnum]._pVar6 + plr[pnum]._pxvel;
-	int var7 = plr[pnum]._pVar7 + plr[pnum]._pyvel;
-
-	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, var6 / 256, frame_timeSinceGameplayTick / 50.0);
-	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, var7 / 256, frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
 
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff_next, frame_timeSinceGameplayTick / 50.0);
-		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff_next, frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
 	}
 }
 
 void PM_ChangeOffset(int pnum)
 {
-	int px, py;
-
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_ChangeOffset: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pVar8++;
-	px = plr[pnum]._pVar6 / 256;
-	py = plr[pnum]._pVar7 / 256;
+	plr[pnum]._pVar8++; //This is used to track how close we're to reaching the next tile
 
-	plr[pnum]._pVar6 += plr[pnum]._pxvel;
-	plr[pnum]._pVar7 += plr[pnum]._pyvel;
-	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = plr[pnum]._pVar6 / 256;
-	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = plr[pnum]._pVar7 / 256;
+	//Update player render offset
+	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff += plr[pnum]._pxvel / 256;
+	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff += plr[pnum]._pyvel / 256;
 
-	px -= plr[pnum]._pVar6 >> 8;
-	py -= plr[pnum]._pVar7 >> 8;
-
+	//Update camera scrolling
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff += px;
-		ScrollInfo._syoff_interpolated = ScrollInfo._syoff += py;
-
-		//Fluffy: For interpolation to next frame
-		ScrollInfo._sxoff_next = ScrollInfo._sxoff + px;
-		ScrollInfo._syoff_next = ScrollInfo._syoff + py;
+		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff -= plr[pnum]._pxvel / 256;
+		ScrollInfo._syoff_interpolated = ScrollInfo._syoff -= plr[pnum]._pyvel / 256;
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -1311,8 +1289,6 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pmode = PM_WALK2;
 		plr[pnum]._pxvel = xvel;
 		plr[pnum]._pyvel = yvel;
-		plr[pnum]._pVar6 = xoff * 256;
-		plr[pnum]._pVar7 = yoff * 256;
 		plr[pnum]._pVar3 = EndDir;
 	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
 		int x = mapx + plr[pnum]._px;
@@ -1336,8 +1312,6 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pyvel = yvel;
 		plr[pnum]._pVar1 = px;
 		plr[pnum]._pVar2 = py;
-		plr[pnum]._pVar6 = xoff * 256;
-		plr[pnum]._pVar7 = yoff * 256;
 		plr[pnum]._pVar3 = EndDir;
 	}
 
@@ -1366,11 +1340,6 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 
 	plr[pnum]._pdir = EndDir;
 	plr[pnum]._pVar8 = 0;
-
-	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright
-		plr[pnum]._pVar6 = 0;
-		plr[pnum]._pVar7 = 0;
-	}
 
 	if (pnum != myplr) {
 		return;
@@ -3272,7 +3241,7 @@ void ValidatePlayer() //This is a series of anti-cheat checks
 
 void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is called every frame
 {
-	return;
+	//return;
 	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
 			switch (plr[pnum]._pmode)
