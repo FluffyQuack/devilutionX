@@ -8,7 +8,7 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *tbuff;
-#define VERSION 1
+#define VERSION 2
 static int version; //Version of savegame we're currently loading
 /*
 * Version 0 = Savegame from base game
@@ -327,6 +327,10 @@ void LoadPlayer(int i)
 	CopyInt(tbuff, &pPlayer->_pyoff);
 	CopyInt(tbuff, &pPlayer->_pxvel);
 	CopyInt(tbuff, &pPlayer->_pyvel);
+	if (version <= 1) { //Fluffy: Earlier versions stored these two values as (* 256)
+		pPlayer->_pxvel /= 256;
+		pPlayer->_pyvel /= 256;
+	}
 	CopyInt(tbuff, &pPlayer->_pdir);
 	CopyInt(tbuff, &pPlayer->_nextdir);
 	CopyInt(tbuff, &pPlayer->_pgfxnum);
