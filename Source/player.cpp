@@ -1247,11 +1247,11 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 {
 	/*
 	This code has three variants (for walking upwards, horizontally, and downwards)
-	I haven't confirmed this, but I suspect it handles player positional differently in these directions in order to maintain correct render order
+	I haven't confirmed this, but I suspect it handles player position differently in these directions in order to maintain correct render order
 
 	xoff and yoff are sometimes set to high-ish values at the start of movement to make the player effectively get rendered on a different tile (because, as mentioned above), the player might belong to a different tile immediately during movement)
 
-	If the above theory is correct, then we can simplify this code by making the rendering code do sorting of players and objects before rendering them, and then we can be more freeform wiht how player position is defined
+	If the above theory is correct, then we can simplify this code by making the rendering code do sorting of players and objects before rendering them, and then we can be more freeform with how player position is defined
 	*/
 
 	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
@@ -1270,7 +1270,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	}
 
 	SetPlayerOld(pnum);
-	int px = xadd + plr[pnum]._px;
+	int px = xadd + plr[pnum]._px; //The tile we're ending up after moving once
 	int py = yadd + plr[pnum]._py;
 
 	if (!PlrDirOK(pnum, EndDir)) {
