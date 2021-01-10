@@ -876,8 +876,6 @@ void InitPlayer(int pnum, BOOL FirstTime)
 
 		plr[pnum]._pxoff = 0;
 		plr[pnum]._pyoff = 0;
-		plr[pnum]._pxoff_interpolated = 0; //Fluffy
-		plr[pnum]._pyoff_interpolated = 0;
 		plr[pnum]._pxvel = 0;
 		plr[pnum]._pyvel = 0;
 
@@ -1065,14 +1063,10 @@ void FixPlayerLocation(int pnum, int bDir)
 	plr[pnum]._ptargy = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
-	plr[pnum]._pxoff_interpolated = 0; //Fluffy
-	plr[pnum]._pyoff_interpolated = 0;
 	plr[pnum]._pdir = bDir;
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo._sxoff_interpolated = 0; //Fluffy
-		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1122,14 +1116,10 @@ void StartWalkStand(int pnum)
 	plr[pnum]._pfuty = plr[pnum]._py;
 	plr[pnum]._pxoff = 0;
 	plr[pnum]._pyoff = 0;
-	plr[pnum]._pxoff_interpolated = 0; //Fluffy
-	plr[pnum]._pyoff_interpolated = 0;
 
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo._sxoff_interpolated = 0; //Fluffy
-		ScrollInfo._syoff_interpolated = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1181,25 +1171,18 @@ void PM_ChangeLightOff(int pnum)
 	ChangeLightOff(plr[pnum]._plid, x, y);
 }
 
-BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum);
 void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset() which is called every frame
 {
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
 	}
 
-	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
-	if (newTile) { //Calculate progress towards new tile (as of last gameplay tick we should have fully reached the end of one tile)
-		//TODO: We need to handle the player entering a new animation (starting an attack, standing still, moving in a new direction, etc)
-		//TODO: We might also need to update what tile the player belongs to rendering-wise to ensure correct render order of objects
-	} else { //Continue current movement
-		plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), gInterpolateProgress);
-		plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), gInterpolateProgress);
+	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff_prev, plr[pnum]._pxoff, gInterpolateProgress);
+	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff_prev, plr[pnum]._pyoff, gInterpolateProgress);
 
-		if (pnum == myplr && ScrollInfo._sdir) {
-			ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), gInterpolateProgress);
-			ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), gInterpolateProgress);
-		}
+	if (pnum == myplr) { //Only update camera if this is local player
+		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff_prev, ScrollInfo._sxoff, gInterpolateProgress);
+		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff_prev, ScrollInfo._syoff, gInterpolateProgress);
 	}
 }
 
@@ -1212,13 +1195,13 @@ void PM_ChangeOffset(int pnum)
 	plr[pnum]._pVar8++; //This is used to track how close we're to reaching the next tile
 
 	//Update player render offset
-	plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff += plr[pnum]._pxvel / 256;
-	plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff += plr[pnum]._pyvel / 256;
+	plr[pnum]._pxoff += plr[pnum]._pxvel / 256;
+	plr[pnum]._pyoff += plr[pnum]._pyvel / 256;
 
 	//Update camera scrolling
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff -= plr[pnum]._pxvel / 256;
-		ScrollInfo._syoff_interpolated = ScrollInfo._syoff -= plr[pnum]._pyvel / 256;
+		ScrollInfo._sxoff -= plr[pnum]._pxvel / 256;
+		ScrollInfo._syoff -= plr[pnum]._pyvel / 256;
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -1255,7 +1238,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	}
 
 	SetPlayerOld(pnum);
-	int px = xadd + plr[pnum]._px; //The tile we're ending up after moving once
+	int px = xadd + plr[pnum]._px; //The tile we're ending up on after moving once
 	int py = yadd + plr[pnum]._py;
 
 	if (!PlrDirOK(pnum, EndDir)) {
@@ -1270,13 +1253,28 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		ScrollInfo._sdy = plr[pnum]._py - ViewY;
 	}
 
+	/*
+	Fluffy: A note about player offsets and interpolation.
+
+	This might be called at the start of a tick as the player reached a new tile but is moving onto a new one.
+	In that case, the player offset will be something like 32 (or whatever the equivalent) to moving one full tile
+	Since we're now defined as being on a new tile (which will always offset rendering by one whole tile), and since
+	offset will advance later this gameplay tick (the game will do tick of movement after this which moves offset along),
+	that means we can and should reset xoff_prev/yoff_prev here to be in the middle of the current tile to have
+	interpolation working correctly (otherwise it might interpolate from 32 to 4, which would be very invalid, when it's
+	supposed to be interpolating 0 to 4)
+
+	This also lets us interpolate by only using offset values and keeping x/y player positions the same. We do something
+	similar with camera scroll values when it's supposed to wrap around and update viewX/viewY.
+	*/
+
 	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright movement
 		dPlayer[px][py] = -(pnum + 1);
 		plr[pnum]._pmode = PM_WALK;
 		plr[pnum]._pxvel = xvel;
 		plr[pnum]._pyvel = yvel;
-		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = 0;
-		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = 0;
+		plr[pnum]._pxoff_prev = plr[pnum]._pxoff = 0;
+		plr[pnum]._pyoff_prev = plr[pnum]._pyoff = 0;
 		plr[pnum]._pVar1 = xadd;
 		plr[pnum]._pVar2 = yadd;
 		plr[pnum]._pVar3 = EndDir;
@@ -1287,8 +1285,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._px = px;
 		plr[pnum]._py = py;
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff_prev = plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff_prev = plr[pnum]._pyoff = yoff;
 
 		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 		PM_ChangeLightOff(pnum);
@@ -1306,8 +1304,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar4 = x;
 		plr[pnum]._pVar5 = y;
 		dFlags[x][y] |= BFLAG_PLAYERLR;
-		plr[pnum]._pxoff_interpolated = plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff_interpolated = plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff_prev = plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff_prev = plr[pnum]._pyoff = yoff;
 
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, x, y);
@@ -2044,12 +2042,6 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 		return 0;
 }
 
-static BOOL PM_DoWalk_Interpolate(int pnum, int variant) //Fluffy: Same as PM_DoWalk() but for interpolation. We check if player reaches new tile here
-{
-	//Fluffy TODO
-	return 0;
-}
-
 BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it's all one function
 {
 	BOOL rv;
@@ -2094,10 +2086,29 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 			ViewY = plr[pnum]._py - ScrollInfo._sdy;
 		}
 
+		/*
+		Fluffy: We force previous camera and player offsets to 0 here for interpolation to work correctly.
+
+		During a normal gameplay tick, ScrollInfo._sxoff changes from 32 (or whatever is equilavent to the size of the tile we're moving across)
+		to 0 here, which is actually the same position since ViewX and ViewY changes at the same time (meaning 0 is the middle
+		of the tile we just reached).
+		*/
 		if (plr[pnum].walkpath[0] != WALK_NONE) {
 			StartWalkStand(pnum);
+
+			plr[pnum]._pxoff_prev = 0; //These two variables are set to their proper values during StartWalk() but just in case the player gets blocked before the code gets that far, we set previous values 0 for now
+			plr[pnum]._pyoff_prev = 0;
+			ScrollInfo._sxoff_prev = 0;
+			ScrollInfo._syoff_prev = 0;
 		} else {
 			StartStand(pnum, plr[pnum]._pVar3);
+			
+			if (pnum == myplr) {
+				ScrollInfo._sxoff_prev = 0;
+				ScrollInfo._syoff_prev = 0;
+			}
+			plr[pnum]._pxoff_prev = 0;
+			plr[pnum]._pyoff_prev = 0;
 		}
 
 		ClearPlrPVars(pnum);
@@ -3242,51 +3253,7 @@ void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is
 {
 	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
-			switch (plr[pnum]._pmode)
-			{
-			case PM_WALK:
-			case PM_WALK2:
-			case PM_WALK3:
-				PM_DoWalk_Interpolate(pnum, plr[pnum]._pmode - PM_WALK);
-				PM_ChangeOffset_Interpolate(pnum);
-				break;
-			default:
-				break;
-				/*
-			case PM_STAND:
-				PM_DoStand(pnum);
-				break;
-			case PM_WALK:
-				PM_DoWalk(pnum);
-				break;
-			case PM_WALK2:
-				PM_DoWalk2(pnum);
-				break;
-			case PM_WALK3:
-				PM_DoWalk3(pnum);
-				break;
-			case PM_ATTACK:
-				PM_DoAttack(pnum);
-				break;
-			case PM_RATTACK:
-				PM_DoRangeAttack(pnum);
-				break;
-			case PM_BLOCK:
-				PM_DoBlock(pnum);
-				break;
-			case PM_SPELL:
-				PM_DoSpell(pnum);
-				break;
-			case PM_GOTHIT:
-				PM_DoGotHit(pnum);
-				break;
-			case PM_DEATH:
-				PM_DoDeath(pnum);
-				break;
-			case PM_NEWLVL:
-				PM_DoNewLvl(pnum);
-				break;
-				*/
+			PM_ChangeOffset_Interpolate(pnum);
 			}
 
 			/*
@@ -3299,14 +3266,24 @@ void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is
 				}
 			}
 			*/
-		}
 	}
+}
+
+static void ResetInterpolationValues()
+{
+	plr[myplr]._pxoff_interpolated = plr[myplr]._pxoff_prev = plr[myplr]._pxoff;
+	plr[myplr]._pyoff_interpolated = plr[myplr]._pyoff_prev = plr[myplr]._pyoff;
+	ScrollInfo._sxoff_interpolated = ScrollInfo._sxoff_prev = ScrollInfo._sxoff;
+	ScrollInfo._syoff_interpolated = ScrollInfo._syoff_prev = ScrollInfo._syoff;
 }
 
 void ProcessPlayers()
 {
 	int pnum;
 	BOOL tplayer;
+
+	//Fluffy: Set the previous values for a lot of variables (used for interpolation from previous frame)
+	ResetInterpolationValues();
 
 	if ((DWORD)myplr >= MAX_PLRS) {
 		app_fatal("ProcessPlayers: illegal player %d", myplr);
@@ -3404,6 +3381,10 @@ void ProcessPlayers()
 			}
 		}
 	}
+
+	//Fluffy: If interpolation is turned off, then all interpolated values should match the real values
+	if (!gameSetup_interpolation)
+		ResetInterpolationValues();
 }
 
 void CheckCheatStats(int pnum) //Series of anti-cheat checks

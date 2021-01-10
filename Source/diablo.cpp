@@ -226,10 +226,8 @@ void run_game_loop(unsigned int uMsg)
 		multi_process_network_packets();
 		game_loop(gbGameLoopStartup);
 		gbGameLoopStartup = FALSE;
-		/* //Fluffy: I don't think this is needed
 		if (gameSetup_interpolation)
-			Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: We need to make sure interpolation values get updated every single frame, so we also do it when game simulation is updated
-			*/
+			Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: Also update interpolation values during a normal gameplay tick
 		DrawAndBlit();
 	}
 
