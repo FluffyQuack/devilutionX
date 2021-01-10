@@ -49,6 +49,7 @@ extern char sgbMouseDown;
 extern int color_cycle_timer;
 extern int ticks_per_sec;
 extern unsigned long long tick_delay_highResolution; //Fluffy
+extern double gInterpolateProgress; //Fluffy
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we joined a network game)
 extern BOOL gameSetup_fastWalkInTown;

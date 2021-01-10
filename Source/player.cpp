@@ -1187,12 +1187,12 @@ void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset(
 		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
-	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
+	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), gInterpolateProgress);
+	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), gInterpolateProgress);
 
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), frame_timeSinceGameplayTick / 50.0);
-		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), frame_timeSinceGameplayTick / 50.0);
+		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), gInterpolateProgress);
+		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), gInterpolateProgress);
 	}
 }
 

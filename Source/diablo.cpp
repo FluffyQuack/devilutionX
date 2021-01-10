@@ -44,6 +44,7 @@ char sgbMouseDown;
 int color_cycle_timer;
 int ticks_per_sec = 20;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
+double gInterpolateProgress = 0; //Fluffy: Progress towards the next gameplay tick
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
@@ -1762,6 +1763,13 @@ void Diablo_InterpolateBetweenGameplayTicks(bool gameSimulated) //Fluffy
 	if (frame_timeOfPreviousInterpolate != 0)
 		frame_interpolationDelta = (double)((curTime - frame_timeOfPreviousInterpolate) * 1000) / SDL_GetPerformanceFrequency();
 	frame_timeOfPreviousInterpolate = curTime;
+
+	//Calculate how close we are to the next gameplay tick
+	gInterpolateProgress = frame_timeSinceGameplayTick / ((double)tick_delay_highResolution / SDL_GetPerformanceFrequency() * 1000);
+	if (gInterpolateProgress < 0)
+		gInterpolateProgress = 0;
+	else if (gInterpolateProgress > 1.0f)
+		gInterpolateProgress = 1.0f;
 
 	if (gbProcessPlayers)
 		ProcessPlayers_Interpolate();
