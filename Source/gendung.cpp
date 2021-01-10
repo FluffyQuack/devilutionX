@@ -101,10 +101,10 @@ char setlvltype;
 int ViewX;
 /** Specifies the player viewpoint Y-coordinate of the map. */
 int ViewY;
-int ViewBX;
-int ViewBY;
-int ViewDX;
-int ViewDY;
+int ViewBX; //Unused
+int ViewBY; //Unused
+int ViewDX; //Unused
+int ViewDY; //Unused
 ScrollStruct ScrollInfo;
 /** Specifies the level viewpoint X-coordinate of the map. */
 int LvlViewX;
@@ -127,7 +127,7 @@ char dPreLight[MAXDUNX][MAXDUNY];
 char dFlags[MAXDUNX][MAXDUNY];
 /** Contains the player numbers (players array indices) of the map. */
 char dPlayer[MAXDUNX][MAXDUNY];
-/**
+    /**
  * Contains the NPC numbers of the map. The NPC number represents a
  * towner number (towners array index) in Tristram and a monster number
  * (monsters array index) in the dungeon.
