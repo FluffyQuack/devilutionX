@@ -1181,18 +1181,25 @@ void PM_ChangeLightOff(int pnum)
 	ChangeLightOff(plr[pnum]._plid, x, y);
 }
 
+BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum);
 void PM_ChangeOffset_Interpolate(int pnum) //Fluffy: Variant of PM_ChangeOffset() which is called every frame
 {
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_ChangeOffset_Interpolate: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), gInterpolateProgress);
-	plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), gInterpolateProgress);
+	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
+	if (newTile) { //Calculate progress towards new tile (as of last gameplay tick we should have fully reached the end of one tile)
+		//TODO: We need to handle the player entering a new animation (starting an attack, standing still, moving in a new direction, etc)
+		//TODO: We might also need to update what tile the player belongs to rendering-wise to ensure correct render order of objects
+	} else { //Continue current movement
+		plr[pnum]._pxoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pxoff, plr[pnum]._pxoff + (plr[pnum]._pxvel / 256), gInterpolateProgress);
+		plr[pnum]._pyoff_interpolated = InterpolateBetweenTwoPoints_Int32(plr[pnum]._pyoff, plr[pnum]._pyoff + (plr[pnum]._pyvel / 256), gInterpolateProgress);
 
-	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), gInterpolateProgress);
-		ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), gInterpolateProgress);
+		if (pnum == myplr && ScrollInfo._sdir) {
+			ScrollInfo._sxoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._sxoff, ScrollInfo._sxoff - (plr[pnum]._pxvel / 256), gInterpolateProgress);
+			ScrollInfo._syoff_interpolated = InterpolateBetweenTwoPoints_Int32(ScrollInfo._syoff, ScrollInfo._syoff - (plr[pnum]._pyvel / 256), gInterpolateProgress);
+		}
 	}
 }
 
