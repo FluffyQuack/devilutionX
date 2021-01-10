@@ -11,8 +11,6 @@ static BYTE sgbIsScrolling;
 static DWORD sgdwLastWalk;
 static BOOL sgbIsWalking;
 
-//Fluffy TODO: I think one of these functions might be related to the bug I get with choppy movement when fast walk is on
-
 void track_process()
 {
 	if (!sgbIsWalking)
@@ -21,12 +19,20 @@ void track_process()
 	if (cursmx < 0 || cursmx >= MAXDUNX - 1 || cursmy < 0 || cursmy >= MAXDUNY - 1)
 		return;
 
-	if (plr[myplr]._pVar8 <= 6 && plr[myplr]._pmode != PM_STAND)
+	//Fluffy: If fastwalk is allowed, then we should allow the player to repeat walking more often when holding down left click
+	int moveProgress = plr[myplr]._pVar8;
+	int minWaitForRepeatWalk = 300;
+	if (gameSetup_fastWalkInTown && currlevel == 0) {
+		moveProgress *= 2;
+		minWaitForRepeatWalk /= 2;
+	}
+
+	if (moveProgress <= 6 && plr[myplr]._pmode != PM_STAND)
 		return;
 
 	if (cursmx != plr[myplr]._ptargx || cursmy != plr[myplr]._ptargy) {
 		DWORD tick = SDL_GetTicks();
-		if ((int)(tick - sgdwLastWalk) >= 300) {
+		if ((int)(tick - sgdwLastWalk) >= minWaitForRepeatWalk) {
 			sgdwLastWalk = tick;
 			NetSendCmdLoc(TRUE, CMD_WALKXY, cursmx, cursmy);
 			if (!sgbIsScrolling)
