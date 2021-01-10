@@ -3233,7 +3233,6 @@ void ValidatePlayer() //This is a series of anti-cheat checks
 
 void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is called every frame
 {
-	//return;
 	for (int pnum = 0; pnum < MAX_PLRS; pnum++) {
 		if (plr[pnum].plractive && currlevel == plr[pnum].plrlevel && (pnum == myplr || !plr[pnum]._pLvlChanging)) {
 			switch (plr[pnum]._pmode)

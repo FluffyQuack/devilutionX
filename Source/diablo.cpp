@@ -48,6 +48,7 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
 BOOL gameSetup_allowAttacksInTown = true;
+BOOL gameSetup_interpolation = true;
 
 /* rdata */
 
@@ -215,7 +216,8 @@ void run_game_loop(unsigned int uMsg)
 			break;
 		if (!nthread_has_500ms_passed(FALSE)) {
 			ProcessInput();
-			Diablo_InterpolateBetweenGameplayTicks(false); //Fluffy: When we skip updating the game simulation, we'll want to interpolate a lot of values to give the impression of smoother gameplay
+			if (gameSetup_interpolation)
+				Diablo_InterpolateBetweenGameplayTicks(false); //Fluffy: When we skip updating the game simulation, we'll want to interpolate a lot of values to give the impression of smoother gameplay
 			DrawAndBlit();
 			continue;
 		}
@@ -223,7 +225,8 @@ void run_game_loop(unsigned int uMsg)
 		multi_process_network_packets();
 		game_loop(gbGameLoopStartup);
 		gbGameLoopStartup = FALSE;
-		Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: We need to make sure interpolation values get updated every single frame, so we also do it when game simulation is updated
+		if (gameSetup_interpolation)
+			Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: We need to make sure interpolation values get updated every single frame, so we also do it when game simulation is updated
 		DrawAndBlit();
 	}
 
