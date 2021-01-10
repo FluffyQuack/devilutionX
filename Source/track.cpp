@@ -11,6 +11,8 @@ static BYTE sgbIsScrolling;
 static DWORD sgdwLastWalk;
 static BOOL sgbIsWalking;
 
+//Fluffy TODO: I think one of these functions might be related to the bug I get with choppy movement when fast walk is on
+
 void track_process()
 {
 	if (!sgbIsWalking)
