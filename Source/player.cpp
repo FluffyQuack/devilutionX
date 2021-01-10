@@ -3244,8 +3244,6 @@ void ProcessPlayers_Interpolate() //Fluffy: Variant of ProcessPlayers() which is
 				PM_ChangeOffset_Interpolate(pnum);
 				break;
 			default:
-				//plr[pnum]._pxoff = 0;
-				//plr[pnum]._pyoff = 0;
 				break;
 				/*
 			case PM_STAND:
