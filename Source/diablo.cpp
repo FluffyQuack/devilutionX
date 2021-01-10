@@ -725,42 +725,34 @@ BOOL LeftMouseDown(int wParam)
 
 BOOL LeftMouseCmd(BOOL bShift)
 {
-	BOOL bNear;
+	//If this function returns false, then mouse click becomes walk
 
 	assert(MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH);
 
-	//Fluffy: Cleaned some of this code and made it possible to attack in town (if gameSetup_allowAttacksInTown is true)
-	//Fluffy TODO: We should clean this code even more (and make it possible to hold shift to move in town again if gameSetup_allowAttacksInTown is false)
-	bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
-	if (pcursitem != -1 && pcurs == CURSOR_HAND)
-		NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
-	if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1))
-		NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
-
-	if (bShift && (leveltype != DTYPE_TOWN || gameSetup_allowAttacksInTown == true))
-	{
-		if (plr[myplr]._pwtype == WT_RANGED)
-			NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
-		else
-		{
-			if (pcursmonst != -1)
-			{
-				if (CanTalkToMonst(pcursmonst))
-					NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
-				else
-					NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
-			}
+	if (leveltype == DTYPE_TOWN) {
+		if (bShift && gameSetup_allowAttacksInTown) { //Fluffy: Attack if shift is held down and if attacking in town is allowed
+			if (plr[myplr]._pwtype == WT_RANGED)
+				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
 			else
 				NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
 		}
-	}
-
-	if (leveltype == DTYPE_TOWN) {
-		if (pcursmonst != -1)
+		else if (pcursitem != -1 && pcurs == CURSOR_HAND)
+			NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
+		else if (pcursmonst != -1)
 			NetSendCmdLocParam1(TRUE, CMD_TALKXY, cursmx, cursmy, pcursmonst);
+			
+		if ((!bShift || !gameSetup_allowAttacksInTown) && pcursitem == -1 && pcursmonst == -1 && pcursplr == -1)
+			return TRUE;
 	} else {
-		if (plr[myplr]._pwtype == WT_RANGED) {
-			if (pcursmonst != -1) {
+		BOOL bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
+		if (pcursitem != -1 && pcurs == CURSOR_HAND && !bShift) {
+			NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
+		} else if (pcursobj != -1 && (!bShift || bNear && object[pcursobj]._oBreak == 1)) {
+			NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
+		} else if (plr[myplr]._pwtype == WT_RANGED) {
+			if (bShift) {
+				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
+			} else if (pcursmonst != -1) {
 				if (CanTalkToMonst(pcursmonst)) {
 					NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 				} else {
@@ -770,17 +762,26 @@ BOOL LeftMouseCmd(BOOL bShift)
 				NetSendCmdParam1(TRUE, CMD_RATTACKPID, pcursplr);
 			}
 		} else {
-			if (pcursmonst != -1) {
+			if (bShift) {
+				if (pcursmonst != -1) {
+					if (CanTalkToMonst(pcursmonst)) {
+						NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
+					} else {
+						NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
+					}
+				} else {
+					NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
+				}
+			} else if (pcursmonst != -1) {
 				NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 			} else if (pcursplr != -1 && !FriendlyMode) {
 				NetSendCmdParam1(TRUE, CMD_ATTACKPID, pcursplr);
 			}
 		}
+		if (!bShift && pcursitem == -1 && pcursobj == -1 && pcursmonst == -1 && pcursplr == -1)
+			return TRUE;
 	}
 
-	//Fluffy TODO: Very minor bug here. If gameSetup_allowAttacksInTown is true then you can't walk by shift clicking
-	if (!bShift && pcursitem == -1 && pcursobj == -1 && pcursmonst == -1 && pcursplr == -1)
-		return TRUE;
 	return FALSE;
 }
 
