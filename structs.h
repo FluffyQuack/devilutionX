@@ -1228,6 +1228,7 @@ typedef struct _gamedata {
 	BYTE bRate;
 	BOOL fastWalkInTown;
 	BOOL allowAttacksInTown;
+	int gSpeedMod;
 } _gamedata;
 
 typedef struct _uidefaultstats {

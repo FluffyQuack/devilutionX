@@ -45,6 +45,18 @@ int color_cycle_timer;
 int ticks_per_sec = 20;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
 
+/*
+  Fluffy: This value modifies the speed of the game (it's supposed to be used in tandem with ticks_per_sec so we can increase framerate while also changing game simulation speed by a corresponding value.
+
+  This will essentially divide the game simulation by whatever gSpeedMod is (2 would be 2 times slower, 4 would be 4 times slower, etc).
+
+  It works by multiplying the "goal" values which iterating values are compared against. And those iterating values are divided by the same amount when referenced for rendering and other functions.
+
+  An example: One of the camera offsets can range from to 0 to 16 and it's supposed to be increased by 2 each gameplay tick (if we're at the standard 20fps). We multiply the 16 (goal value) by gSpeedMod
+  and then using the camera offset for rendering we divide it by the same amount. The result is that we modify game speed with minimal changes to the code while everything behaving almost exactly the same.
+*/
+int gSpeedMod = 1; //Fluffy
+
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
 BOOL gameSetup_allowAttacksInTown = true;

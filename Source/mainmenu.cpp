@@ -151,6 +151,9 @@ BOOL mainmenu_single_player()
 		SRegSaveValue("devilutionx", "game speed", 0, ticks_per_sec);
 	}
 	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
+	if (!SRegLoadValue("devilutionx", "Game Simulation Speed Modifier", 0, &gSpeedMod)) {
+		SRegSaveValue("devilutionx", "Game Simulation Speed Modifier", 0, gSpeedMod);
+	}
 
 	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
 	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
