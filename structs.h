@@ -282,8 +282,8 @@ typedef struct PlayerStruct {
 	int _pVar3; //Player's direction when ending movement. Also used for defining direction of SPL_FIREWALL spell when casting it.
 	int _pVar4; //Used for storing X position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
 	int _pVar5; //Used for storing Y position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
-	int _pVar6; //Used as _mxoff but with a higher range so that we can correctly apply velocities of a smaller number
-	int _pVar7; //Used as _myoff but with a higher range so that we can correctly apply velocities of a smaller number
+	int _pVar6; //Same as _pxoff but contains the value in a higher range
+	int _pVar7; //Same as _pyoff but contains the value in a higher range
 	int _pVar8; //This is used as an alternative to animLength depending on what state the player is in
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
@@ -585,8 +585,8 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mVar3;
 	int _mVar4;
 	int _mVar5;
-	int _mVar6; //Unused (it's given a value during M_DiabloDeath() but I don't think it's used for anything
-	int _mVar7; //Unused
+	int _mVar6; //Used as _mxoff but with a higher range so that we can correctly apply velocities of a smaller number
+	int _mVar7; //Used as _myoff but with a higher range so that we can correctly apply velocities of a smaller number
 	int _mVar8; //Used to measure progress for moving from one tile to another
 	int _mmaxhp;
 	int _mhitpoints;

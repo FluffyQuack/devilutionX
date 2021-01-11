@@ -1171,20 +1171,27 @@ void PM_ChangeLightOff(int pnum)
 
 void PM_ChangeOffset(int pnum)
 {
+	int px, py;
+
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_ChangeOffset: illegal player %d", pnum);
 	}
 
-	plr[pnum]._pVar8++; //This is used to track how close we're to reaching the next tile
+	plr[pnum]._pVar8++;
+	px = plr[pnum]._pVar6 / 256;
+	py = plr[pnum]._pVar7 / 256;
 
-	//Update player render offset
-	plr[pnum]._pxoff += plr[pnum]._pxvel / 256;
-	plr[pnum]._pyoff += plr[pnum]._pyvel / 256;
+	plr[pnum]._pVar6 += plr[pnum]._pxvel;
+	plr[pnum]._pVar7 += plr[pnum]._pyvel;
+	plr[pnum]._pxoff = plr[pnum]._pVar6 / 256;
+	plr[pnum]._pyoff = plr[pnum]._pVar7 / 256;
 
-	//Update camera scrolling
+	px -= plr[pnum]._pVar6 >> 8;
+	py -= plr[pnum]._pVar7 >> 8;
+
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff -= plr[pnum]._pxvel / 256;
-		ScrollInfo._syoff -= plr[pnum]._pyvel / 256;
+		ScrollInfo._sxoff += px;
+		ScrollInfo._syoff += py;
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -1245,6 +1252,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pyoff = 0;
 		plr[pnum]._pVar1 = xadd;
 		plr[pnum]._pVar2 = yadd;
+		plr[pnum]._pVar6 = 0;
+		plr[pnum]._pVar7 = 0;
 		plr[pnum]._pVar3 = EndDir;
 	} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright movement
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
@@ -1262,6 +1271,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pmode = PM_WALK2;
 		plr[pnum]._pxvel = xvel;
 		plr[pnum]._pyvel = yvel;
+		plr[pnum]._pVar6 = (xoff * gSpeedMod) * 256; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
+		plr[pnum]._pVar7 = (yoff * gSpeedMod) * 256;
 		plr[pnum]._pVar3 = EndDir;
 	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
 		int x = mapx + plr[pnum]._px;
@@ -1285,6 +1296,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pyvel = yvel;
 		plr[pnum]._pVar1 = px;
 		plr[pnum]._pVar2 = py;
+		plr[pnum]._pVar6 = (xoff * gSpeedMod) * 256; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
+		plr[pnum]._pVar7 = (yoff * gSpeedMod) * 256;
 		plr[pnum]._pVar3 = EndDir;
 	}
 
