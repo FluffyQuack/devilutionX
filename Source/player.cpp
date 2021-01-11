@@ -3290,7 +3290,8 @@ void ProcessPlayers()
 				plr[pnum].walkedLastTick = 0;
 
 			plr[pnum]._pAnimCnt++;
-			if (plr[pnum]._pAnimCnt > plr[pnum]._pAnimDelay) {
+			//Fluffy: I changed the following check so it's >= and +1 to AnimDelay. That means AnimDelay directly corresponds with the quantity of ticks we're waiting, rather than 0 equalling 1 tick delay, 1 equalling 2 tick delay, and etc
+			if (plr[pnum]._pAnimCnt >= plr[pnum]._pAnimDelay + 1) {
 				plr[pnum]._pAnimCnt = 0;
 				plr[pnum]._pAnimFrame++;
 				if (plr[pnum]._pAnimFrame > plr[pnum]._pAnimLen) {
