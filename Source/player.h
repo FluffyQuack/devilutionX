@@ -93,7 +93,6 @@ BOOL PM_DoDeath(int pnum);
 void CheckNewPath(int pnum);
 BOOL PlrDeathModeOK(int p);
 void ValidatePlayer();
-void ProcessPlayers_Interpolate();
 void ProcessPlayers();
 void CheckCheatStats(int pnum);
 void ClrPlrPath(int pnum);

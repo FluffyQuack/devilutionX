@@ -44,12 +44,10 @@ char sgbMouseDown;
 int color_cycle_timer;
 int ticks_per_sec = 20;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
-double gInterpolateProgress = 0; //Fluffy: Progress towards the next gameplay tick
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
 BOOL gameSetup_allowAttacksInTown = true;
-BOOL gameSetup_interpolation = true;
 
 /* rdata */
 
@@ -77,12 +75,9 @@ int frameend;
 int framerate;
 unsigned long long framestart; //Fluffy: Gave this higher precision
 unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick deltas
-unsigned long long frame_timeOfPreviousInterpolate = 0; //Fluffy: For tracking delta between interpolation updates
 unsigned long long frame_timeOfPreviousFrameRender = 0; //Fluffy For tracking frame render deltas
 double frame_gameplayTickDelta = 0; //Fluffy
 double frame_renderDelta = 0; //Fluffy
-double frame_interpolationDelta = 0; //Fluffy: Delta between each interpolation (this includes delta between last gameplay tick and interpolation as well)
-double frame_timeSinceGameplayTick = 0; //Fluffy: How long ago since we started a gameplay tick
 /** Specifies whether players are in non-PvP mode. */
 BOOL FriendlyMode = TRUE;
 /** Default quick messages */
@@ -217,8 +212,6 @@ void run_game_loop(unsigned int uMsg)
 			break;
 		if (!nthread_has_500ms_passed(FALSE)) {
 			ProcessInput();
-			if (gameSetup_interpolation)
-				Diablo_InterpolateBetweenGameplayTicks(false); //Fluffy: When we skip updating the game simulation, we'll want to interpolate a lot of values to give the impression of smoother gameplay
 			DrawAndBlit();
 			continue;
 		}
@@ -226,8 +219,6 @@ void run_game_loop(unsigned int uMsg)
 		multi_process_network_packets();
 		game_loop(gbGameLoopStartup);
 		gbGameLoopStartup = FALSE;
-		if (gameSetup_interpolation)
-			Diablo_InterpolateBetweenGameplayTicks(true); //Fluffy: Also update interpolation values during a normal gameplay tick
 		DrawAndBlit();
 	}
 
@@ -486,8 +477,6 @@ void diablo_init_screen()
 	ScrollInfo._sdy = 0;
 	ScrollInfo._sxoff = 0;
 	ScrollInfo._syoff = 0;
-	ScrollInfo._sxoff_interpolated = 0; //Fluffy
-	ScrollInfo._syoff_interpolated = 0;
 	ScrollInfo._sdir = SDIR_NONE;
 
 	ClrDiabloMsg();
@@ -1745,71 +1734,6 @@ void game_loop(BOOL bStartup)
 
 // Controller support:
 extern void plrctrls_after_game_logic();
-
-void Diablo_InterpolateBetweenGameplayTicks(bool gameSimulated) //Fluffy
-{
-	/*
-	- As the function name implies, this updates some graphical values (which has no bearing on gameplay) between gameplay ticks in order to generate more smooth-looking gameplay
-	- If gameSimulated is true that means this is the same frame as a gameplay tick (this is called after the gameplay update)
-	*/
-
-	//Calculate delta between now and last game play tick so we know by how much we should interpolate values
-	unsigned long long curTime = SDL_GetPerformanceCounter();
-	if (frame_timeOfPreviousGamePlayTick != 0)
-		frame_timeSinceGameplayTick = (double)((curTime - frame_timeOfPreviousGamePlayTick) * 1000) / SDL_GetPerformanceFrequency();
-
-	//Also calculate the delta since last interpolation
-	if (frame_timeOfPreviousInterpolate != 0)
-		frame_interpolationDelta = (double)((curTime - frame_timeOfPreviousInterpolate) * 1000) / SDL_GetPerformanceFrequency();
-	frame_timeOfPreviousInterpolate = curTime;
-
-	//Calculate how close we are to the next gameplay tick
-	gInterpolateProgress = frame_timeSinceGameplayTick / ((double)tick_delay_highResolution / SDL_GetPerformanceFrequency() * 1000);
-	if (gInterpolateProgress < 0)
-		gInterpolateProgress = 0;
-	else if (gInterpolateProgress > 1.0f)
-		gInterpolateProgress = 1.0f;
-
-	if (gbProcessPlayers)
-		ProcessPlayers_Interpolate();
-
-	//The following commented-out code is from game_logic(), shown here as reference
-	/*
-	if (!ProcessInput()) {
-		return;
-	}
-	if (gbProcessPlayers) {
-		ProcessPlayers();
-	}
-	if (leveltype != DTYPE_TOWN) {
-		ProcessMonsters();
-		ProcessObjects();
-		ProcessMissiles();
-		ProcessItems();
-		ProcessLightList();
-		ProcessVisionList();
-	} else {
-		ProcessTowners();
-		ProcessItems();
-		ProcessMissiles();
-	}
-
-#ifdef _DEBUG
-	if (debug_mode_key_inverted_v && GetAsyncKeyState(DVL_VK_SHIFT) & 0x8000) {
-		ScrollView();
-	}
-#endif
-
-	sound_update();
-	ClearPlrMsg();
-	CheckTriggers();
-	CheckQuests();
-	force_redraw |= 1;
-	pfile_update(FALSE);
-
-	plrctrls_after_game_logic();
-	*/
-}
 
 void game_logic()
 {

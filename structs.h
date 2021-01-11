@@ -199,11 +199,7 @@ typedef struct PlayerStruct {
 	int _poldx; //Player's old X position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
 	int _poldy; //Player's old Y position. Set by a lot of code when player moves. Only referenced during FixPlrWalkTags() which is called by a lot of movement-related code
 	int _pxoff; //X offset render (basically, the player's sub-tile position)
-	int _pxoff_prev; //Fluffy: For interpolation
-	int _pxoff_interpolated; //Fluffy: Interpolated version of player's X offset position
 	int _pyoff; //Y offset render (basically, the player's sub-tile position)
-	int _pyoff_prev; //Fluffy: For interpolation
-	int _pyoff_interpolated; //Fluffy: Interpolated version of player's Y offset position
 	int _pxvel; //Player's X velocity while walking
 	int _pyvel; //Player's Y velocity while walking
 	int _pdir; //Facing of the player (0..7 starting from DIR_S)
@@ -1125,12 +1121,6 @@ typedef struct ScrollStruct {
 	int _sdx;
 	int _sdy;
 	int _sdir;
-
-	//Fluffy
-	int _sxoff_interpolated;
-	int _syoff_interpolated;
-	int _sxoff_prev;
-	int _syoff_prev;
 } ScrollStruct;
 
 typedef struct THEME_LOC {
@@ -1238,7 +1228,6 @@ typedef struct _gamedata {
 	BYTE bRate;
 	BOOL fastWalkInTown;
 	BOOL allowAttacksInTown;
-	BOOL interpolation;
 } _gamedata;
 
 typedef struct _uidefaultstats {

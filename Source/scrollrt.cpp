@@ -451,8 +451,8 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 				break;
 			}
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
-			px = sx + p->_pxoff_interpolated - p->_pAnimWidth2; //Fluffy
-			py = sy + p->_pyoff_interpolated;
+			px = sx + p->_pxoff - p->_pAnimWidth2;
+			py = sy + p->_pyoff;
 
 			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
@@ -667,8 +667,8 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int p = dPlayer[x][y + oy];
 	p = p > 0 ? p - 1 : -(p + 1);
 	PlayerStruct *pPlayer = &plr[p];
-	int px = sx + pPlayer->_pxoff_interpolated - pPlayer->_pAnimWidth2; //Fluffy
-	int py = sy + pPlayer->_pyoff_interpolated;
+	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
+	int py = sy + pPlayer->_pyoff;
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 }
@@ -1064,8 +1064,8 @@ static void DrawGame(int x, int y)
 		gpBufEnd = &gpBuffer[BUFFER_WIDTH * (VIEWPORT_HEIGHT / 2 + SCREEN_Y)];
 
 	// Adjust by player offset and tile grid alignment
-	sx = ScrollInfo._sxoff_interpolated + tileOffsetX + SCREEN_X; //Fluffy
-	sy = ScrollInfo._syoff_interpolated + tileOffsetY + SCREEN_Y;
+	sx = ScrollInfo._sxoff + tileOffsetX + SCREEN_X;
+	sy = ScrollInfo._syoff + tileOffsetY + SCREEN_Y;
 
 	columns = tileColums;
 	rows = tileRows;
@@ -1367,25 +1367,11 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 		snprintf(String, 100, "render delta: %0.2f ", frame_renderDelta);
 		RenderDebugLine(&x, &y, String);
-		snprintf(String, 100, "time since gametick: %0.2f ", frame_timeSinceGameplayTick);
-		RenderDebugLine(&x, &y, String);
-		snprintf(String, 100, "interpolation delta: %0.2f ", frame_interpolationDelta);
-		RenderDebugLine(&x, &y, String);
 
 		if (myplr == 0) {
 			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff);
 			RenderDebugLine(&x, &y, String);
 			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff);
-			RenderDebugLine(&x, &y, String);
-
-			snprintf(String, 100, "offsetX_int: %i", plr[myplr]._pxoff_interpolated);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY_int: %i", plr[myplr]._pyoff_interpolated);
-			RenderDebugLine(&x, &y, String);
-
-			snprintf(String, 100, "offsetX_prev: %i", plr[myplr]._pxoff_prev);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY_prev: %i", plr[myplr]._pyoff_prev);
 			RenderDebugLine(&x, &y, String);
 
 			snprintf(String, 100, "x %i", plr[myplr]._px);
@@ -1396,16 +1382,6 @@ static void DrawFPS()
 			snprintf(String, 100, "cameraOffsetX %i", ScrollInfo._sxoff);
 			RenderDebugLine(&x, &y, String);
 			snprintf(String, 100, "cameraOffsetY %i", ScrollInfo._syoff);
-			RenderDebugLine(&x, &y, String);
-
-			snprintf(String, 100, "cameraOffsetX_int %i", ScrollInfo._sxoff_interpolated);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "cameraOffsetY_int %i", ScrollInfo._syoff_interpolated);
-			RenderDebugLine(&x, &y, String);
-
-			snprintf(String, 100, "cameraOffsetX_prev %i", ScrollInfo._sxoff_prev);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "cameraOffsetY_prev %i", ScrollInfo._syoff_prev);
 			RenderDebugLine(&x, &y, String);
 
 			snprintf(String, 100, "ViewX %i", ViewX);

@@ -155,7 +155,6 @@ BOOL mainmenu_single_player()
 	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
 	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
 	LoadGameSetupVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
-	LoadGameSetupVariableFromConfig("Rendering Interpolation", &gameSetup_interpolation);
 
 	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
 }

@@ -512,11 +512,6 @@ void LoadPlayer(int i)
 	// Omit pointer _pNData_c
 	// Omit pointer _pWData_c
 	// Omit pointer pReserved
-
-	//Fluffy: Update interpolated values to use values corresponding to current gameplay tick
-	//Fluffy TODO: Update the various _prev values here
-	pPlayer->_pxoff_interpolated = pPlayer->_pxoff;
-	pPlayer->_pyoff_interpolated = pPlayer->_pyoff;
 }
 
 void LoadMonster(int i)
