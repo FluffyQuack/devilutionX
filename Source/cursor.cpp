@@ -231,8 +231,6 @@ void CheckCursMove()
 
 	// Adjust by player offset and tile grid alignment
 	CalcTileOffset(&xo, &yo);
-	//sx -= ScrollInfo._sxoff - xo;
-	//sy -= ScrollInfo._syoff - yo;
 	sx -= ScrollInfo._sxoff_interpolated - xo; //Fluffy
 	sy -= ScrollInfo._syoff_interpolated - yo;
 
