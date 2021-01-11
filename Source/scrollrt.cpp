@@ -451,8 +451,8 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 				break;
 			}
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
-			px = sx + p->_pxoff - p->_pAnimWidth2;
-			py = sy + p->_pyoff;
+			px = sx + (p->_pxoff / gSpeedMod) - p->_pAnimWidth2; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+			py = sy + (p->_pyoff / gSpeedMod);
 
 			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
@@ -667,8 +667,8 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int p = dPlayer[x][y + oy];
 	p = p > 0 ? p - 1 : -(p + 1);
 	PlayerStruct *pPlayer = &plr[p];
-	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
-	int py = sy + pPlayer->_pyoff;
+	int px = sx + (pPlayer->_pxoff / gSpeedMod) - pPlayer->_pAnimWidth2; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	int py = sy + (pPlayer->_pyoff / gSpeedMod);
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 }
@@ -1064,8 +1064,8 @@ static void DrawGame(int x, int y)
 		gpBufEnd = &gpBuffer[BUFFER_WIDTH * (VIEWPORT_HEIGHT / 2 + SCREEN_Y)];
 
 	// Adjust by player offset and tile grid alignment
-	sx = ScrollInfo._sxoff + tileOffsetX + SCREEN_X;
-	sy = ScrollInfo._syoff + tileOffsetY + SCREEN_Y;
+	sx = (ScrollInfo._sxoff / gSpeedMod) + tileOffsetX + SCREEN_X; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	sy = (ScrollInfo._syoff / gSpeedMod) + tileOffsetY + SCREEN_Y;
 
 	columns = tileColums;
 	rows = tileRows;
@@ -1369,9 +1369,9 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 
 		if (myplr == 0) {
-			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff);
+			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff);
+			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
 
 			snprintf(String, 100, "x %i", plr[myplr]._px);
@@ -1379,9 +1379,9 @@ static void DrawFPS()
 			snprintf(String, 100, "y %i", plr[myplr]._py);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "cameraOffsetX %i", ScrollInfo._sxoff);
+			snprintf(String, 100, "cameraOffsetX %i", ScrollInfo._sxoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "cameraOffsetY %i", ScrollInfo._syoff);
+			snprintf(String, 100, "cameraOffsetY %i", ScrollInfo._syoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
 
 			snprintf(String, 100, "ViewX %i", ViewX);

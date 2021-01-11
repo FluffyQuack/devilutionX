@@ -20,14 +20,15 @@ void track_process()
 		return;
 
 	//Fluffy: If fastwalk is allowed, then we should allow the player to repeat walking more often when holding down left click
+	//We also scale some of these values using gSpeedMod to further change how often we're allowed to repeatedly walk
 	int moveProgress = plr[myplr]._pVar8;
-	int minWaitForRepeatWalk = 300;
+	int minWaitForRepeatWalk = 300 / gSpeedMod;
 	if (gameSetup_fastWalkInTown && currlevel == 0) {
 		moveProgress *= 2;
 		minWaitForRepeatWalk /= 2;
 	}
 
-	if (moveProgress <= 6 && plr[myplr]._pmode != PM_STAND)
+	if (moveProgress <= 6 * gSpeedMod && plr[myplr]._pmode != PM_STAND) //Fluffy
 		return;
 
 	if (cursmx != plr[myplr]._ptargx || cursmy != plr[myplr]._ptargy) {

@@ -231,14 +231,14 @@ void CheckCursMove()
 
 	// Adjust by player offset and tile grid alignment
 	CalcTileOffset(&xo, &yo);
-	sx -= ScrollInfo._sxoff - xo;
-	sy -= ScrollInfo._syoff - yo;
+	sx -= (ScrollInfo._sxoff / gSpeedMod) - xo; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	sy -= (ScrollInfo._syoff / gSpeedMod) - yo;
 
 	// Predict the next frame when walking to avoid input jitter
-	fx = plr[myplr]._pxoff;
-	fy = plr[myplr]._pyoff;
-	fx -= (plr[myplr]._pxoff + (plr[myplr]._pxvel / 256));
-	fy -= (plr[myplr]._pyoff + (plr[myplr]._pyvel / 256));
+	fx = (plr[myplr]._pxoff / gSpeedMod); //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	fy = (plr[myplr]._pyoff / gSpeedMod);
+	fx -= (plr[myplr]._pxoff + (plr[myplr]._pxvel / 256)) / gSpeedMod;
+	fy -= (plr[myplr]._pyoff + (plr[myplr]._pyvel / 256)) / gSpeedMod;
 	if (ScrollInfo._sdir != SDIR_NONE) {
 		sx -= fx;
 		sy -= fy;

@@ -3154,8 +3154,8 @@ void MI_Manashield(int i)
 	id = missile[i]._misource;
 	missile[i]._mix = plr[id]._px;
 	missile[i]._miy = plr[id]._py;
-	missile[i]._mitxoff = plr[id]._pxoff << 16;
-	missile[i]._mityoff = plr[id]._pyoff << 16;
+	missile[i]._mitxoff = (plr[id]._pxoff / gSpeedMod) << 16; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	missile[i]._mityoff = (plr[id]._pyoff / gSpeedMod) << 16;
 	if (plr[id]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[id]._pfutx;
 		missile[i]._misy = plr[id]._pfuty;
@@ -3230,8 +3230,8 @@ void MI_Etherealize(int i)
 	src = missile[i]._misource;
 	missile[i]._mix = plr[src]._px;
 	missile[i]._miy = plr[src]._py;
-	missile[i]._mitxoff = plr[src]._pxoff << 16;
-	missile[i]._mityoff = plr[src]._pyoff << 16;
+	missile[i]._mitxoff = (plr[src]._pxoff / gSpeedMod) << 16; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	missile[i]._mityoff = (plr[src]._pyoff / gSpeedMod) << 16;
 	if (plr[src]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[src]._pfutx;
 		missile[i]._misy = plr[src]._pfuty;

@@ -896,7 +896,7 @@ void InitPlayer(int pnum, BOOL FirstTime)
 			plr[pnum]._pmode = PM_DEATH;
 			NewPlrAnim(pnum, plr[pnum]._pDAnim[DIR_S], plr[pnum]._pDFrames, 1, plr[pnum]._pDWidth);
 			plr[pnum]._pAnimFrame = plr[pnum]._pAnimLen - 1;
-			plr[pnum]._pVar8 = 2 * plr[pnum]._pAnimLen;
+			plr[pnum]._pVar8 = (2 * plr[pnum]._pAnimLen) / gSpeedMod; //Fluffy: Divide by gSpeedMod to get the var's "real" value (TODO: We should double check we're doing the correct changes to var8)
 		}
 
 		plr[pnum]._pdir = DIR_S;
@@ -1141,8 +1141,8 @@ void PM_ChangeLightOff(int pnum)
 		return;
 
 	l = &LightList[plr[pnum]._plid];
-	x = 2 * plr[pnum]._pyoff + plr[pnum]._pxoff;
-	y = 2 * plr[pnum]._pyoff - plr[pnum]._pxoff;
+	x = 2 * (plr[pnum]._pyoff / gSpeedMod) + (plr[pnum]._pxoff / gSpeedMod); //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	y = 2 * (plr[pnum]._pyoff / gSpeedMod) - (plr[pnum]._pxoff / gSpeedMod);
 	if (x < 0) {
 		xmul = -1;
 		x = -x;
@@ -1253,8 +1253,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._px = px;
 		plr[pnum]._py = py;
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale duration of tile movement
+		plr[pnum]._pyoff = yoff * gSpeedMod;
 
 		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 		PM_ChangeLightOff(pnum);
@@ -1272,8 +1272,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar4 = x;
 		plr[pnum]._pVar5 = y;
 		dFlags[x][y] |= BFLAG_PLAYERLR;
-		plr[pnum]._pxoff = xoff;
-		plr[pnum]._pyoff = yoff;
+		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale duration of tile movement
+		plr[pnum]._pyoff = yoff * gSpeedMod;
 
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, x, y);
@@ -1441,7 +1441,7 @@ void StartSpell(int pnum, int d, int cx, int cy)
 	plr[pnum]._pVar1 = cx;
 	plr[pnum]._pVar2 = cy;
 	plr[pnum]._pVar4 = GetSpellLevel(pnum, plr[pnum]._pSpell);
-	plr[pnum]._pVar8 = 1;
+	plr[pnum]._pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
 }
 
 void FixPlrWalkTags(int pnum)
@@ -1525,7 +1525,7 @@ void StartPlrHit(int pnum, int dam, BOOL forcehit)
 
 		plr[pnum]._pmode = PM_GOTHIT;
 		FixPlayerLocation(pnum, pd);
-		plr[pnum]._pVar8 = 1;
+		plr[pnum]._pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
 		FixPlrWalkTags(pnum);
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 		SetPlayerOld(pnum);
@@ -1609,7 +1609,7 @@ void StartPlayerKill(int pnum, int earflag)
 	p->_pmode = PM_DEATH;
 	p->_pInvincible = TRUE;
 	SetPlayerHitPoints(pnum, 0);
-	p->_pVar8 = 1;
+	p->_pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
 
 	if (pnum != myplr && !earflag && !diablolevel) {
 		for (i = 0; i < NUM_INVLOC; i++) {
@@ -2004,7 +2004,7 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown)
 		moveProgress *= 2;
 
-	if (moveProgress >= anim_len)
+	if (moveProgress >= anim_len * gSpeedMod) //Fluffy: Multiply by gSpeedMod to scale tile movement duration
 		return 1;
 	else
 		return 0;
@@ -2642,7 +2642,7 @@ BOOL PM_DoSpell(int pnum)
 		app_fatal("PM_DoSpell: illegal player %d", pnum);
 	}
 
-	if (plr[pnum]._pVar8 == plr[pnum]._pSFNum) {
+	if (plr[pnum]._pVar8 == plr[pnum]._pSFNum * gSpeedMod) { //Fluffy: Multiply by gSpeedMod to scale spell cast time (TODO: Double check this works)
 		CastSpell(
 		    pnum,
 		    plr[pnum]._pSpell,
@@ -2677,7 +2677,7 @@ BOOL PM_DoSpell(int pnum)
 	plr[pnum]._pVar8++;
 
 	if (leveltype == DTYPE_TOWN && gameSetup_allowAttacksInTown == 0) { //Fluffy: I don't fully understand what this code does but if we do a full cast animation, then we need the "else" to play out
-		if (plr[pnum]._pVar8 > plr[pnum]._pSFrames) {
+		if (plr[pnum]._pVar8 > plr[pnum]._pSFrames * gSpeedMod) { //Fluffy: Multiply by gSpeedMod to scale tile movement duration (TODO: Doublecheck this works)
 			StartWalkStand(pnum);
 			ClearPlrPVars(pnum);
 			return TRUE;
@@ -2779,7 +2779,7 @@ BOOL PM_DoDeath(int pnum)
 		app_fatal("PM_DoDeath: illegal player %d", pnum);
 	}
 
-	if (plr[pnum]._pVar8 >= 2 * plr[pnum]._pDFrames) {
+	if (plr[pnum]._pVar8 >= 2 * plr[pnum]._pDFrames * gSpeedMod) { //Fluffy: Multiply by gSpeedMod to scale how long we wait here
 		if (deathdelay > 1 && pnum == myplr) {
 			deathdelay--;
 			if (deathdelay == 1) {
@@ -2795,7 +2795,7 @@ BOOL PM_DoDeath(int pnum)
 		dFlags[plr[pnum]._px][plr[pnum]._py] |= BFLAG_DEAD_PLAYER;
 	}
 
-	if (plr[pnum]._pVar8 < 100) {
+	if (plr[pnum]._pVar8 < 100 * gSpeedMod) { //Fluffy: As with the check above, we scale this using gSpeedMod
 		plr[pnum]._pVar8++;
 	}
 
