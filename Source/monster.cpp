@@ -411,7 +411,7 @@ void InitMonster(int i, int rd, int mtype, int x, int y)
 	monster[i].MData = monst->MData;
 	monster[i]._mAnimData = monst->Anims[MA_STAND].Data[rd];
 	monster[i]._mAnimDelay = monst->Anims[MA_STAND].Rate;
-	monster[i]._mAnimCnt = random_(88, monster[i]._mAnimDelay - 1);
+	monster[i]._mAnimCnt = random_(88, monster[i]._mAnimDelay - 1); //Fluffy TODO: Update in regards to gMonsterSpeedMod
 	monster[i]._mAnimLen = monst->Anims[MA_STAND].Frames;
 	monster[i]._mAnimFrame = random_(88, monster[i]._mAnimLen - 1) + 1;
 
@@ -1310,15 +1310,17 @@ void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	dMonster[fx][fy] = i + 1;
 	if (monster[i]._uniqtype != 0)
 		ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
-	monster[i]._mxoff = xoff;
-	monster[i]._myoff = yoff;
+	monster[i]._mxoff = xoff * gMonsterSpeedMod; //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile
+	monster[i]._myoff = yoff * gMonsterSpeedMod;
 	monster[i]._mmode = MM_WALK2;
 	monster[i]._mxvel = xvel;
 	monster[i]._myvel = yvel;
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = monster[i]._mVar7 = monster[i]._mVar8 = 0;
+	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile);
+	monster[i]._mVar7 = 16 * (yoff * gMonsterSpeedMod);
+	monster[i]._mVar8 = 0;
 }
 
 void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir) //Left and right movement
@@ -1340,8 +1342,8 @@ void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._moldy = monster[i]._my;
 	monster[i]._mfutx = fx;
 	monster[i]._mfuty = fy;
-	monster[i]._mxoff = xoff;
-	monster[i]._myoff = yoff;
+	monster[i]._mxoff = xoff * gMonsterSpeedMod; //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile
+	monster[i]._myoff = yoff * gMonsterSpeedMod;
 	monster[i]._mmode = MM_WALK3;
 	monster[i]._mxvel = xvel;
 	monster[i]._myvel = yvel;
@@ -1350,7 +1352,9 @@ void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = monster[i]._mVar7 = monster[i]._mVar8 = 0;
+	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile);;
+	monster[i]._mVar7 = 16 * (yoff * gMonsterSpeedMod);
+	monster[i]._mVar8 = 0;
 }
 
 void M_StartAttack(int i)
@@ -1558,7 +1562,7 @@ void M_DiabloDeath(int i, BOOL sendmsg)
 	k = ViewY << 16;
 	Monst->_mVar3 = j;
 	Monst->_mVar4 = k;
-	Monst->_mVar5 = (int)((j - (Monst->_mx << 16)) / (double)dist); //Fluffy: I don't this and the next value are actually ever referenced after this
+	Monst->_mVar5 = (int)((j - (Monst->_mx << 16)) / (double)dist); //Fluffy: I don't think this and the next value are actually ever referenced after this
 	Monst->_mVar6 = (int)((k - (Monst->_my << 16)) / (double)dist);
 }
 
@@ -1826,8 +1830,8 @@ void M_ChangeLightOffset(int monst)
 	if ((DWORD)monst >= MAXMONSTERS)
 		app_fatal("M_ChangeLightOffset: Invalid monster %d", monst);
 
-	lx = monster[monst]._mxoff + 2 * monster[monst]._myoff;
-	ly = 2 * monster[monst]._myoff - monster[monst]._mxoff;
+	lx = (monster[monst]._mxoff / gMonsterSpeedMod) + 2 * (monster[monst]._myoff / gMonsterSpeedMod); //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
+	ly = 2 * (monster[monst]._myoff / gMonsterSpeedMod) - (monster[monst]._mxoff / gMonsterSpeedMod);
 
 	if (lx < 0) {
 		sign = -1;
@@ -1863,7 +1867,7 @@ BOOL M_DoStand(int i)
 	else
 		Monst->_mAnimData = Monst->MType->Anims[MA_STAND].Data[Monst->_mdir];
 
-	if (Monst->_mAnimFrame == Monst->_mAnimLen)
+	if (Monst->_mAnimFrame == Monst->_mAnimLen) //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_Enemy(i);
 
 	Monst->_mVar2++;
@@ -1873,15 +1877,17 @@ BOOL M_DoStand(int i)
 
 BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since they had a lot shared code
 {
-	BOOL rv;
+	BOOL rv = FALSE;
+
+	//TODO: This doesn't work right now when modifying gameplay speed
 
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("M_DoWalk: Invalid monster %d", i);
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoWalk: Monster %d \"%s\" MType NULL", i, monster[i].mName);
 
-	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) { //Monster reached a new tile
-
+	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames * gMonsterSpeedMod) { //Fluffy: Scale duration it takes to reach new tile using gMonsterSpeedMod
+		//Monster reached a new tile
 		if (variant == DO_WALK_VARIANT_UP) { //Upleft, up, or upright movement
 			dMonster[monster[i]._mx][monster[i]._my] = 0;
 			monster[i]._mx += monster[i]._mVar1;
@@ -1907,10 +1913,13 @@ BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 		}
 
 		rv = TRUE;
-	} else if (!monster[i]._mAnimCnt) { //Monster didn't reach a new tile, so update monster render offset
+	} else /*if (!monster[i]._mAnimCnt)*/ { //Fluffy I don't understan the point of this mAnimCnt check as we always want to update offset when we haven't reached the tile. I've commented it out since it intefers with gMonsterSpeedMod
+		//Monster didn't reach a new tile, so update monster render offset
 		monster[i]._mVar8++;
-		monster[i]._mxoff += monster[i]._mxvel >> 4; //Fluffy: Simplified this code so it doesn't need var6 and var7 anymore
-		monster[i]._myoff += monster[i]._myvel >> 4;
+		monster[i]._mVar6 += monster[i]._mxvel;
+		monster[i]._mVar7 += monster[i]._myvel;
+		monster[i]._mxoff = monster[i]._mVar6 >> 4;
+		monster[i]._myoff = monster[i]._mVar7 >> 4;
 		rv = FALSE;
 	}
 
@@ -2104,20 +2113,20 @@ BOOL M_DoAttack(int i)
 	if (Monst->MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoAttack: Monster %d \"%s\" MData NULL", i, Monst->mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) {
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit, monster[i].mMinDamage, monster[i].mMaxDamage);
 		if (monster[i]._mAi != AI_SNAKE)
 			PlayEffect(i, 0);
 	}
-	if (monster[i].MType->mtype >= MT_NMAGMA && monster[i].MType->mtype <= MT_WMAGMA && monster[i]._mAnimFrame == 9) {
+	if (monster[i].MType->mtype >= MT_NMAGMA && monster[i].MType->mtype <= MT_WMAGMA && monster[i]._mAnimFrame == 9) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit + 10, monster[i].mMinDamage - 2, monster[i].mMaxDamage - 2);
 		PlayEffect(i, 0);
 	}
-	if (monster[i].MType->mtype >= MT_STORM && monster[i].MType->mtype <= MT_MAEL && monster[i]._mAnimFrame == 13) {
+	if (monster[i].MType->mtype >= MT_STORM && monster[i].MType->mtype <= MT_MAEL && monster[i]._mAnimFrame == 13) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit - 20, monster[i].mMinDamage + 4, monster[i].mMaxDamage + 4);
 		PlayEffect(i, 0);
 	}
-	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1)
+	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1) //Fluffy TODO: Update this using gMonsterSpeedMod
 		PlayEffect(i, 0);
 	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
@@ -2138,7 +2147,7 @@ BOOL M_DoRAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoRAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) {
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		if (monster[i]._mVar1 != -1) {
 			if (monster[i]._mVar1 != MIS_CBOLT)
 				multimissiles = 1;
@@ -2161,7 +2170,7 @@ BOOL M_DoRAttack(int i)
 		PlayEffect(i, 0);
 	}
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2178,7 +2187,7 @@ int M_DoRSpAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoRSpAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && !monster[i]._mAnimCnt) {
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && !monster[i]._mAnimCnt) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		AddMissile(
 		    monster[i]._mx,
 		    monster[i]._my,
@@ -2193,7 +2202,7 @@ int M_DoRSpAttack(int i)
 		PlayEffect(i, 3);
 	}
 
-	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3) {
+	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		int hadV2 = monster[i]._mVar2;
 		monster[i]._mVar2++;
 		if (hadV2 == 0) {
@@ -2203,7 +2212,7 @@ int M_DoRSpAttack(int i)
 		}
 	}
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2220,10 +2229,10 @@ BOOL M_DoSAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoSAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2)
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2) //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit2, monster[i].mMinDamage2, monster[i].mMaxDamage2);
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2236,7 +2245,7 @@ BOOL M_DoFadein(int i)
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("M_DoFadein: Invalid monster %d", i);
 
-	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1)
+	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1) //Fluffy TODO: Update this using gMonsterSpeedMod
 	    && (monster[i]._mFlags & MFLAG_LOCK_ANIMATION || monster[i]._mAnimFrame != monster[i]._mAnimLen)) {
 		return FALSE;
 	}
@@ -2254,7 +2263,7 @@ BOOL M_DoFadeout(int i)
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("M_DoFadeout: Invalid monster %d", i);
 
-	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1)
+	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1) //Fluffy TODO: Update this using gMonsterSpeedMod
 	    && (monster[i]._mFlags & MFLAG_LOCK_ANIMATION || monster[i]._mAnimFrame != monster[i]._mAnimLen)) {
 		return FALSE;
 	}
@@ -2285,7 +2294,7 @@ int M_DoHeal(int i)
 		return FALSE;
 	}
 
-	if (Monst->_mAnimFrame == 1) {
+	if (Monst->_mAnimFrame == 1) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		Monst->_mFlags &= ~MFLAG_LOCK_ANIMATION;
 		Monst->_mFlags |= MFLAG_ALLOW_SPECIAL;
 		if (Monst->_mVar1 + Monst->_mhitpoints < Monst->_mmaxhp) {
@@ -2417,7 +2426,7 @@ BOOL M_DoGotHit(int i)
 
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoGotHit: Monster %d \"%s\" MType NULL", i, monster[i].mName);
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_StartStand(i, monster[i]._mdir);
 
 		return TRUE;
@@ -2544,7 +2553,7 @@ BOOL M_DoDeath(int i)
 
 		if (var1 == 140)
 			PrepDoEnding();
-	} else if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	} else if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		if (monster[i]._uniqtype == 0)
 			AddDead(monster[i]._mx, monster[i]._my, monster[i].MType->mdeadval, (direction)monster[i]._mdir);
 		else
@@ -2565,10 +2574,10 @@ BOOL M_DoSpStand(int i)
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoSpStand: Monster %d \"%s\" MType NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2)
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2) //Fluffy TODO: Update this using gMonsterSpeedMod
 		PlayEffect(i, 3);
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -3323,7 +3332,7 @@ void MAI_Fallen(int i)
 		}
 	}
 
-	if (Monst->_mAnimFrame == Monst->_mAnimLen) {
+	if (Monst->_mAnimFrame == Monst->_mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
 		if (random_(113, 4)) {
 			return;
 		}
@@ -4563,7 +4572,20 @@ void ProcessMonsters()
 		} while (raflag);
 		if (Monst->_mmode != MM_STONE) {
 			Monst->_mAnimCnt++;
-			if (!(Monst->_mFlags & MFLAG_ALLOW_SPECIAL) && Monst->_mAnimCnt >= Monst->_mAnimDelay) {
+			/*
+			  Fluffy: There seems to be a legacy bug here. An AnimDelay of 0 is supposed to be a delay of
+			  one tick (that's how it works with player code). But since the check is done with a ">="
+			  then both 0 and 1 mean it's an animation delay of one (and there are monster animations
+			  defined as both 0 and 1).
+
+			  I make sure this legacy bug is retained when gMonsterSpeedMod is in play.
+			*/
+			int calculatedDelay = Monst->_mAnimDelay;
+			if (calculatedDelay == 0)
+				calculatedDelay = 1;
+			calculatedDelay *= gMonsterSpeedMod; //Fluffy: Multiply by gMonsterSpeedMod in order to slow down animation
+
+			if (!(Monst->_mFlags & MFLAG_ALLOW_SPECIAL) && Monst->_mAnimCnt >= calculatedDelay) {
 				Monst->_mAnimCnt = 0;
 				if (Monst->_mFlags & MFLAG_LOCK_ANIMATION) {
 					Monst->_mAnimFrame--;

@@ -646,8 +646,8 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		// app_fatal("Draw Monster \"%s\": uninitialized monster", pMonster->mName);
 	}
 
-	px = sx + pMonster->_mxoff - pMonster->MType->width2;
-	py = sy + pMonster->_myoff;
+	px = sx + (pMonster->_mxoff / gMonsterSpeedMod) - pMonster->MType->width2; //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
+	py = sy + (pMonster->_myoff / gMonsterSpeedMod);
 	if (mi == pcursmonst) {
 		Cl2DrawOutline(233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
 	}

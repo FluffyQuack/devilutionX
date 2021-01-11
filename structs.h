@@ -282,8 +282,8 @@ typedef struct PlayerStruct {
 	int _pVar3; //Player's direction when ending movement. Also used for defining direction of SPL_FIREWALL spell when casting it.
 	int _pVar4; //Used for storing X position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
 	int _pVar5; //Used for storing Y position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
-	int _pVar6; //Unused
-	int _pVar7; //Unused
+	int _pVar6; //Used as _mxoff but with a higher range so that we can correctly apply velocities of a smaller number
+	int _pVar7; //Used as _myoff but with a higher range so that we can correctly apply velocities of a smaller number
 	int _pVar8; //This is used as an alternative to animLength depending on what state the player is in
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
