@@ -1270,7 +1270,7 @@ void M_StartSpStand(int i, int md)
 	monster[i]._mdir = md;
 }
 
-void M_StartWalk(int i, int xvel, int yvel, int xadd, int yadd, int EndDir)
+void M_StartWalk(int i, int xvel, int yvel, int xadd, int yadd, int EndDir) //Upleft, up, and upright movement
 {
 	int fx = xadd + monster[i]._mx;
 	int fy = yadd + monster[i]._my;
@@ -1293,7 +1293,7 @@ void M_StartWalk(int i, int xvel, int yvel, int xadd, int yadd, int EndDir)
 	monster[i]._mVar8 = 0;
 }
 
-void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int EndDir)
+void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int EndDir) //Downleft, down, and downright movement
 {
 	int fx = xadd + monster[i]._mx;
 	int fy = yadd + monster[i]._my;
@@ -1321,7 +1321,7 @@ void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._mVar6 = monster[i]._mVar7 = monster[i]._mVar8 = 0;
 }
 
-void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir)
+void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir) //Left and right movement
 {
 	int fx = xadd + monster[i]._mx;
 	int fy = yadd + monster[i]._my;

@@ -558,26 +558,26 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mgoalvar3;
 	int field_18;
 	unsigned char _pathcount;
-	int _mx;
-	int _my;
-	int _mfutx;
-	int _mfuty;
-	int _moldx;
-	int _moldy;
-	int _mxoff;
-	int _myoff;
-	int _mxvel;
-	int _myvel;
-	int _mdir;
-	int _menemy;
-	unsigned char _menemyx;
-	unsigned char _menemyy;
+	int _mx; //Tile X coordinate for monster
+	int _my; //Tile Y coordinate for monster
+	int _mfutx; //Future tile X position for monster defined when starting movement
+	int _mfuty; //Future tile Y position for monster defined when starting movement
+	int _moldx; //Monster's old X position. Defined in a lot of functions
+	int _moldy; //Monster's old Y position. Defined in a lot of functions
+	int _mxoff; //X render offset for monster. Used during movement
+	int _myoff; //Y render offset for monster. Used during movement
+	int _mxvel; //X velocity to apply to offset per gameplay tick during movement
+	int _myvel; //Y velocity to apply to offset per gameplay tick during movement
+	int _mdir; //Direction the monster is facing
+	int _menemy; //The player the monster is targeting (the value corresponds to an entry in the plr array). Behaviour changes if MFLAG_TARGETS_MONSTER is true, then this corresponds to an entry in the monster array
+	unsigned char _menemyx; //X coordinate of enemy (usually correspond's to the enemy's futx value)
+	unsigned char _menemyy; //Y coordinate of enemy (usually correspond's to the enemy's futy value)
 	short falign_52; // probably _mAFNum (unused)
 	unsigned char *_mAnimData;
-	int _mAnimDelay;
-	int _mAnimCnt;
-	int _mAnimLen;
-	int _mAnimFrame;
+	int _mAnimDelay; //Duration of each frame
+	int _mAnimCnt; //Value for measuring progress through current frame
+	int _mAnimLen; //Length of animation
+	int _mAnimFrame; //Current animation frame
 	BOOL _meflag;
 	BOOL _mDelFlag;
 	int _mVar1;
@@ -587,7 +587,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mVar5;
 	int _mVar6; //Unused (it's given a value during M_DiabloDeath() but I don't think it's used for anything
 	int _mVar7; //Unused
-	int _mVar8;
+	int _mVar8; //Used to measure progress for moving from one tile to another
 	int _mmaxhp;
 	int _mhitpoints;
 	unsigned char _mAi;
