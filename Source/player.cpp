@@ -891,7 +891,7 @@ void InitPlayer(int pnum, BOOL FirstTime)
 				NewPlrAnim(pnum, plr[pnum]._pNAnim[DIR_S], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
 				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames - 1) + 1;
 			}
-			plr[pnum]._pAnimCnt = random_(2, 3);
+			plr[pnum]._pAnimCnt = random_(2, 3); //Fluffy TODO: This needs to be modified by gSpeedMod
 		} else {
 			plr[pnum]._pmode = PM_DEATH;
 			NewPlrAnim(pnum, plr[pnum]._pDAnim[DIR_S], plr[pnum]._pDFrames, 1, plr[pnum]._pDWidth);
@@ -2021,7 +2021,8 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 	if (plr[pnum]._pAnimFrame == 3
 	    || (plr[pnum]._pWFrames == 8 && plr[pnum]._pAnimFrame == 7)
 	    || (plr[pnum]._pWFrames != 8 && plr[pnum]._pAnimFrame == 4)) {
-		PlaySfxLoc(PS_WALK1, plr[pnum]._px, plr[pnum]._py);
+		if (plr[pnum]._pAnimCnt == 0) //Fluffy: Only play sound if we just changed to this animation frame (this is necessary since gSpeedMod can make these animation frames last multiple ticks)
+			PlaySfxLoc(PS_WALK1, plr[pnum]._px, plr[pnum]._py);
 	}
 
 	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
@@ -2459,63 +2460,67 @@ BOOL PM_DoAttack(int pnum)
 	if (plr[pnum]._pIFlags & ISPL_FASTESTATTACK && (frame == 1 || frame == 4)) {
 		plr[pnum]._pAnimFrame += 2;
 	}
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum - 1) {
-		PlaySfxLoc(PS_SWING, plr[pnum]._px, plr[pnum]._py);
+
+	if (plr[pnum]._pAnimCnt == 0) //Fluffy: Make sure to only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
+	{
+		if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum - 1) {
+			PlaySfxLoc(PS_SWING, plr[pnum]._px, plr[pnum]._py);
+		}
+
+		if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum) {
+			dir = plr[pnum]._pdir;
+			dx = plr[pnum]._px + offset_x[dir];
+			dy = plr[pnum]._py + offset_y[dir];
+
+			if (dMonster[dx][dy]) {
+				if (dMonster[dx][dy] > 0) {
+					m = dMonster[dx][dy] - 1;
+				} else {
+					m = -(dMonster[dx][dy] + 1);
+				}
+				if (CanTalkToMonst(m)) {
+					plr[pnum]._pVar1 = 0;
+					return FALSE;
+				}
+			}
+
+			if (plr[pnum]._pIFlags & ISPL_FIREDAM) {
+				AddMissile(dx, dy, 1, 0, 0, MIS_WEAPEXP, 0, pnum, 0, 0);
+			}
+			if (plr[pnum]._pIFlags & ISPL_LIGHTDAM) {
+				AddMissile(dx, dy, 2, 0, 0, MIS_WEAPEXP, 0, pnum, 0, 0);
+			}
+
+			didhit = FALSE;
+			if (dMonster[dx][dy]) {
+				m = dMonster[dx][dy];
+				if (dMonster[dx][dy] > 0) {
+					m = dMonster[dx][dy] - 1;
+				} else {
+					m = -(dMonster[dx][dy] + 1);
+				}
+				didhit = PlrHitMonst(pnum, m);
+			} else if (dPlayer[dx][dy] && !FriendlyMode) {
+				BYTE p = dPlayer[dx][dy];
+				if (dPlayer[dx][dy] > 0) {
+					p = dPlayer[dx][dy] - 1;
+				} else {
+					p = -(dPlayer[dx][dy] + 1);
+				}
+				didhit = PlrHitPlr(pnum, p);
+			} else if (dObject[dx][dy] > 0) {
+				didhit = PlrHitObj(pnum, dx, dy);
+			}
+
+			if (didhit && WeaponDur(pnum, 30)) {
+				StartStand(pnum, plr[pnum]._pdir);
+				ClearPlrPVars(pnum);
+				return TRUE;
+			}
+		}
 	}
 
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum) {
-		dir = plr[pnum]._pdir;
-		dx = plr[pnum]._px + offset_x[dir];
-		dy = plr[pnum]._py + offset_y[dir];
-
-		if (dMonster[dx][dy]) {
-			if (dMonster[dx][dy] > 0) {
-				m = dMonster[dx][dy] - 1;
-			} else {
-				m = -(dMonster[dx][dy] + 1);
-			}
-			if (CanTalkToMonst(m)) {
-				plr[pnum]._pVar1 = 0;
-				return FALSE;
-			}
-		}
-
-		if (plr[pnum]._pIFlags & ISPL_FIREDAM) {
-			AddMissile(dx, dy, 1, 0, 0, MIS_WEAPEXP, 0, pnum, 0, 0);
-		}
-		if (plr[pnum]._pIFlags & ISPL_LIGHTDAM) {
-			AddMissile(dx, dy, 2, 0, 0, MIS_WEAPEXP, 0, pnum, 0, 0);
-		}
-
-		didhit = FALSE;
-		if (dMonster[dx][dy]) {
-			m = dMonster[dx][dy];
-			if (dMonster[dx][dy] > 0) {
-				m = dMonster[dx][dy] - 1;
-			} else {
-				m = -(dMonster[dx][dy] + 1);
-			}
-			didhit = PlrHitMonst(pnum, m);
-		} else if (dPlayer[dx][dy] && !FriendlyMode) {
-			BYTE p = dPlayer[dx][dy];
-			if (dPlayer[dx][dy] > 0) {
-				p = dPlayer[dx][dy] - 1;
-			} else {
-				p = -(dPlayer[dx][dy] + 1);
-			}
-			didhit = PlrHitPlr(pnum, p);
-		} else if (dObject[dx][dy] > 0) {
-			didhit = PlrHitObj(pnum, dx, dy);
-		}
-
-		if (didhit && WeaponDur(pnum, 30)) {
-			StartStand(pnum, plr[pnum]._pdir);
-			ClearPlrPVars(pnum);
-			return TRUE;
-		}
-	}
-
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFrames) {
+	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFrames) { //Fluffy TODO: Does this have to be modified in regards to gSpeedMod?
 		StartStand(pnum, plr[pnum]._pdir);
 		ClearPlrPVars(pnum);
 		return TRUE;
@@ -2540,7 +2545,7 @@ BOOL PM_DoRangeAttack(int pnum)
 		plr[pnum]._pAnimFrame++;
 	}
 
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum) {
+	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum && plr[pnum]._pAnimCnt == 0) { //Fluffy: Make sure to only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
 		mistype = MIS_ARROW;
 		if (plr[pnum]._pIFlags & ISPL_FIRE_ARROWS) {
 			mistype = MIS_FARROW;
@@ -2569,7 +2574,7 @@ BOOL PM_DoRangeAttack(int pnum)
 		}
 	}
 
-	if (plr[pnum]._pAnimFrame >= plr[pnum]._pAFrames) {
+	if (plr[pnum]._pAnimFrame >= plr[pnum]._pAFrames) { //Fluffy TODO: Does this have to be modified in regards to gSpeedMod?
 		StartStand(pnum, plr[pnum]._pdir);
 		ClearPlrPVars(pnum);
 		return TRUE;
@@ -2618,6 +2623,8 @@ BOOL PM_DoBlock(int pnum)
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_DoBlock: illegal player %d", pnum);
 	}
+
+	//Fluffy TODO: Do we have to do anything here in regards to gSpeedMod?
 
 	if (plr[pnum]._pIFlags & ISPL_FASTBLOCK && plr[pnum]._pAnimFrame != 1) {
 		plr[pnum]._pAnimFrame = plr[pnum]._pBFrames;
@@ -2698,6 +2705,8 @@ BOOL PM_DoGotHit(int pnum)
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_DoGotHit: illegal player %d", pnum);
 	}
+
+	//Fluffy TODO: Do we have to do anything here in regards to gSpeedMod?
 
 	frame = plr[pnum]._pAnimFrame;
 	if (plr[pnum]._pIFlags & ISPL_FASTRECOVER && frame == 3) {
@@ -3291,7 +3300,7 @@ void ProcessPlayers()
 
 			plr[pnum]._pAnimCnt++;
 			//Fluffy: I changed the following check so it's >= and +1 to AnimDelay. That means AnimDelay directly corresponds with the quantity of ticks we're waiting, rather than 0 equalling 1 tick delay, 1 equalling 2 tick delay, and etc
-			if (plr[pnum]._pAnimCnt >= plr[pnum]._pAnimDelay + 1) {
+			if (plr[pnum]._pAnimCnt >= (plr[pnum]._pAnimDelay + 1) * gSpeedMod) { //Fluffy: Scale animation delay with gSpeedMod to correct progression of animations
 				plr[pnum]._pAnimCnt = 0;
 				plr[pnum]._pAnimFrame++;
 				if (plr[pnum]._pAnimFrame > plr[pnum]._pAnimLen) {

@@ -63,6 +63,8 @@ void LoadGame(BOOL firstflag)
 		gnLevelTypeTbl[i] = WLoad();
 	}
 
+	//Fluffy TODO: We need some kind of good solution in regards to gSpeedMod and loading savegame (since many values will be off if we load savegame which was saved with another gSpeedMod)
+
 	LoadPlayer(myplr);
 
 	gnDifficulty = plr[myplr].pDifficulty;
