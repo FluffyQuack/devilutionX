@@ -1310,15 +1310,15 @@ void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	dMonster[fx][fy] = i + 1;
 	if (monster[i]._uniqtype != 0)
 		ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
-	monster[i]._mxoff = xoff * gMonsterSpeedMod; //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile
-	monster[i]._myoff = yoff * gMonsterSpeedMod;
+	monster[i]._mxoff = xoff;
+	monster[i]._myoff = yoff;
 	monster[i]._mmode = MM_WALK2;
 	monster[i]._mxvel = xvel;
 	monster[i]._myvel = yvel;
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile);
+	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile)
 	monster[i]._mVar7 = 16 * (yoff * gMonsterSpeedMod);
 	monster[i]._mVar8 = 0;
 }
@@ -1342,8 +1342,8 @@ void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._moldy = monster[i]._my;
 	monster[i]._mfutx = fx;
 	monster[i]._mfuty = fy;
-	monster[i]._mxoff = xoff * gMonsterSpeedMod; //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile
-	monster[i]._myoff = yoff * gMonsterSpeedMod;
+	monster[i]._mxoff = xoff;
+	monster[i]._myoff = yoff;
 	monster[i]._mmode = MM_WALK3;
 	monster[i]._mxvel = xvel;
 	monster[i]._myvel = yvel;
@@ -1352,7 +1352,7 @@ void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile);;
+	monster[i]._mVar6 = 16 * (xoff * gMonsterSpeedMod); //Fluffy: Multiply by gMonsterSpeedMod to scale offset to match position of another tile)
 	monster[i]._mVar7 = 16 * (yoff * gMonsterSpeedMod);
 	monster[i]._mVar8 = 0;
 }
@@ -1830,8 +1830,8 @@ void M_ChangeLightOffset(int monst)
 	if ((DWORD)monst >= MAXMONSTERS)
 		app_fatal("M_ChangeLightOffset: Invalid monster %d", monst);
 
-	lx = (monster[monst]._mxoff / gMonsterSpeedMod) + 2 * (monster[monst]._myoff / gMonsterSpeedMod); //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
-	ly = 2 * (monster[monst]._myoff / gMonsterSpeedMod) - (monster[monst]._mxoff / gMonsterSpeedMod);
+	lx = monster[monst]._mxoff + 2 * monster[monst]._myoff;
+	ly = 2 * monster[monst]._myoff - monster[monst]._mxoff;
 
 	if (lx < 0) {
 		sign = -1;
@@ -1918,8 +1918,8 @@ BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 		monster[i]._mVar8++;
 		monster[i]._mVar6 += monster[i]._mxvel;
 		monster[i]._mVar7 += monster[i]._myvel;
-		monster[i]._mxoff = monster[i]._mVar6 >> 4;
-		monster[i]._myoff = monster[i]._mVar7 >> 4;
+		monster[i]._mxoff = (monster[i]._mVar6 >> 4) / gMonsterSpeedMod; //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
+		monster[i]._myoff = (monster[i]._mVar7 >> 4) / gMonsterSpeedMod;
 		rv = FALSE;
 	}
 

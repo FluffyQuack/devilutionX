@@ -451,8 +451,8 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 				break;
 			}
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
-			px = sx + (p->_pxoff / gSpeedMod) - p->_pAnimWidth2; //Fluffy: Divide by gSpeedMod to get the var's "real" value
-			py = sy + (p->_pyoff / gSpeedMod);
+			px = sx + p->_pxoff - p->_pAnimWidth2;
+			py = sy + p->_pyoff;
 
 			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
@@ -646,8 +646,8 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		// app_fatal("Draw Monster \"%s\": uninitialized monster", pMonster->mName);
 	}
 
-	px = sx + (pMonster->_mxoff / gMonsterSpeedMod) - pMonster->MType->width2; //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
-	py = sy + (pMonster->_myoff / gMonsterSpeedMod);
+	px = sx + pMonster->_mxoff - pMonster->MType->width2;
+	py = sy + pMonster->_myoff;
 	if (mi == pcursmonst) {
 		Cl2DrawOutline(233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
 	}
@@ -667,8 +667,8 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int p = dPlayer[x][y + oy];
 	p = p > 0 ? p - 1 : -(p + 1);
 	PlayerStruct *pPlayer = &plr[p];
-	int px = sx + (pPlayer->_pxoff / gSpeedMod) - pPlayer->_pAnimWidth2; //Fluffy: Divide by gSpeedMod to get the var's "real" value
-	int py = sy + (pPlayer->_pyoff / gSpeedMod);
+	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
+	int py = sy + pPlayer->_pyoff;
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 }
@@ -1369,9 +1369,9 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 
 		if (myplr == 0) {
-			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff / gSpeedMod);
+			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff);
 			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff / gSpeedMod);
+			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff);
 			RenderDebugLine(&x, &y, String);
 
 			snprintf(String, 100, "x %i", plr[myplr]._px);

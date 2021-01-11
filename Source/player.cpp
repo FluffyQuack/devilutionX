@@ -1141,8 +1141,8 @@ void PM_ChangeLightOff(int pnum)
 		return;
 
 	l = &LightList[plr[pnum]._plid];
-	x = 2 * (plr[pnum]._pyoff / gSpeedMod) + (plr[pnum]._pxoff / gSpeedMod); //Fluffy: Divide by gSpeedMod to get the var's "real" value
-	y = 2 * (plr[pnum]._pyoff / gSpeedMod) - (plr[pnum]._pxoff / gSpeedMod);
+	x = 2 * plr[pnum]._pyoff + plr[pnum]._pxoff;
+	y = 2 * plr[pnum]._pyoff - plr[pnum]._pxoff;
 	if (x < 0) {
 		xmul = -1;
 		x = -x;
@@ -1183,8 +1183,8 @@ void PM_ChangeOffset(int pnum)
 
 	plr[pnum]._pVar6 += plr[pnum]._pxvel;
 	plr[pnum]._pVar7 += plr[pnum]._pyvel;
-	plr[pnum]._pxoff = plr[pnum]._pVar6 / 256;
-	plr[pnum]._pyoff = plr[pnum]._pVar7 / 256;
+	plr[pnum]._pxoff = (plr[pnum]._pVar6 / 256) / gSpeedMod; //Fluffy: Divide by gSpeedMod to get the variable's real value
+	plr[pnum]._pyoff = (plr[pnum]._pVar7 / 256) / gSpeedMod;
 
 	px -= plr[pnum]._pVar6 >> 8;
 	py -= plr[pnum]._pVar7 >> 8;
@@ -1262,8 +1262,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._px = px;
 		plr[pnum]._py = py;
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
-		plr[pnum]._pyoff = yoff * gSpeedMod;
+		plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff = yoff;
 
 		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 		PM_ChangeLightOff(pnum);
@@ -1283,8 +1283,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar4 = x;
 		plr[pnum]._pVar5 = y;
 		dFlags[x][y] |= BFLAG_PLAYERLR;
-		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
-		plr[pnum]._pyoff = yoff * gSpeedMod;
+		plr[pnum]._pxoff = xoff;
+		plr[pnum]._pyoff = yoff;
 
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, x, y);

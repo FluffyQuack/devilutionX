@@ -235,10 +235,10 @@ void CheckCursMove()
 	sy -= (ScrollInfo._syoff / gSpeedMod) - yo;
 
 	// Predict the next frame when walking to avoid input jitter
-	fx = (plr[myplr]._pxoff / gSpeedMod); //Fluffy: Divide by gSpeedMod to get the var's "real" value
-	fy = (plr[myplr]._pyoff / gSpeedMod);
-	fx -= (plr[myplr]._pxoff + (plr[myplr]._pxvel / 256)) / gSpeedMod;
-	fy -= (plr[myplr]._pyoff + (plr[myplr]._pyvel / 256)) / gSpeedMod;
+	fx = plr[myplr]._pxoff;
+	fy = plr[myplr]._pyoff;
+	fx -= plr[myplr]._pxoff + (plr[myplr]._pxvel / 256);
+	fy -= plr[myplr]._pyoff + (plr[myplr]._pyvel / 256);
 	if (ScrollInfo._sdir != SDIR_NONE) {
 		sx -= fx;
 		sy -= fy;

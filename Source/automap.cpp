@@ -223,7 +223,7 @@ void DrawAutomap()
 	if ((SCREEN_WIDTH / 2) % d >= (AutoMapScale << 5) / 100)
 		cells++;
 
-	if (ScrollInfo._sxoff + ScrollInfo._syoff)
+	if ((ScrollInfo._sxoff / gSpeedMod) + (ScrollInfo._syoff / gSpeedMod)) //Fluffy: Divide by gSpeedMod to get the var's "real" value
 		cells++;
 	mapx = AutoMapX - cells;
 	mapy = AutoMapY - 1;
@@ -492,8 +492,8 @@ void DrawAutomapPlr()
 	px = x - 2 * AutoMapXOfs - ViewX;
 	py = y - 2 * AutoMapYOfs - ViewY;
 
-	x = ((plr[myplr]._pxoff / gSpeedMod) * AutoMapScale / 100 >> 1) + ((ScrollInfo._sxoff / gSpeedMod) * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy: Divide by gSpeedMod to get the var's "real" value
-	y = ((plr[myplr]._pyoff / gSpeedMod) * AutoMapScale / 100 >> 1) + ((ScrollInfo._syoff / gSpeedMod) * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
+	x = (plr[myplr]._pxoff * AutoMapScale / 100 >> 1) + ((ScrollInfo._sxoff / gSpeedMod) * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy: Divide by gSpeedMod to get the var's "real" value
+	y = (plr[myplr]._pyoff * AutoMapScale / 100 >> 1) + ((ScrollInfo._syoff / gSpeedMod) * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
 
 	if (PANELS_COVER) {
 		if (invflag || sbookflag)
