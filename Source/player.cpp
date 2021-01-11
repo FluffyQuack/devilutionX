@@ -1253,7 +1253,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._px = px;
 		plr[pnum]._py = py;
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale duration of tile movement
+		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
 		plr[pnum]._pyoff = yoff * gSpeedMod;
 
 		ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
@@ -1272,7 +1272,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar4 = x;
 		plr[pnum]._pVar5 = y;
 		dFlags[x][y] |= BFLAG_PLAYERLR;
-		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale duration of tile movement
+		plr[pnum]._pxoff = xoff * gSpeedMod; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
 		plr[pnum]._pyoff = yoff * gSpeedMod;
 
 		if (leveltype != DTYPE_TOWN) {
