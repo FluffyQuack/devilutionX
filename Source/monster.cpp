@@ -1318,9 +1318,7 @@ void M_StartWalk2(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = 16 * xoff;
-	monster[i]._mVar7 = 16 * yoff;
-	monster[i]._mVar8 = 0;
+	monster[i]._mVar6 = monster[i]._mVar7 = monster[i]._mVar8 = 0;
 }
 
 void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir)
@@ -1352,9 +1350,7 @@ void M_StartWalk3(int i, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	monster[i]._mVar3 = EndDir;
 	monster[i]._mdir = EndDir;
 	NewMonsterAnim(i, &monster[i].MType->Anims[MA_WALK], EndDir);
-	monster[i]._mVar6 = 16 * xoff;
-	monster[i]._mVar7 = 16 * yoff;
-	monster[i]._mVar8 = 0;
+	monster[i]._mVar6 = monster[i]._mVar7 = monster[i]._mVar8 = 0;
 }
 
 void M_StartAttack(int i)
@@ -1562,7 +1558,7 @@ void M_DiabloDeath(int i, BOOL sendmsg)
 	k = ViewY << 16;
 	Monst->_mVar3 = j;
 	Monst->_mVar4 = k;
-	Monst->_mVar5 = (int)((j - (Monst->_mx << 16)) / (double)dist);
+	Monst->_mVar5 = (int)((j - (Monst->_mx << 16)) / (double)dist); //Fluffy: I don't this and the next value are actually ever referenced after this
 	Monst->_mVar6 = (int)((k - (Monst->_my << 16)) / (double)dist);
 }
 
@@ -1913,10 +1909,8 @@ BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 		rv = TRUE;
 	} else if (!monster[i]._mAnimCnt) { //Monster didn't reach a new tile, so update monster render offset
 		monster[i]._mVar8++;
-		monster[i]._mVar6 += monster[i]._mxvel;
-		monster[i]._mVar7 += monster[i]._myvel;
-		monster[i]._mxoff = monster[i]._mVar6 >> 4;
-		monster[i]._myoff = monster[i]._mVar7 >> 4;
+		monster[i]._mxoff += monster[i]._mxvel >> 4; //Fluffy: Simplified this code so it doesn't need var6 and var7 anymore
+		monster[i]._myoff += monster[i]._myvel >> 4;
 		rv = FALSE;
 	}
 

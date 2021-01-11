@@ -585,8 +585,8 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mVar3;
 	int _mVar4;
 	int _mVar5;
-	int _mVar6;
-	int _mVar7;
+	int _mVar6; //Unused (it's given a value during M_DiabloDeath() but I don't think it's used for anything
+	int _mVar7; //Unused
 	int _mVar8;
 	int _mmaxhp;
 	int _mhitpoints;
