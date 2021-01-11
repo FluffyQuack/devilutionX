@@ -284,7 +284,7 @@ typedef struct PlayerStruct {
 	int _pVar5; //Used for storing Y position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
 	int _pVar6; //Unused
 	int _pVar7; //Unused
-	int _pVar8; //I think this is used as an alternative to animLength depending on what state the player is in
+	int _pVar8; //This is used as an alternative to animLength depending on what state the player is in
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
 	int _pGFXLoad;
