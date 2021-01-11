@@ -56,6 +56,7 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
   and then using the camera offset for rendering we divide it by the same amount. The result is that we modify game speed with minimal changes to the code while everything behaving almost exactly the same.
 */
 int gSpeedMod = 1; //Fluffy
+int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;

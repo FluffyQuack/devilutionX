@@ -616,6 +616,7 @@ void multi_handle_events(_SNETEVENT *pEvt)
 		sgGameInitInfo.bDiff = gameData->bDiff;
 		sgGameInitInfo.bRate = gameData->bRate;
 		sgGameInitInfo.gSpeedMod = gameData->gSpeedMod; //Fluffy
+		sgGameInitInfo.gMonsterSpeedMod = gameData->gMonsterSpeedMod;
 
 		//Fluffy: Load game setup variables from host into game init struct (I'm pretty sure this is only done with clients)
 		sgGameInitInfo.fastWalkInTown = gameData->fastWalkInTown;
@@ -661,6 +662,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 		sgGameInitInfo.bDiff = gnDifficulty;
 		sgGameInitInfo.bRate = ticks_per_sec;
 		sgGameInitInfo.gSpeedMod = gSpeedMod; //Fluffy
+		sgGameInitInfo.gMonsterSpeedMod = gMonsterSpeedMod;
 
 		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
 		sgGameInitInfo.fastWalkInTown = gameSetup_fastWalkInTown;
@@ -742,6 +744,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	ticks_per_sec = sgGameInitInfo.bRate;
 	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
 	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
+	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
 
 	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
 	gameSetup_fastWalkInTown = sgGameInitInfo.fastWalkInTown;
