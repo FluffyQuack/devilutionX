@@ -1121,6 +1121,8 @@ typedef struct ScrollStruct {
 	int _sdx;
 	int _sdy;
 	int _sdir;
+	int pxoffDiff; //Fluffy: How the offset coordinates should differ from player offset. We use this to ensure we can keep the camera in sync with player offset
+	int pyoffDiff;
 } ScrollStruct;
 
 typedef struct THEME_LOC {

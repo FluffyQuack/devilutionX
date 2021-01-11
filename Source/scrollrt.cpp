@@ -1064,8 +1064,8 @@ static void DrawGame(int x, int y)
 		gpBufEnd = &gpBuffer[BUFFER_WIDTH * (VIEWPORT_HEIGHT / 2 + SCREEN_Y)];
 
 	// Adjust by player offset and tile grid alignment
-	sx = (ScrollInfo._sxoff / gSpeedMod) + tileOffsetX + SCREEN_X; //Fluffy: Divide by gSpeedMod to get the var's "real" value
-	sy = (ScrollInfo._syoff / gSpeedMod) + tileOffsetY + SCREEN_Y;
+	sx = ScrollInfo._sxoff + tileOffsetX + SCREEN_X;
+	sy = ScrollInfo._syoff + tileOffsetY + SCREEN_Y;
 
 	columns = tileColums;
 	rows = tileRows;

@@ -1171,27 +1171,21 @@ void PM_ChangeLightOff(int pnum)
 
 void PM_ChangeOffset(int pnum)
 {
-	int px, py;
-
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_ChangeOffset: illegal player %d", pnum);
 	}
 
 	plr[pnum]._pVar8++;
-	px = plr[pnum]._pVar6 / 256;
-	py = plr[pnum]._pVar7 / 256;
 
 	plr[pnum]._pVar6 += plr[pnum]._pxvel;
 	plr[pnum]._pVar7 += plr[pnum]._pyvel;
 	plr[pnum]._pxoff = (plr[pnum]._pVar6 / 256) / gSpeedMod; //Fluffy: Divide by gSpeedMod to get the variable's real value
 	plr[pnum]._pyoff = (plr[pnum]._pVar7 / 256) / gSpeedMod;
 
-	px -= plr[pnum]._pVar6 >> 8;
-	py -= plr[pnum]._pVar7 >> 8;
-
 	if (pnum == myplr && ScrollInfo._sdir) {
-		ScrollInfo._sxoff += px;
-		ScrollInfo._syoff += py;
+		//Fluffy: We base camera offset on player offset so it's 100% in sync
+		ScrollInfo._sxoff = -(plr[pnum]._pxoff - ScrollInfo.pxoffDiff); //Fluffy TODO: These values should be added to the savegame
+		ScrollInfo._syoff = -(plr[pnum]._pyoff - ScrollInfo.pyoffDiff);
 	}
 
 	PM_ChangeLightOff(pnum);
@@ -1330,6 +1324,10 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	if (pnum != myplr) {
 		return;
 	}
+
+	//Fluffy: We save these values as it makes it possible to keep camera 100% in sync with player during movement
+	ScrollInfo.pxoffDiff = xoff;
+	ScrollInfo.pyoffDiff = yoff;
 
 	if (zoomflag) {
 		if (abs(ScrollInfo._sdx) >= 3 || abs(ScrollInfo._sdy) >= 3) {
