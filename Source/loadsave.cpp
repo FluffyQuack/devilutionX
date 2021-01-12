@@ -733,6 +733,8 @@ void LoadItemData(ItemStruct *pItem)
 	CopyInt(tbuff, &pItem->_iy);
 	CopyInt(tbuff, &pItem->_iAnimFlag);
 	tbuff += 4; // Skip pointer _iAnimData
+	if (version >= 2) //Fluffy: New var for gSpeedMod
+		CopyInt(tbuff, &pItem->iAnimCnt);
 	CopyInt(tbuff, &pItem->_iAnimLen);
 	CopyInt(tbuff, &pItem->_iAnimFrame);
 	CopyInt(tbuff, &pItem->_iAnimWidth);
@@ -1488,6 +1490,8 @@ void SaveItem(ItemStruct *pItem)
 	CopyInt(&pItem->_iy, tbuff);
 	CopyInt(&pItem->_iAnimFlag, tbuff);
 	tbuff += 4; // Skip pointer _iAnimData
+	if (version >= 2) //Fluffy: New var for gSpeedMod
+		CopyInt(&pItem->iAnimCnt, tbuff);
 	CopyInt(&pItem->_iAnimLen, tbuff);
 	CopyInt(&pItem->_iAnimFrame, tbuff);
 	CopyInt(&pItem->_iAnimWidth, tbuff);

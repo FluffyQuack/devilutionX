@@ -1821,6 +1821,7 @@ void SetupItem(int i)
 	item[i]._iAnimWidth2 = 16;
 	item[i]._iIdentified = FALSE;
 	item[i]._iPostDraw = FALSE;
+	item[i].iAnimCnt = 0; //Fluffy
 
 	if (!plr[myplr].pLvlLoad) {
 		item[i]._iAnimFrame = 1;
@@ -2420,6 +2421,7 @@ void RespawnItem(int i, BOOL FlipFlag)
 	item[i]._iAnimWidth2 = 16;
 	item[i]._iPostDraw = FALSE;
 	item[i]._iRequest = FALSE;
+	item[i].iAnimCnt = 0; //Fluffy
 	if (FlipFlag) {
 		item[i]._iAnimFrame = 1;
 		item[i]._iAnimFlag = TRUE;
@@ -2474,20 +2476,27 @@ void ProcessItems()
 	for (i = 0; i < numitems; i++) {
 		ii = itemactive[i];
 		if (item[ii]._iAnimFlag) {
-			item[ii]._iAnimFrame++;
-			if (item[ii]._iCurs == ICURS_MAGIC_ROCK) {
-				if (item[ii]._iSelFlag == 1 && item[ii]._iAnimFrame == 11)
-					item[ii]._iAnimFrame = 1;
-				if (item[ii]._iSelFlag == 2 && item[ii]._iAnimFrame == 21)
-					item[ii]._iAnimFrame = 11;
-			} else {
-				if (item[ii]._iAnimFrame == item[ii]._iAnimLen >> 1)
-					PlaySfxLoc(ItemDropSnds[ItemCAnimTbl[item[ii]._iCurs]], item[ii]._ix, item[ii]._iy);
 
-				if (item[ii]._iAnimFrame >= item[ii]._iAnimLen) {
-					item[ii]._iAnimFrame = item[ii]._iAnimLen;
-					item[ii]._iAnimFlag = FALSE;
-					item[ii]._iSelFlag = 1;
+			//Fluffy: We've added the iAnimCnt variable so we can slow down the animation using gSpeedMod
+			item[ii].iAnimCnt++;
+			if (item[ii].iAnimCnt >= 1 * gSpeedMod) {
+				item[ii].iAnimCnt = 0;
+
+				item[ii]._iAnimFrame++;
+				if (item[ii]._iCurs == ICURS_MAGIC_ROCK) {
+					if (item[ii]._iSelFlag == 1 && item[ii]._iAnimFrame == 11)
+						item[ii]._iAnimFrame = 1;
+					if (item[ii]._iSelFlag == 2 && item[ii]._iAnimFrame == 21)
+						item[ii]._iAnimFrame = 11;
+				} else {
+					if (item[ii]._iAnimFrame == item[ii]._iAnimLen >> 1)
+						PlaySfxLoc(ItemDropSnds[ItemCAnimTbl[item[ii]._iCurs]], item[ii]._ix, item[ii]._iy);
+
+					if (item[ii]._iAnimFrame >= item[ii]._iAnimLen) {
+						item[ii]._iAnimFrame = item[ii]._iAnimLen;
+						item[ii]._iAnimFlag = FALSE;
+						item[ii]._iSelFlag = 1;
+					}
 				}
 			}
 		}

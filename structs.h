@@ -106,6 +106,7 @@ typedef struct ItemStruct {
 	int _iy;
 	BOOL _iAnimFlag;
 	unsigned char *_iAnimData; // PSX name -> ItemFrame
+	int iAnimCnt; //Fluffy: Added this so we can slow down the animation using gSpeedMod
 	int _iAnimLen;
 	int _iAnimFrame;
 	int _iAnimWidth;
