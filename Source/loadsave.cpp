@@ -1490,8 +1490,7 @@ void SaveItem(ItemStruct *pItem)
 	CopyInt(&pItem->_iy, tbuff);
 	CopyInt(&pItem->_iAnimFlag, tbuff);
 	tbuff += 4; // Skip pointer _iAnimData
-	if (version >= 2) //Fluffy: New var for gSpeedMod
-		CopyInt(&pItem->iAnimCnt, tbuff);
+	CopyInt(&pItem->iAnimCnt, tbuff); //Fluffy
 	CopyInt(&pItem->_iAnimLen, tbuff);
 	CopyInt(&pItem->_iAnimFrame, tbuff);
 	CopyInt(&pItem->_iAnimWidth, tbuff);
