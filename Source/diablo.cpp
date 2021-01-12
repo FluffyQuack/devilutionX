@@ -55,12 +55,14 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
   An example: One of the camera offsets can range from to 0 to 16 and it's supposed to be increased by 2 each gameplay tick (if we're at the standard 20fps). We multiply the 16 (goal value) by gSpeedMod
   and then when using the camera offset for rendering we divide it by the same amount. The result is that we modify game speed with minimal changes to the code with everything behaving almost exactly the same.
 
-  Here is a complete list of all the variables which gets their value affected due to gSpeedMod:
+  Here is a complete list of all the variables which can have their value affected due to gSpeedMod:
   PlayerStruct->_pVar6
   PlayerStruct->_pVar7
   PlayerStruct->_pVar8
   PlayerStruct->_pAnimCnt
   TownerStruct->tAnimCnt
+  ItemStruct->iAnimCnt //New variable
+  ObjectStruct->_oAnimCnt
 
   And the ones affected by gMonsterSpeedMod:
   MonsterStruct->_mVar6

@@ -1818,15 +1818,22 @@ void ProcessObjects()
 		if (object[oi]._oAnimFlag == 0)
 			continue;
 
+		/*
+			Fluffy: As with ProcessMonsters() code an AnimDelay of 0 and 1 have the same effect
+			Probably not intended by the developers, but we retain the behaviour even when gSpeedMod is in play.
+		*/
+		int calculatedDelay = object[oi]._oAnimDelay;
+		if (calculatedDelay == 0)
+			calculatedDelay = 1;
+		calculatedDelay *= gSpeedMod; //Fluffy: Multiply by gSpeedMod in order to slow down animation
+
 		object[oi]._oAnimCnt++;
-
-		if (object[oi]._oAnimCnt < object[oi]._oAnimDelay)
-			continue;
-
-		object[oi]._oAnimCnt = 0;
-		object[oi]._oAnimFrame++;
-		if (object[oi]._oAnimFrame > object[oi]._oAnimLen)
-			object[oi]._oAnimFrame = 1;
+		if (object[oi]._oAnimCnt >= calculatedDelay) {
+			object[oi]._oAnimCnt = 0;
+			object[oi]._oAnimFrame++;
+			if (object[oi]._oAnimFrame > object[oi]._oAnimLen)
+				object[oi]._oAnimFrame = 1;
+		}
 	}
 	i = 0;
 	while (i < nobjects) {

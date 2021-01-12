@@ -567,9 +567,7 @@ void ProcessTowners()
 
 		/*
 			Fluffy: As with ProcessMonsters() code an AnimDelay of 0 and 1 have the same effect
-			Probably not intended by the developers, but we retain the behaviour.
-
-			I make sure this legacy bug is retained when gSpeedMod is in play.
+			Probably not intended by the developers, but we retain the behaviour even when gSpeedMod is in play.
 		*/
 		int calculatedDelay = towner[i]._tAnimDelay;
 		if (calculatedDelay == 0)

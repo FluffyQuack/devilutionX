@@ -715,6 +715,9 @@ void LoadObject(int i)
 	CopyInt(tbuff, &pObject->_oVar6);
 	CopyInt(tbuff, &pObject->_oVar7);
 	CopyInt(tbuff, &pObject->_oVar8);
+
+	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
+	pObject->_oAnimCnt *= gSpeedMod;
 }
 
 void LoadItem(int i)
@@ -1445,6 +1448,9 @@ void SaveObject(int i)
 {
 	ObjectStruct *pObject = &object[i];
 
+	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
+	int animCnt = pObject->_oAnimCnt / gSpeedMod;
+
 	CopyInt(&pObject->_otype, tbuff);
 	CopyInt(&pObject->_ox, tbuff);
 	CopyInt(&pObject->_oy, tbuff);
@@ -1452,7 +1458,7 @@ void SaveObject(int i)
 	CopyInt(&pObject->_oAnimFlag, tbuff);
 	tbuff += 4; // Skip pointer _oAnimData
 	CopyInt(&pObject->_oAnimDelay, tbuff);
-	CopyInt(&pObject->_oAnimCnt, tbuff);
+	CopyInt(&animCnt, tbuff);
 	CopyInt(&pObject->_oAnimLen, tbuff);
 	CopyInt(&pObject->_oAnimFrame, tbuff);
 	CopyInt(&pObject->_oAnimWidth, tbuff);
