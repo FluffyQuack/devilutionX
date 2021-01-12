@@ -565,8 +565,19 @@ void ProcessTowners()
 			break;
 		}
 
+		/*
+			Fluffy: As with ProcessMonsters() code an AnimDelay of 0 and 1 have the same effect
+			Probably not intended by the developers, but we retain the behaviour.
+
+			I make sure this legacy bug is retained when gSpeedMod is in play.
+		*/
+		int calculatedDelay = towner[i]._tAnimDelay;
+		if (calculatedDelay == 0)
+			calculatedDelay = 1;
+		calculatedDelay *= gSpeedMod; //Fluffy: Multiply by gSpeedMod in order to slow down animation
+
 		towner[i]._tAnimCnt++;
-		if (towner[i]._tAnimCnt >= towner[i]._tAnimDelay) {
+		if (towner[i]._tAnimCnt >= calculatedDelay) {
 			towner[i]._tAnimCnt = 0;
 
 			if (towner[i]._tAnimOrder >= 0) {
