@@ -421,20 +421,20 @@ typedef struct ChainStruct {
 } ChainStruct;
 
 typedef struct MissileStruct {
-	int _mitype;
-	int _mix;
-	int _miy;
-	int _mixoff;
-	int _miyoff;
-	int _mixvel;
-	int _miyvel;
-	int _misx;
-	int _misy;
-	int _mitxoff;
-	int _mityoff;
-	int _mimfnum;
+	int _mitype; //Type of projectile (arrow, firebolt, town portal, etc)
+	int _mix; //The current X tile position of the missile
+	int _miy; //The current Y tile position of the missile
+	int _mixoff; //Current X render offset for the missile (essentially sub-tile position)
+	int _miyoff; //Current Y render offset for the missile (essentially sub-tile position)
+	int _mixvel; //X velocity of missile. This gets added onto _mitxoff each gameplay tick
+	int _miyvel; //Y velocity of missile. This gets added onto _mityoff each gameplay tick
+	int _misx; //Initial X position for missile
+	int _misy; //Initial Y position for missile
+	int _mitxoff; //How far missile has travelled in its lifespan along the X axis. mix/miy/mxoff/myoff get updated every gameplay tick based on this
+	int _mityoff; //How far missile has travelled in its lifespan along the Y axis. mix/miy/mxoff/myoff get updated every gameplay tick based on this
+	int _mimfnum; //The direction of the missile (0..8 starting from DIR_S)
 	int _mispllvl;
-	BOOL _miDelFlag;
+	BOOL _miDelFlag; //If true, this missile will get deleted. Missiles are deleted at the start and end of ProcessMissiles()
 	BYTE _miAnimType;
 	int _miAnimFlags;
 	unsigned char *_miAnimData;
@@ -449,12 +449,12 @@ typedef struct MissileStruct {
 	BOOL _miLightFlag;
 	BOOL _miPreFlag;
 	int _miUniqTrans;
-	int _mirange;
+	int _mirange; //Total range the missile will travel. This ticks down by 1 each gameplay tick, and if _mirange reaches 0 then _miDelFlag turns true
 	int _misource;
 	int _micaster;
 	int _midam;
 	BOOL _miHitFlag;
-	int _midist;
+	int _midist; //Used for arrows to measure distance travelled (goes up 1 each gameplay tick). Higher value is a penalty for accuracy calculation when hitting enemy
 	int _mlid;
 	int _mirnd;
 	int _miVar1;
