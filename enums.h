@@ -1193,7 +1193,7 @@ typedef enum item_equip_type {
 } item_equip_type;
 
 typedef enum missile_id {
-	MIS_ARROW         = 0x0,
+	MIS_ARROW         = 0x0, //Common arrow projectiles fired by enemies, traps, and players
 	MIS_FIREBOLT      = 0x1,
 	MIS_GUARDIAN      = 0x2,
 	MIS_RNDTELEPORT   = 0x3,
@@ -1203,7 +1203,7 @@ typedef enum missile_id {
 	MIS_LIGHTCTRL     = 0x7,
 	MIS_LIGHTNING     = 0x8,
 	MIS_MISEXP        = 0x9,
-	MIS_TOWN          = 0xA,
+	MIS_TOWN          = 0xA, //Town portal
 	MIS_FLASH         = 0xB,
 	MIS_FLASH2        = 0xC,
 	MIS_MANASHIELD    = 0xD,
@@ -1220,7 +1220,7 @@ typedef enum missile_id {
 	MIS_FLARE         = 0x18,
 	MIS_MISEXP2       = 0x19,
 	MIS_TELEPORT      = 0x1A,
-	MIS_FARROW        = 0x1B,
+	MIS_FARROW        = 0x1B, //Fire arrows. Used by player and traps
 	MIS_DOOMSERP      = 0x1C,
 	MIS_FIREWALLA     = 0x1D, // TODO: Check beta
 	MIS_STONE         = 0x1E,
@@ -1249,7 +1249,7 @@ typedef enum missile_id {
 	MIS_HBOLT         = 0x35,
 	MIS_RESURRECT     = 0x36,
 	MIS_TELEKINESIS   = 0x37,
-	MIS_LARROW        = 0x38,
+	MIS_LARROW        = 0x38, //Lightning arrows. Used by player
 	MIS_ACID          = 0x39,
 	MIS_MISEXP3       = 0x3A,
 	MIS_ACIDPUD       = 0x3B,
