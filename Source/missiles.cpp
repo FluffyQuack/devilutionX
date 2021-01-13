@@ -2401,10 +2401,8 @@ void AddResurrect(int mi, int sx, int sy, int dx, int dy, int midir, char mienem
 
 void AddResurrectBeam(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
 {
-	missile[mi]._mix = dx;
-	missile[mi]._miy = dy;
-	missile[mi]._misx = missile[mi]._mix;
-	missile[mi]._misy = missile[mi]._miy;
+	missile[mi]._misx = missile[mi]._mix = dx;
+	missile[mi]._misy = missile[mi]._miy = dy;
 	missile[mi]._mixvel = 0;
 	missile[mi]._miyvel = 0;
 	missile[mi]._mirange = misfiledata[MFILE_RESSUR1].mAnimLen[0];
