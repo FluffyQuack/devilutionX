@@ -676,6 +676,9 @@ void LoadMissile(int i)
 	CopyInt(tbuff, &pMissile->_miVar6);
 	CopyInt(tbuff, &pMissile->_miVar7);
 	CopyInt(tbuff, &pMissile->_miVar8);
+
+	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
+	pMissile->_miAnimCnt *= gSpeedMod;
 }
 
 void LoadObject(int i)
@@ -1397,6 +1400,9 @@ void SaveMissile(int i)
 {
 	MissileStruct *pMissile = &missile[i];
 
+	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
+	int animCnt = pMissile->_miAnimCnt / gSpeedMod;
+
 	CopyInt(&pMissile->_mitype, tbuff);
 	CopyInt(&pMissile->_mix, tbuff);
 	CopyInt(&pMissile->_miy, tbuff);
@@ -1419,7 +1425,7 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miAnimLen, tbuff);
 	CopyInt(&pMissile->_miAnimWidth, tbuff);
 	CopyInt(&pMissile->_miAnimWidth2, tbuff);
-	CopyInt(&pMissile->_miAnimCnt, tbuff);
+	CopyInt(&animCnt, tbuff); //Fluffy
 	CopyInt(&pMissile->_miAnimAdd, tbuff);
 	CopyInt(&pMissile->_miAnimFrame, tbuff);
 	CopyInt(&pMissile->_miDrawFlag, tbuff);

@@ -63,6 +63,7 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
   TownerStruct->tAnimCnt
   ItemStruct->iAnimCnt //New variable
   ObjectStruct->_oAnimCnt
+  MissileStruct->_miAnimCnt
 
   And the ones affected by gMonsterSpeedMod:
   MonsterStruct->_mVar6

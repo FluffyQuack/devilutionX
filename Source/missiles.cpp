@@ -4092,8 +4092,18 @@ void ProcessMissiles()
 		mi = missileactive[i];
 		missiledata[missile[mi]._mitype].mProc(missileactive[i]);
 		if (!(missile[mi]._miAnimFlags & MFLAG_LOCK_ANIMATION)) {
+
+			/*
+				Fluffy: As with ProcessMonsters() code an AnimDelay of 0 and 1 have the same effect
+				Probably not intended by the developers, but we retain the behaviour even when gSpeedMod is in play.
+			*/
+			int calculatedDelay = missile[mi]._miAnimDelay;
+			if (calculatedDelay == 0)
+				calculatedDelay = 1;
+			calculatedDelay *= gSpeedMod; //Fluffy: Multiply by gSpeedMod in order to slow down animation
+
 			missile[mi]._miAnimCnt++;
-			if (missile[mi]._miAnimCnt >= missile[mi]._miAnimDelay) {
+			if (missile[mi]._miAnimCnt >= calculatedDelay) {
 				missile[mi]._miAnimCnt = 0;
 				missile[mi]._miAnimFrame += missile[mi]._miAnimAdd;
 				if (missile[mi]._miAnimFrame > missile[mi]._miAnimLen)
