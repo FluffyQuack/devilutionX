@@ -1957,10 +1957,8 @@ void AddStone(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, i
 	if (j != -99) {
 		missile[mi]._miDelFlag = TRUE;
 	} else {
-		missile[mi]._mix = tx;
-		missile[mi]._miy = ty;
-		missile[mi]._misx = missile[mi]._mix;
-		missile[mi]._misy = missile[mi]._miy;
+		missile[mi]._misx = missile[mi]._mix = tx;
+		missile[mi]._misy = missile[mi]._miy = ty;
 		missile[mi]._mirange = missile[mi]._mispllvl + 6;
 		missile[mi]._mirange += (missile[mi]._mirange * plr[id]._pISplDur) >> 7;
 
@@ -2018,10 +2016,8 @@ void miss_null_1F(int mi, int sx, int sy, int dx, int dy, int midir, char mienem
 void miss_null_23(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
 {
 	missile[mi]._midam = dam;
-	missile[mi]._mix = sx;
-	missile[mi]._miy = sy;
-	missile[mi]._misx = sx;
-	missile[mi]._misy = sy;
+	missile[mi]._misx = missile[mi]._mix = sx;
+	missile[mi]._misy = missile[mi]._miy = sy;
 	missile[mi]._misource = id;
 	if (dam == 1)
 		SetMissDir(mi, 0);
