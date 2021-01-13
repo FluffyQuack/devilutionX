@@ -2472,7 +2472,7 @@ BOOL PM_DoAttack(int pnum)
 		plr[pnum]._pAnimFrame += 2;
 	}
 
-	if (plr[pnum]._pAnimCnt == 0) //Fluffy: Make sure to only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
+	if (plr[pnum]._pAnimCnt == 0) //Fluffy: Added animCnt check to make sure we only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
 	{
 		if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum - 1) {
 			PlaySfxLoc(PS_SWING, plr[pnum]._px, plr[pnum]._py);
@@ -2556,7 +2556,7 @@ BOOL PM_DoRangeAttack(int pnum)
 		plr[pnum]._pAnimFrame++;
 	}
 
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum && plr[pnum]._pAnimCnt == 0) { //Fluffy: Make sure to only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
+	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFNum && plr[pnum]._pAnimCnt == 0) { //Fluffy: Added animCnt check to make sure we only do these actions once (because of gSpeedMod, this frame might be on screen multiple ticks)
 		mistype = MIS_ARROW;
 		if (plr[pnum]._pIFlags & ISPL_FIRE_ARROWS) {
 			mistype = MIS_FARROW;
