@@ -3297,9 +3297,9 @@ void MI_Guardian(int i)
 
 	sx1 = 0;
 	sy1 = 0;
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
-	if (missile[i]._miVar2 > 0) {
+	if (missile[i]._miVar2 > 0 && newGameplayTick) {
 		missile[i]._miVar2--;
 	}
 	if (missile[i]._mirange == missile[i]._miVar1 || missile[i]._mimfnum == MFILE_GUARD && missile[i]._miVar2 == 0) {
