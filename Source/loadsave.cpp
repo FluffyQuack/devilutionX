@@ -8,12 +8,13 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *tbuff;
-#define VERSION 2
+#define VERSION 3
 static int version; //Version of savegame we're currently loading
 /*
 * Version 0 = Savegame from base game
 * Version 1 = Savegame from FluffyMod adding some additional values
 * Version 2 = Added ScrollInfo.pxoffDiff and ScrollInfo.pyoffDiff variables to save
+* Version 3 = Added tickCount to MissileStruct
 */
 
 char BLoad()
@@ -676,9 +677,14 @@ void LoadMissile(int i)
 	CopyInt(tbuff, &pMissile->_miVar6);
 	CopyInt(tbuff, &pMissile->_miVar7);
 	CopyInt(tbuff, &pMissile->_miVar8);
+	if (version >= 3)
+		CopyInt(tbuff, &pMissile->tickCount);
 
 	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
 	pMissile->_miAnimCnt *= gSpeedMod;
+	pMissile->_mitxoff *= gSpeedMod;
+	pMissile->_mityoff *= gSpeedMod;
+	pMissile->tickCount *= gSpeedMod;
 }
 
 void LoadObject(int i)
@@ -1402,6 +1408,9 @@ void SaveMissile(int i)
 
 	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
 	int animCnt = pMissile->_miAnimCnt / gSpeedMod;
+	int mitxoff = pMissile->_mitxoff / gSpeedMod;
+	int mityoff = pMissile->_mityoff / gSpeedMod;
+	int tickCount = pMissile->tickCount / gSpeedMod;
 
 	CopyInt(&pMissile->_mitype, tbuff);
 	CopyInt(&pMissile->_mix, tbuff);
@@ -1412,8 +1421,8 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miyvel, tbuff);
 	CopyInt(&pMissile->_misx, tbuff);
 	CopyInt(&pMissile->_misy, tbuff);
-	CopyInt(&pMissile->_mitxoff, tbuff);
-	CopyInt(&pMissile->_mityoff, tbuff);
+	CopyInt(&mitxoff, tbuff);
+	CopyInt(&mityoff, tbuff);
 	CopyInt(&pMissile->_mimfnum, tbuff);
 	CopyInt(&pMissile->_mispllvl, tbuff);
 	CopyInt(&pMissile->_miDelFlag, tbuff);
@@ -1448,6 +1457,7 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miVar6, tbuff);
 	CopyInt(&pMissile->_miVar7, tbuff);
 	CopyInt(&pMissile->_miVar8, tbuff);
+	CopyInt(&tickCount, tbuff);
 }
 
 void SaveObject(int i)

@@ -427,8 +427,9 @@ void GetMissilePos(int i)
 {
 	int mx, my, dx, dy, lx, ly;
 
-	mx = missile[i]._mitxoff >> 16;
-	my = missile[i]._mityoff >> 16;
+	mx = missile[i]._mitxoff / ((1 << 16) * gSpeedMod); //Fluffy: Divide by gSpeedMod to get the variable's real value
+	my = missile[i]._mityoff / ((1 << 16) * gSpeedMod);
+
 	dx = mx + 2 * my;
 	dy = 2 * my - mx;
 	if (dx < 0) {
@@ -1382,8 +1383,8 @@ void AddFirebolt(int mi, int sx, int sy, int dx, int dy, int midir, char micaste
 void AddMagmaball(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
 {
 	GetMissileVel(mi, sx, sy, dx, dy, 16);
-	missile[mi]._mitxoff += 3 * missile[mi]._mixvel;
-	missile[mi]._mityoff += 3 * missile[mi]._miyvel;
+	missile[mi]._mitxoff += 3 * missile[mi]._mixvel * gSpeedMod; //Fluffy: Scale based on current speed of the game
+	missile[mi]._mityoff += 3 * missile[mi]._miyvel * gSpeedMod;
 	GetMissilePos(mi);
 	missile[mi]._mirange = 256;
 	missile[mi]._miVar1 = sx;
@@ -2519,6 +2520,7 @@ int AddMissile(int sx, int sy, int dx, int dy, int midir, int mitype, char micas
 	}
 
 	missiledata[mitype].mAddProc(mi, sx, sy, dx, dy, midir, micaster, id, midam);
+	missile[mi].tickCount = 0; //Fluffy
 
 	return mi;
 }
@@ -2542,6 +2544,20 @@ int Sentfire(int i, int sx, int sy)
 	}
 
 	return ex;
+}
+
+static BOOL UpdateMissileRangeAndDist(MissileStruct *mi, bool range, bool dist) //Fluffy: This is related to gSpeedMod and is code most missiles call once per tick
+{
+	mi->tickCount += 1;
+	if (mi->tickCount >= gSpeedMod) {
+		mi->tickCount = 0;
+		if (range)
+			mi->_mirange -= 1;
+		if (dist)
+			mi->_midist += 1;
+		return true;
+	} else
+		return false;
 }
 
 void MI_Dummy(int i)
@@ -2590,9 +2606,9 @@ void MI_LArrow(int i)
 {
 	int p, mind, maxd, rst;
 
-	missile[i]._mirange--;
 	p = missile[i]._misource;
 	if (missile[i]._miAnimType == MFILE_MINILTNG || missile[i]._miAnimType == MFILE_MAGBLOS) {
+		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miAnimFrame + 5);
 		rst = missiledata[missile[i]._mitype].mResist;
 		if (missile[i]._mitype == MIS_LARROW) {
@@ -2619,7 +2635,7 @@ void MI_LArrow(int i)
 		}
 		missiledata[missile[i]._mitype].mResist = rst;
 	} else {
-		missile[i]._midist++;
+		UpdateMissileRangeAndDist(&missile[i], true, true); //Fluffy
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
 		GetMissilePos(i);
@@ -2672,8 +2688,7 @@ void MI_Arrow(int i)
 {
 	int p, mind, maxd;
 
-	missile[i]._mirange--;
-	missile[i]._midist++;
+	UpdateMissileRangeAndDist(&missile[i], true, true); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
@@ -2702,7 +2717,7 @@ void MI_Firebolt(int i)
 	int omx, omy;
 	int d, p;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mitype != MIS_BONESPIRIT || missile[i]._mimfnum != 8) {
 		omx = missile[i]._mitxoff;
 		omy = missile[i]._mityoff;
@@ -2784,7 +2799,7 @@ void MI_Lightball(int i)
 
 	tx = missile[i]._miVar1;
 	ty = missile[i]._miVar2;
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
@@ -2809,7 +2824,7 @@ void MI_Lightball(int i)
 
 void mi_null_33(int i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
@@ -2823,7 +2838,7 @@ void MI_Acidpud(int i)
 {
 	int range;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	range = missile[i]._mirange;
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
 	missile[i]._mirange = range;
@@ -2842,7 +2857,7 @@ void MI_Firewall(int i)
 {
 	int ExpLight[14] = { 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 12 };
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == missile[i]._miVar1) {
 		SetMissDir(i, 1);
 		missile[i]._miAnimFrame = random_(83, 11) + 1;
@@ -2872,7 +2887,7 @@ void MI_Fireball(int i)
 
 	id = missile[i]._misource;
 	dam = missile[i]._midam;
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	if (missile[i]._micaster == 0) {
 		px = plr[id]._px;
@@ -2949,7 +2964,7 @@ void MI_Lightctrl(int i)
 	int pn, dam, p, mx, my;
 
 	assert((DWORD)i < MAXMISSILES);
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	p = missile[i]._misource;
 	if (p != -1) {
@@ -3036,7 +3051,7 @@ void MI_Lightning(int i)
 {
 	int j;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	j = missile[i]._mirange;
 	if (missile[i]._mix != missile[i]._misx || missile[i]._miy != missile[i]._misy)
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
@@ -3055,7 +3070,7 @@ void MI_Town(int i)
 	int p;
 
 	if (missile[i]._mirange > 1)
-		missile[i]._mirange--;
+		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == missile[i]._miVar1)
 		SetMissDir(i, 1);
 	if (currlevel && missile[i]._mimfnum != 1 && missile[i]._mirange) {
@@ -3088,7 +3103,7 @@ void MI_Flash(int i)
 		if (missile[i]._misource != -1)
 			plr[missile[i]._misource]._pInvincible = TRUE;
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy, TRUE);
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, TRUE);
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy, TRUE);
@@ -3111,7 +3126,7 @@ void MI_Flash2(int i)
 		if (missile[i]._misource != -1)
 			plr[missile[i]._misource]._pInvincible = TRUE;
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy - 1, TRUE);
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy - 1, TRUE);
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy - 1, TRUE);
@@ -3132,8 +3147,8 @@ void MI_Manashield(int i)
 	id = missile[i]._misource;
 	missile[i]._mix = plr[id]._px;
 	missile[i]._miy = plr[id]._py;
-	missile[i]._mitxoff = plr[id]._pxoff << 16;
-	missile[i]._mityoff = plr[id]._pyoff << 16;
+	missile[i]._mitxoff = (plr[id]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Can we handle this better?)
+	missile[i]._mityoff = (plr[id]._pyoff << 16) * gSpeedMod;
 	if (plr[id]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[id]._pfutx;
 		missile[i]._misy = plr[id]._pfuty;
@@ -3204,12 +3219,12 @@ void MI_Etherealize(int i)
 {
 	int src;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	src = missile[i]._misource;
 	missile[i]._mix = plr[src]._px;
 	missile[i]._miy = plr[src]._py;
-	missile[i]._mitxoff = plr[src]._pxoff << 16;
-	missile[i]._mityoff = plr[src]._pyoff << 16;
+	missile[i]._mitxoff = (plr[src]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Can we handle this better?)
+	missile[i]._mityoff = (plr[src]._pyoff << 16) * gSpeedMod;
 	if (plr[src]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[src]._pfutx;
 		missile[i]._misy = plr[src]._pfuty;
@@ -3282,7 +3297,7 @@ void MI_Guardian(int i)
 
 	sx1 = 0;
 	sy1 = 0;
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	if (missile[i]._miVar2 > 0) {
 		missile[i]._miVar2--;
@@ -3376,14 +3391,14 @@ void MI_Chain(int i)
 			l += 2;
 		}
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
 
 void mi_null_11(int i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (!missile[i]._mirange)
 		missile[i]._miDelFlag = TRUE;
 	if (missile[i]._miAnimFrame == missile[i]._miAnimLen)
@@ -3396,7 +3411,7 @@ void MI_Weapexp(int i)
 	int id, mind, maxd;
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	id = missile[i]._misource;
 	if (missile[i]._miVar2 == 1) {
 		mind = plr[id]._pIFMinDam;
@@ -3427,7 +3442,7 @@ void MI_Misexp(int i)
 {
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		AddUnLight(missile[i]._mlid);
@@ -3450,7 +3465,7 @@ void MI_Acidsplat(int i)
 		missile[i]._miy++;
 		missile[i]._miyoff -= 32;
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		monst = missile[i]._misource;
@@ -3466,7 +3481,7 @@ void MI_Teleport(int i)
 	int id;
 
 	id = missile[i]._misource;
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange <= 0) {
 		missile[i]._miDelFlag = TRUE;
 	} else {
@@ -3496,7 +3511,7 @@ void MI_Stone(int i)
 {
 	int m;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	m = missile[i]._miVar2;
 	if (!monster[m]._mhitpoints && missile[i]._miAnimType != MFILE_SHATTER1) {
 		missile[i]._mimfnum = 0;
@@ -3522,7 +3537,7 @@ void MI_Stone(int i)
 
 void MI_Boom(int i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (!missile[i]._miVar1)
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, TRUE);
 	if (missile[i]._miHitFlag == TRUE)
@@ -3625,7 +3640,7 @@ void MI_FirewallC(int i)
 	int tx, ty, id;
 
 	id = missile[i]._misource;
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0) {
 		missile[i]._miDelFlag = TRUE;
 	} else {
@@ -3652,7 +3667,7 @@ void MI_FirewallC(int i)
 
 void MI_Infra(int i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	plr[missile[i]._misource]._pInfraFlag = TRUE;
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
@@ -3737,7 +3752,7 @@ void MI_Wave(int i)
 			}
 		}
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
@@ -3769,7 +3784,7 @@ void MI_Nova(int i)
 			sy1 = vCrawlTable[k][7];
 		}
 	}
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
@@ -3783,8 +3798,8 @@ void MI_Flame(int i)
 {
 	int k;
 
-	missile[i]._mirange--;
-	missile[i]._miVar2--;
+	if(UpdateMissileRangeAndDist(&missile[i], true, false)) //Fluffy
+		missile[i]._miVar2--;
 	k = missile[i]._mirange;
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
 	if (missile[i]._mirange == 0 && missile[i]._miHitFlag == TRUE)
@@ -3809,7 +3824,7 @@ void MI_Flamec(int i)
 {
 	int id, src;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	src = missile[i]._misource;
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
@@ -3844,7 +3859,7 @@ void MI_Cbolt(int i)
 	int md;
 	int bpath[16] = { -1, 0, 1, -1, 0, 1, -1, -1, 0, 0, 1, 1, 0, 1, -1, 0 };
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._miAnimType != MFILE_LGHNING) {
 		if (!missile[i]._miVar3) {
 			md = (missile[i]._miVar2 + bpath[missile[i]._mirnd]) & 7;
@@ -3880,7 +3895,7 @@ void MI_Hbolt(int i)
 {
 	int dam;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._miAnimType != MFILE_HOLYEXPL) {
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
@@ -3917,7 +3932,7 @@ void MI_Element(int i)
 {
 	int mid, sd, dam, cx, cy, px, py, id;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	dam = missile[i]._midam;
 	id = missile[i]._misource;
 	if (missile[i]._miAnimType == MFILE_BIGEXP) {
@@ -3990,7 +4005,7 @@ void MI_Bonespirit(int i)
 	int id, mid, sd, dam;
 	int cx, cy;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	dam = missile[i]._midam;
 	id = missile[i]._misource;
 	if (missile[i]._mimfnum == 8) {
@@ -4049,7 +4064,7 @@ void MI_Rportal(int i)
 	int ExpLight[17] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
 
 	if (missile[i]._mirange > 1)
-		missile[i]._mirange--;
+		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == missile[i]._miVar1)
 		SetMissDir(i, 1);
 

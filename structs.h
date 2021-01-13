@@ -465,6 +465,7 @@ typedef struct MissileStruct {
 	int _miVar6;
 	int _miVar7;
 	int _miVar8;
+	int tickCount; //Fluffy: Used for updating _mirange and _midist at the same rate as the base game when gSpeedMod is in play
 } MissileStruct;
 
 //////////////////////////////////////////////////
