@@ -450,12 +450,12 @@ typedef struct MissileStruct {
 	BOOL _miPreFlag;
 	int _miUniqTrans;
 	int _mirange; //Total range the missile will travel. This ticks down by 1 each gameplay tick, and if _mirange reaches 0 then _miDelFlag turns true
-	int _misource;
+	int _misource; //Source of whoever created this missile?
 	int _micaster;
 	int _midam;
 	BOOL _miHitFlag;
 	int _midist; //Used for arrows to measure distance travelled (goes up 1 each gameplay tick). Higher value is a penalty for accuracy calculation when hitting enemy
-	int _mlid;
+	int _mlid; //Points to an entry in the LightList array
 	int _mirnd;
 	int _miVar1;
 	int _miVar2;
