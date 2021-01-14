@@ -2997,7 +2997,10 @@ void MI_Lightctrl(int i)
 	} else if (nMissileTable[pn]) {
 		missile[i]._mirange = 0;
 	}
-	if (!nMissileTable[pn]) {
+
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
+	if (newGameplayTick && !nMissileTable[pn]) { //Fluffy: We want this to be happening at 50ms intervals like the original game and not sped up thanks to gSpeedMod
 		if ((mx != missile[i]._miVar1 || my != missile[i]._miVar2) && mx > 0 && my > 0 && mx < MAXDUNX && my < MAXDUNY) {
 			if (missile[i]._misource != -1) {
 				if (missile[i]._micaster == 1
@@ -3071,15 +3074,19 @@ void MI_Town(int i)
 	int ExpLight[17] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
 	int p;
 
-	if (missile[i]._mirange > 1)
-		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL firstTick = missile[i].tickCount == 0 && missile[i]._miVar2 == 0;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick && missile[i]._mirange > 1)
+		missile[i]._mirange -= 1;
 	if (missile[i]._mirange == missile[i]._miVar1)
 		SetMissDir(i, 1);
 	if (currlevel && missile[i]._mimfnum != 1 && missile[i]._mirange) {
-		if (!missile[i]._miVar2)
+		if (firstTick) //Fluffy
 			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 1);
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
-		missile[i]._miVar2++;
+		if (newGameplayTick) //Fluffy
+			missile[i]._miVar2++;
 	}
 
 	for (p = 0; p < MAX_PLRS; p++) {
