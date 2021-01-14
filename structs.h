@@ -394,8 +394,8 @@ typedef struct MissileData {
 	unsigned char mName;
 	void (*mAddProc)(int, int, int, int, int, int, char, int, int);
 	void (*mProc)(int);
-	BOOL mDraw;
-	unsigned char mType;
+	BOOL mDraw; //If false, the projectile is invisible
+	unsigned char mType; //If true, this projectile is magical and we check Magic stat for damage calculation (if not, we do similar calculation as with physical weapons). Some missiles set this value to 2 which seems pointless
 	unsigned char mResist;
 	unsigned char mFileNum;
 	int mlSFX;
