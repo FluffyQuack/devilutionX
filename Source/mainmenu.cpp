@@ -152,16 +152,16 @@ BOOL mainmenu_single_player()
 	}
 	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
 
-	//Fluffy: Speed modifiers, but if they don't exist, then we calculate based on the tick rate
+	//Fluffy: Load speed modifiers from config, but if they don't exist, then we calculate based on the tick rate
 	if (!SRegLoadValue("devilutionx", "Game Simulation Speed Modifier", 0, &gSpeedMod)) {
 		gSpeedMod = ticks_per_sec / 20;
 	}
 	if (!SRegLoadValue("devilutionx", "Monster Speed Modifier", 0, &gMonsterSpeedMod)) {
 		gMonsterSpeedMod = ticks_per_sec / 20;
 	}
-	if (gSpeedMod <= 0)
+	if (gSpeedMod < 1)
 		gSpeedMod = 1;
-	if (gMonsterSpeedMod <= 0)
+	if (gMonsterSpeedMod < 1)
 		gMonsterSpeedMod = 1;
 
 	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
