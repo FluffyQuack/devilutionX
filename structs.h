@@ -208,9 +208,9 @@ typedef struct PlayerStruct {
 	int _pgfxnum; //Defines what variant of the sprite the player is using. Lower values define weapon (starting with ANIM_ID_UNARMED) and higher values define armour (starting with ANIM_ID_LIGHT_ARMOR)
 	unsigned char *_pAnimData;
 	int _pAnimDelay; //By default, all animations advance by one frame for each tick. This value lets you set by how many ticks each frame should get delayed (apparently the last frame of an animation is only ever one tick long)
-	int _pAnimCnt; //For controlling the tick delay of animation frames
+	int _pAnimCnt; //Increases by one each gameplay tick, counting how close we are to _pAnimDelay
 	int _pAnimLen; //Quantity of frames in animation
-	int _pAnimFrame; //Current frame we're at in the animation. We always start at 1
+	int _pAnimFrame; //Current frame we're at in the animation. Always starts at 1?
 	int _pAnimWidth;
 	int _pAnimWidth2;
 	int _peflag; //Unused
@@ -227,7 +227,7 @@ typedef struct PlayerStruct {
 	int _pSBkSpell;
 	char _pSBkSplType;
 	char _pSplLvl[64];
-	uint64_t _pMemSpells; //Ownership of spells (1 bit is one spell) (This and the following includes ownership of ALL spells and skills)
+	uint64_t _pMemSpells; //Ownership of spells (1 bit is one spell). This references a database which includes all spells and abilities
 	uint64_t _pAblSpells; //Ownership of abilities (1 bit is one spell)
 	uint64_t _pScrlSpells; //Ownership of spells/skills via scrolls (gets updated as you use scrolls or do anything with inventory?)
 	UCHAR _pSpellFlags;
@@ -285,7 +285,7 @@ typedef struct PlayerStruct {
 	int _pVar5; //Used for storing Y position of a tile which should have its BFLAG_PLAYERLR flag removed after walking. When starting to walk the game places the player in the dPlayer array -1 in the Y coordinate, and uses BFLAG_PLAYERLR to check if it should be using -1 to the Y coordinate when rendering the player (also used for storing the level of a spell when the player casts it)
 	int _pVar6; //Same as _pxoff but contains the value in a higher range
 	int _pVar7; //Same as _pyoff but contains the value in a higher range
-	int _pVar8; //This is used as an alternative to animLength depending on what state the player is in
+	int _pVar8; //Used for counting how close we are to reaching the next tile when walking (usually counts up to the 8, which is equal to animation length of walk animation). Also used for stalling the appearance of the options screen after dying in singleplayer
 	BOOLEAN _pLvlVisited[NUMLEVELS];
 	BOOLEAN _pSLvlVisited[NUMLEVELS]; // only 10 used
 	int _pGFXLoad;
@@ -353,8 +353,8 @@ typedef struct PlayerStruct {
 	unsigned char pLvlLoad;
 	unsigned char pBattleNet;
 	BOOLEAN pManaShield;
-	char bReserved[3];
-	short wReserved[8];
+	char bReserved[3]; //Unused
+	short wReserved[8]; //Unused
 	DWORD pDiabloKillLevel;
 	int pDifficulty;
 	int dwReserved[7]; //Unused
@@ -562,16 +562,16 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	unsigned char _pathcount;
 	int _mx; //Tile X coordinate for monster
 	int _my; //Tile Y coordinate for monster
-	int _mfutx; //Future tile X position for monster defined when starting movement
-	int _mfuty; //Future tile Y position for monster defined when starting movement
-	int _moldx; //Monster's old X position. Defined in a lot of functions
-	int _moldy; //Monster's old Y position. Defined in a lot of functions
+	int _mfutx; //Future tile X position for monster. Set when starting movement
+	int _mfuty; //Future tile Y position for monster. Set when starting movement
+	int _moldx; //Monster's old X position
+	int _moldy; //Monster's old Y position
 	int _mxoff; //X render offset for monster. Used during movement
 	int _myoff; //Y render offset for monster. Used during movement
 	int _mxvel; //X velocity to apply to offset per gameplay tick during movement
 	int _myvel; //Y velocity to apply to offset per gameplay tick during movement
 	int _mdir; //Direction the monster is facing
-	int _menemy; //The player the monster is targeting (the value corresponds to an entry in the plr array). Behaviour changes if MFLAG_TARGETS_MONSTER is true, then this corresponds to an entry in the monster array
+	int _menemy; //The player the monster is targeting. The value corresponds to an entry in the plr array. Behaviour changes if MFLAG_TARGETS_MONSTER is true, then this corresponds to an entry in the monster array
 	unsigned char _menemyx; //X coordinate of enemy (usually correspond's to the enemy's futx value)
 	unsigned char _menemyy; //Y coordinate of enemy (usually correspond's to the enemy's futy value)
 	short falign_52; // probably _mAFNum (unused)
@@ -589,7 +589,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mVar5;
 	int _mVar6; //Used as _mxoff but with a higher range so that we can correctly apply velocities of a smaller number
 	int _mVar7; //Used as _myoff but with a higher range so that we can correctly apply velocities of a smaller number
-	int _mVar8; //Used to measure progress for moving from one tile to another
+	int _mVar8; //Value used to measure progress for moving from one tile to another
 	int _mmaxhp;
 	int _mhitpoints;
 	unsigned char _mAi;
@@ -1061,13 +1061,13 @@ typedef struct TNQ {
 typedef struct TownerStruct {
 	int _tmode;
 	int _ttype;
-	int _tx;
-	int _ty;
-	int _txoff;
-	int _tyoff;
-	int _txvel;
-	int _tyvel;
-	int _tdir;
+	int _tx;    //X tile position of NPC
+	int _ty;    //Y tile position of NPC
+	int _txoff; //X render offset (not used)
+	int _tyoff; //Y render offset (not used)
+	int _txvel; //X velocity during movement (not used)
+	int _tyvel; //Y velocity during movement (not used)
+	int _tdir; //Facing of NPC (not used)
 	unsigned char *_tAnimData;
 	int _tAnimDelay;
 	int _tAnimCnt;
@@ -1118,8 +1118,8 @@ typedef struct QuestTalkData {
 //////////////////////////////////////////////////
 
 typedef struct ScrollStruct {
-	int _sxoff; //X offset when rendering camera position
-	int _syoff; //Y offset when rendering camera position
+	int _sxoff; //X offset when rendering camera position. This usually corresponds to a negative version of plr[myplr]._pxoff
+	int _syoff; //Y offset when rendering camera position. This usually corresponds to a negative version of plr[myplr]._pyoff
 	int _sdx;
 	int _sdy;
 	int _sdir;
