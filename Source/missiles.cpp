@@ -3163,7 +3163,7 @@ void MI_Manashield(int i)
 	id = missile[i]._misource;
 	missile[i]._mix = plr[id]._px;
 	missile[i]._miy = plr[id]._py;
-	missile[i]._mitxoff = (plr[id]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Can we handle this better?)
+	missile[i]._mitxoff = (plr[id]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Is this working correctly? Commented this line away seems to do nothing)
 	missile[i]._mityoff = (plr[id]._pyoff << 16) * gSpeedMod;
 	if (plr[id]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[id]._pfutx;
@@ -3239,7 +3239,7 @@ void MI_Etherealize(int i)
 	src = missile[i]._misource;
 	missile[i]._mix = plr[src]._px;
 	missile[i]._miy = plr[src]._py;
-	missile[i]._mitxoff = (plr[src]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Can we handle this better?)
+	missile[i]._mitxoff = (plr[src]._pxoff << 16) * gSpeedMod; //Fluffy: Scale based on current speed of the game (TODO: Double check this is working correctly)
 	missile[i]._mityoff = (plr[src]._pyoff << 16) * gSpeedMod;
 	if (plr[src]._pmode == PM_WALK3) {
 		missile[i]._misx = plr[src]._pfutx;
@@ -3267,6 +3267,8 @@ void MI_Firemove(int i)
 {
 	int j;
 	int ExpLight[14] = { 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 12 };
+
+	//Fluffy TODO: Check if this works and then fix related to gSpeedMod
 
 	missile[i]._mix--;
 	missile[i]._miy--;
@@ -3322,7 +3324,7 @@ void MI_Guardian(int i)
 		SetMissDir(i, 1);
 	}
 
-	if (!(missile[i]._mirange % 16)) {
+	if (newGameplayTick && !(missile[i]._mirange % 16)) { //Fluffy: The Sentfire() functions can summon firebolts, so we make sure this runs at the same pace as the original game (related to gSpeedMod)
 		ex = 0;
 		for (j = 0; j < 23 && ex != -1; j++) {
 			for (k = 10; k >= 0 && ex != -1 && (vCrawlTable[j][k] != 0 || vCrawlTable[j][k + 1] != 0); k -= 2) {
@@ -3365,12 +3367,15 @@ void MI_Guardian(int i)
 		missile[i]._miAnimAdd = -1;
 	}
 
-	missile[i]._miVar3 += missile[i]._miAnimAdd;
 
-	if (missile[i]._miVar3 > 15) {
-		missile[i]._miVar3 = 15;
-	} else if (missile[i]._miVar3 > 0) {
-		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miVar3);
+	if (newGameplayTick) { //Fluffy: We make this light up at the same pace as the original game (related to gSpeedMod)
+		missile[i]._miVar3 += missile[i]._miAnimAdd; //Fluffy TODO: Can we make this light up smoothly based on gSpeedMod?
+
+		if (missile[i]._miVar3 > 15) {
+			missile[i]._miVar3 = 15;
+		} else if (missile[i]._miVar3 > 0) {
+			ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miVar3);
+		}
 	}
 
 	if (missile[i]._mirange == 0) {
