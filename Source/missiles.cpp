@@ -4,6 +4,7 @@
  * Implementation of missile functionality.
  */
 #include "all.h"
+#include "misc\misc.h" //For MI_MissExp() and a few other functions
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -2858,7 +2859,6 @@ void MI_Acidpud(int i)
 void MI_Firewall(int i)
 {
 	int ExpLight[14] = { 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 12 };
-	//Fluffy TODO: Make a new version of this array based on framerate adding gradients between each step
 
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == missile[i]._miVar1) {
@@ -2880,7 +2880,7 @@ void MI_Firewall(int i)
 		if (newGameplayTick && !missile[i]._miVar2) //This action we only want to happen once ever
 			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
-		if (newGameplayTick) //Fluffy TODO: Let this happen every tick once we extend the above array
+		if (newGameplayTick)
 			missile[i]._miVar2++;
 	}
 	PutMissile(i);
@@ -3386,7 +3386,7 @@ void MI_Guardian(int i)
 	PutMissile(i);
 }
 
-void MI_Chain(int i)
+void MI_Chain(int i) //Fluffy TODO: Check this function and the ones below if they play at the correct speed
 {
 	int sx, sy, id, l, n, m, k, rad, tx, ty, dir;
 	int CrawlNum[19] = { 0, 3, 12, 45, 94, 159, 240, 337, 450, 579, 724, 885, 1062, 1255, 1464, 1689, 1930, 2187, 2460 };
@@ -3431,7 +3431,6 @@ void MI_Weapexp(int i)
 {
 	int id, mind, maxd;
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
-	//Fluffy TODO: Make a new version of this array based on framerate adding gradients between each step
 
 	BOOL firstTick = missile[i].tickCount == 0 && missile[i]._miVar1 == 0;
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
@@ -3451,10 +3450,19 @@ void MI_Weapexp(int i)
 	if (firstTick) //This action we only want to happen once ever
 		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 
-	if (missile[i]._miVar1 && missile[i]._mirange)
-		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
+	if (missile[i]._miVar1 && missile[i]._mirange) {
 
-	if (newGameplayTick) //Fluffy TODO: Let this happen every tick once we extend the above array
+		//Fluffy: Interpolate between different values in ExpLight
+		int value;
+		if (missile[i].tickCount == 0 || missile[i]._miVar1 == 9)
+			value = ExpLight[missile[i]._miVar1];
+		else
+			value = InterpolateBetweenTwoPoints_Int32(ExpLight[missile[i]._miVar1], ExpLight[missile[i]._miVar1 + 1], (double) missile[i].tickCount / gSpeedMod);
+
+		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, value);
+	}
+
+	if (newGameplayTick)
 		missile[i]._miVar1++;
 
 	if (!missile[i]._mirange) {
@@ -3468,7 +3476,6 @@ void MI_Weapexp(int i)
 void MI_Misexp(int i)
 {
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
-	//Fluffy TODO: Make a new version of this array based on framerate adding gradients between each step
 
 	BOOL firstTick = missile[i].tickCount == 0 && missile[i]._miVar1 == 0;
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
@@ -3482,11 +3489,20 @@ void MI_Misexp(int i)
 	if (firstTick) //This action we only want to happen once ever
 		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 
-	if (missile[i]._miVar1)
-		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
+	if (missile[i]._miVar1) {
+
+		//Fluffy: Interpolate between different values in ExpLight
+		int value;
+		if (missile[i].tickCount == 0 || missile[i]._miVar1 == 9)
+			value = ExpLight[missile[i]._miVar1];
+		else
+			value = InterpolateBetweenTwoPoints_Int32(ExpLight[missile[i]._miVar1], ExpLight[missile[i]._miVar1 + 1], (double) missile[i].tickCount / gSpeedMod);
+
+		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, value);
+	}
 
 	if (newGameplayTick)
-		missile[i]._miVar1++; //Fluffy TODO: Let this happen every tick once we extend the above array
+		missile[i]._miVar1++;
 
 	PutMissile(i);
 }
