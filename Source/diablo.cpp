@@ -1412,6 +1412,11 @@ void PressChar(int vkey)
 		if (currlevel == 0 && debug_mode_key_w) {
 			StoresCheat();
 		}
+	case 'e': //Fluffy
+		if (currlevel == 0 && debug_mode_key_w) {
+			GiveGoldCheat();
+			SetAllSpellsCheat();
+		}
 		return;
 #endif
 	}
