@@ -2608,32 +2608,34 @@ void MI_LArrow(int i)
 
 	p = missile[i]._misource;
 	if (missile[i]._miAnimType == MFILE_MINILTNG || missile[i]._miAnimType == MFILE_MAGBLOS) {
-		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+		BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miAnimFrame + 5);
-		rst = missiledata[missile[i]._mitype].mResist;
-		if (missile[i]._mitype == MIS_LARROW) {
-			if (p != -1) {
-				mind = plr[p]._pILMinDam;
-				maxd = plr[p]._pILMaxDam;
-			} else {
-				mind = random_(68, 10) + 1 + currlevel;
-				maxd = random_(68, 10) + 1 + currlevel * 2;
+		if (newGameplayTick) { //Only deal damage once per 50ms like the original game (gSpeedMod related)
+			rst = missiledata[missile[i]._mitype].mResist;
+			if (missile[i]._mitype == MIS_LARROW) {
+				if (p != -1) {
+					mind = plr[p]._pILMinDam;
+					maxd = plr[p]._pILMaxDam;
+				} else {
+					mind = random_(68, 10) + 1 + currlevel;
+					maxd = random_(68, 10) + 1 + currlevel * 2;
+				}
+				missiledata[MIS_LARROW].mResist = MISR_LIGHTNING;
+				CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, TRUE);
 			}
-			missiledata[MIS_LARROW].mResist = MISR_LIGHTNING;
-			CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, TRUE);
-		}
-		if (missile[i]._mitype == MIS_FARROW) {
-			if (p != -1) {
-				mind = plr[p]._pIFMinDam;
-				maxd = plr[p]._pIFMaxDam;
-			} else {
-				mind = random_(68, 10) + 1 + currlevel;
-				maxd = random_(68, 10) + 1 + currlevel * 2;
+			if (missile[i]._mitype == MIS_FARROW) {
+				if (p != -1) {
+					mind = plr[p]._pIFMinDam;
+					maxd = plr[p]._pIFMaxDam;
+				} else {
+					mind = random_(68, 10) + 1 + currlevel;
+					maxd = random_(68, 10) + 1 + currlevel * 2;
+				}
+				missiledata[MIS_FARROW].mResist = MISR_FIRE;
+				CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, TRUE);
 			}
-			missiledata[MIS_FARROW].mResist = MISR_FIRE;
-			CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, TRUE);
+			missiledata[missile[i]._mitype].mResist = rst;
 		}
-		missiledata[missile[i]._mitype].mResist = rst;
 	} else {
 		UpdateMissileRangeAndDist(&missile[i], true, true); //Fluffy
 		missile[i]._mitxoff += missile[i]._mixvel;
