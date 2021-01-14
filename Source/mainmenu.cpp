@@ -159,6 +159,10 @@ BOOL mainmenu_single_player()
 	if (!SRegLoadValue("devilutionx", "Monster Speed Modifier", 0, &gMonsterSpeedMod)) {
 		gMonsterSpeedMod = ticks_per_sec / 20;
 	}
+	if (gSpeedMod <= 0)
+		gSpeedMod = 1;
+	if (gMonsterSpeedMod <= 0)
+		gMonsterSpeedMod = 1;
 
 	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
 	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
