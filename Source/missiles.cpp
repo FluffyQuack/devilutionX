@@ -3141,9 +3141,11 @@ void MI_Flash2(int i)
 			plr[missile[i]._misource]._pInvincible = TRUE;
 	}
 	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy - 1, TRUE);
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy - 1, TRUE);
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy - 1, TRUE);
+	if (newGameplayTick) {                               //Only deal damage once every 50ms as like the original game (gSpeedMod related)
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy - 1, TRUE);
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy - 1, TRUE);
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy - 1, TRUE);
+	}
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		if (missile[i]._micaster == 0) {
