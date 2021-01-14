@@ -1089,7 +1089,7 @@ void CheckMissileCol(int i, int mindam, int maxdam, BOOL shift, int mx, int my, 
 			missile[i]._miHitFlag = FALSE;
 		}
 	}
-	if (nMissileTable[dPiece[mx][my]]) {
+	if (nMissileTable[dPiece[mx][my]]) { //Check if we're hitting a part of the map
 		if (!nodel)
 			missile[i]._mirange = 0;
 		missile[i]._miHitFlag = FALSE;
@@ -3410,8 +3410,10 @@ void MI_Weapexp(int i)
 {
 	int id, mind, maxd;
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
+	//Fluffy TODO: Make a new version of this array based on framerate adding gradients between each step
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
 	id = missile[i]._misource;
 	if (missile[i]._miVar2 == 1) {
 		mind = plr[id]._pIFMinDam;
@@ -3423,13 +3425,16 @@ void MI_Weapexp(int i)
 		missiledata[missile[i]._mitype].mResist = MISR_LIGHTNING;
 	}
 	CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
-	if (!missile[i]._miVar1) {
+
+	if (newGameplayTick && !missile[i]._miVar1) //This action we only want to happen at 50ms intervals to match up with original code
 		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 9);
-	} else {
-		if (missile[i]._mirange)
-			ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
-	}
-	missile[i]._miVar1++;
+
+	if (!missile[i]._miVar1 && missile[i]._mirange)
+		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
+
+	if (newGameplayTick) //Fluffy TODO: Let this happen every tick once we extend the above array
+		missile[i]._miVar1++;
+
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		AddUnLight(missile[i]._mlid);
@@ -3441,19 +3446,26 @@ void MI_Weapexp(int i)
 void MI_Misexp(int i)
 {
 	int ExpLight[10] = { 9, 10, 11, 12, 11, 10, 8, 6, 4, 2 };
+	//Fluffy TODO: Make a new version of this array based on framerate adding gradients between each step
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		AddUnLight(missile[i]._mlid);
-	} else {
-		if (!missile[i]._miVar1)
-			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 9);
-		else
-			ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
-		missile[i]._miVar1++;
-		PutMissile(i);
+		return;
 	}
+
+	if (newGameplayTick && !missile[i]._miVar1) //This action we only want to happen at 50ms intervals to match up with original code
+		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 9);
+
+	if (!missile[i]._miVar1)
+		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar1]);
+
+	if (newGameplayTick)
+		missile[i]._miVar1++; //Fluffy TODO: Let this happen every tick once we extend the above array
+
+	PutMissile(i);
 }
 
 void MI_Acidsplat(int i)
