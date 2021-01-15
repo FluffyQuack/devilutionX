@@ -3987,7 +3987,7 @@ void MI_Hbolt(int i)
 	int dam;
 
 	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	if (missile[i]._miAnimType != MFILE_HOLYEXPL) {
+	if (missile[i]._miAnimType != MFILE_HOLYEXPL) { //Normal holy bolt behaviour
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
 		GetMissilePos(i);
@@ -4009,7 +4009,7 @@ void MI_Hbolt(int i)
 				ChangeLight(missile[i]._mlid, missile[i]._miVar1, missile[i]._miVar2, 8);
 			}
 		}
-	} else {
+	} else { //Behaviour when holy bolt is exploding
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miAnimFrame + 7);
 		if (!missile[i]._mirange) {
 			missile[i]._miDelFlag = TRUE;
