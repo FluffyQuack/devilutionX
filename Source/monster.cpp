@@ -4464,6 +4464,8 @@ void ProcessMonsters()
 			SetRndSeed(Monst->_mAISeed);
 			Monst->_mAISeed = GetRndSeed();
 		}
+
+		//Fluffy TODO: This should only happen at 50ms intervals
 		if (!(monster[mi]._mFlags & MFLAG_NOHEAL) && Monst->_mhitpoints < Monst->_mmaxhp && Monst->_mhitpoints >> 6 > 0) {
 			if (Monst->mLevel > 1) {
 				Monst->_mhitpoints += Monst->mLevel >> 1;
@@ -4474,6 +4476,8 @@ void ProcessMonsters()
 		mx = Monst->_mx;
 		my = Monst->_my;
 #ifndef SPAWN
+
+		//Fluffy TODO: This should only happen at 50ms intervals
 		if (dFlags[mx][my] & BFLAG_VISIBLE && Monst->_msquelch == 0) {
 			if (Monst->MType->mtype == MT_CLEAVER) {
 				PlaySFX(USFX_CLEAVER);
@@ -4496,6 +4500,8 @@ void ProcessMonsters()
 			}
 			Monst->_menemyx = plr[Monst->_menemy]._pfutx;
 			Monst->_menemyy = plr[Monst->_menemy]._pfuty;
+
+			//Fluffy TODO: This should only happen at 50ms intervals
 			if (dFlags[mx][my] & BFLAG_VISIBLE) {
 				Monst->_msquelch = UCHAR_MAX;
 				Monst->_lastx = plr[Monst->_menemy]._pfutx;
