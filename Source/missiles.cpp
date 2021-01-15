@@ -3838,30 +3838,34 @@ void MI_Nova(int i)
 {
 	int k, id, sx, sy, dir, en, sx1, sy1, dam;
 
-	sx1 = 0;
-	sy1 = 0;
-	id = missile[i]._misource;
-	dam = missile[i]._midam;
-	sx = missile[i]._mix;
-	sy = missile[i]._miy;
-	if (id != -1) {
-		en = 0;
-		dir = plr[id]._pdir;
-	} else {
-		dir = 0;
-		en = 1;
-	}
-	for (k = 0; k < 23; k++) {
-		if (sx1 != vCrawlTable[k][6] || sy1 != vCrawlTable[k][7]) {
-			AddMissile(sx, sy, sx + vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx - vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx - vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx + vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
-			sx1 = vCrawlTable[k][6];
-			sy1 = vCrawlTable[k][7];
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: Only let this happen at 50ms intervals like the original game (related to gSpeedMod)
+		sx1 = 0;
+		sy1 = 0;
+		id = missile[i]._misource;
+		dam = missile[i]._midam;
+		sx = missile[i]._mix;
+		sy = missile[i]._miy;
+		if (id != -1) {
+			en = 0;
+			dir = plr[id]._pdir;
+		} else {
+			dir = 0;
+			en = 1;
 		}
+		for (k = 0; k < 23; k++) {
+			if (sx1 != vCrawlTable[k][6] || sy1 != vCrawlTable[k][7]) {
+				AddMissile(sx, sy, sx + vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx - vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx - vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx + vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_LIGHTBALL, en, id, dam, missile[i]._mispllvl);
+				sx1 = vCrawlTable[k][6];
+				sy1 = vCrawlTable[k][7];
+			}
+		}
+		missile[i]._mirange -= 1;
 	}
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
@@ -3875,14 +3879,18 @@ void MI_Flame(int i)
 {
 	int k;
 
-	if(UpdateMissileRangeAndDist(&missile[i], true, false)) //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
+	//Flufyf: We only update some of this once every 50ms (related to gSpeedMod)
+	if (newGameplayTick) {
 		missile[i]._miVar2--;
-	k = missile[i]._mirange;
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
-	if (missile[i]._mirange == 0 && missile[i]._miHitFlag == TRUE)
-		missile[i]._mirange = k;
-	if (!missile[i]._miVar2)
-		missile[i]._miAnimFrame = 20;
+		k = missile[i]._mirange;
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
+		if (missile[i]._mirange == 0 && missile[i]._miHitFlag == TRUE)
+			missile[i]._mirange = k;
+		if (!missile[i]._miVar2)
+			missile[i]._miAnimFrame = 20;
+	}
 	if (missile[i]._miVar2 <= 0) {
 		k = missile[i]._miAnimFrame;
 		if (k > 11)
@@ -3901,31 +3909,33 @@ void MI_Flamec(int i)
 {
 	int id, src;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	src = missile[i]._misource;
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
-	if (missile[i]._mix != missile[i]._miVar1 || missile[i]._miy != missile[i]._miVar2) {
-		id = dPiece[missile[i]._mix][missile[i]._miy];
-		if (!nMissileTable[id]) {
-			AddMissile(
-			    missile[i]._mix,
-			    missile[i]._miy,
-			    missile[i]._misx,
-			    missile[i]._misy,
-			    i,
-			    MIS_FLAME,
-			    missile[i]._micaster,
-			    src,
-			    missile[i]._miVar3,
-			    missile[i]._mispllvl);
-		} else {
-			missile[i]._mirange = 0;
+	if (newGameplayTick) { //Fluffy: This should only happen at 50ms intervals to match up with the original game (related to gSpeedMod)
+		if (missile[i]._mix != missile[i]._miVar1 || missile[i]._miy != missile[i]._miVar2) {
+			id = dPiece[missile[i]._mix][missile[i]._miy];
+			if (!nMissileTable[id]) {
+				AddMissile(
+				    missile[i]._mix,
+				    missile[i]._miy,
+				    missile[i]._misx,
+				    missile[i]._misy,
+				    i,
+				    MIS_FLAME,
+				    missile[i]._micaster,
+				    src,
+				    missile[i]._miVar3,
+				    missile[i]._mispllvl);
+			} else {
+				missile[i]._mirange = 0;
+			}
+			missile[i]._miVar1 = missile[i]._mix;
+			missile[i]._miVar2 = missile[i]._miy;
+			missile[i]._miVar3++;
 		}
-		missile[i]._miVar1 = missile[i]._mix;
-		missile[i]._miVar2 = missile[i]._miy;
-		missile[i]._miVar3++;
 	}
 	if (!missile[i]._mirange || missile[i]._miVar3 == 3)
 		missile[i]._miDelFlag = TRUE;
