@@ -2608,7 +2608,7 @@ void MI_LArrow(int i)
 	int p, mind, maxd, rst;
 
 	p = missile[i]._misource;
-	if (missile[i]._miAnimType == MFILE_MINILTNG || missile[i]._miAnimType == MFILE_MAGBLOS) {
+	if (missile[i]._miAnimType == MFILE_MINILTNG || missile[i]._miAnimType == MFILE_MAGBLOS) { //The explosion effect for the arrow
 		BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miAnimFrame + 5);
 		if (newGameplayTick) { //Fluffy: Only deal damage once per 50ms like the original game (gSpeedMod related)
@@ -2637,7 +2637,7 @@ void MI_LArrow(int i)
 			}
 			missiledata[missile[i]._mitype].mResist = rst;
 		}
-	} else {
+	} else { //Normal arrow state
 		UpdateMissileRangeAndDist(&missile[i], true, true); //Fluffy
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
