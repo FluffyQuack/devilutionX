@@ -4150,7 +4150,7 @@ void MI_Bonespirit(int i)
 
 void MI_ResurrectBeam(int i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 	PutMissile(i);
