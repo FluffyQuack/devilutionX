@@ -3268,42 +3268,47 @@ void MI_Firemove(int i)
 	int j;
 	int ExpLight[14] = { 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 12 };
 
-	//Fluffy TODO: Check if this works and then fix related to gSpeedMod
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
 
-	missile[i]._mix--;
-	missile[i]._miy--;
-	missile[i]._miyoff += 32;
-	missile[i]._miVar1++;
-	if (missile[i]._miVar1 == missile[i]._miAnimLen) {
-		SetMissDir(i, 1);
-		missile[i]._miAnimFrame = random_(82, 11) + 1;
+	if (newGameplayTick) { //Fluffy: Only do these at 50ms intervals to match up with the original game (related to gSpeedMod)
+		missile[i]._mix--; //This line and the next two might as well not exist as this gets overwritten in GetMissilePos()
+		missile[i]._miy--;
+		missile[i]._miyoff += 32;
+		missile[i]._miVar1++;
+		if (missile[i]._miVar1 == missile[i]._miAnimLen) {
+			SetMissDir(i, 1);
+			missile[i]._miAnimFrame = random_(82, 11) + 1;
+		}
 	}
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
-	j = missile[i]._mirange;
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
-	if (missile[i]._miHitFlag == TRUE)
-		missile[i]._mirange = j;
-	if (!missile[i]._mirange) {
-		missile[i]._miDelFlag = TRUE;
-		AddUnLight(missile[i]._mlid);
-	}
-	if (missile[i]._mimfnum || !missile[i]._mirange) {
-		if (missile[i]._mix != missile[i]._miVar3 || missile[i]._miy != missile[i]._miVar4) {
-			missile[i]._miVar3 = missile[i]._mix;
-			missile[i]._miVar4 = missile[i]._miy;
-			ChangeLight(missile[i]._mlid, missile[i]._miVar3, missile[i]._miVar4, 8);
+
+	if (newGameplayTick) { //Fluffy: Only do these at 50ms intervals to match up with the original game (related to gSpeedMod) TODO: We could probably let some of these stuff happen each tick
+		j = missile[i]._mirange;
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
+		if (missile[i]._miHitFlag == TRUE)
+			missile[i]._mirange = j;
+		if (!missile[i]._mirange) {
+			missile[i]._miDelFlag = TRUE;
+			AddUnLight(missile[i]._mlid);
 		}
-	} else {
-		if (!missile[i]._miVar2)
-			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
-		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
-		missile[i]._miVar2++;
+		if (missile[i]._mimfnum || !missile[i]._mirange) {
+			if (missile[i]._mix != missile[i]._miVar3 || missile[i]._miy != missile[i]._miVar4) {
+				missile[i]._miVar3 = missile[i]._mix;
+				missile[i]._miVar4 = missile[i]._miy;
+				ChangeLight(missile[i]._mlid, missile[i]._miVar3, missile[i]._miVar4, 8);
+			}
+		} else {
+			if (!missile[i]._miVar2)
+				missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
+			ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
+			missile[i]._miVar2++;
+		}
+		missile[i]._mix++;
+		missile[i]._miy++;
+		missile[i]._miyoff -= 32;
 	}
-	missile[i]._mix++;
-	missile[i]._miy++;
-	missile[i]._miyoff -= 32;
 	PutMissile(i);
 }
 
@@ -3781,46 +3786,50 @@ void MI_Wave(int i)
 	f2 = FALSE;
 	assert((DWORD)i < MAXMISSILES);
 
-	id = missile[i]._misource;
-	sx = missile[i]._mix;
-	sy = missile[i]._miy;
-	v1 = missile[i]._miVar1;
-	v2 = missile[i]._miVar2;
-	sd = GetDirection(sx, sy, v1, v2);
-	dira = (sd - 2) & 7;
-	dirb = (sd + 2) & 7;
-	nxa = sx + XDirAdd[sd];
-	nya = sy + YDirAdd[sd];
-	pn = dPiece[nxa][nya];
-	assert((DWORD)pn <= MAXTILES);
-	if (!nMissileTable[pn]) {
-		AddMissile(nxa, nya, nxa + XDirAdd[sd], nya + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
-		nxa += XDirAdd[dira];
-		nya += YDirAdd[dira];
-		nxb = sx + XDirAdd[sd] + XDirAdd[dirb];
-		nyb = sy + YDirAdd[sd] + YDirAdd[dirb];
-		for (j = 0; j < (missile[i]._mispllvl >> 1) + 2; j++) {
-			pn = dPiece[nxa][nya]; // BUGFIX: dPiece is accessed before check against dungeon size and 0
-			assert((DWORD)pn <= MAXTILES);
-			if (nMissileTable[pn] || f1 || nxa <= 0 || nxa >= MAXDUNX || nya <= 0 || nya >= MAXDUNY) {
-				f1 = TRUE;
-			} else {
-				AddMissile(nxa, nya, nxa + XDirAdd[sd], nya + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
-				nxa += XDirAdd[dira];
-				nya += YDirAdd[dira];
-			}
-			pn = dPiece[nxb][nyb]; // BUGFIX: dPiece is accessed before check against dungeon size and 0
-			assert((DWORD)pn <= MAXTILES);
-			if (nMissileTable[pn] || f2 || nxb <= 0 || nxb >= MAXDUNX || nyb <= 0 || nyb >= MAXDUNY) {
-				f2 = TRUE;
-			} else {
-				AddMissile(nxb, nyb, nxb + XDirAdd[sd], nyb + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
-				nxb += XDirAdd[dirb];
-				nyb += YDirAdd[dirb];
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: This should only ever happen once like in the original game (related to gSpeedMod)
+		id = missile[i]._misource;
+		sx = missile[i]._mix;
+		sy = missile[i]._miy;
+		v1 = missile[i]._miVar1;
+		v2 = missile[i]._miVar2;
+		sd = GetDirection(sx, sy, v1, v2);
+		dira = (sd - 2) & 7;
+		dirb = (sd + 2) & 7;
+		nxa = sx + XDirAdd[sd];
+		nya = sy + YDirAdd[sd];
+		pn = dPiece[nxa][nya];
+		assert((DWORD)pn <= MAXTILES);
+		if (!nMissileTable[pn]) {
+			AddMissile(nxa, nya, nxa + XDirAdd[sd], nya + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
+			nxa += XDirAdd[dira];
+			nya += YDirAdd[dira];
+			nxb = sx + XDirAdd[sd] + XDirAdd[dirb];
+			nyb = sy + YDirAdd[sd] + YDirAdd[dirb];
+			for (j = 0; j < (missile[i]._mispllvl >> 1) + 2; j++) {
+				pn = dPiece[nxa][nya]; // BUGFIX: dPiece is accessed before check against dungeon size and 0
+				assert((DWORD)pn <= MAXTILES);
+				if (nMissileTable[pn] || f1 || nxa <= 0 || nxa >= MAXDUNX || nya <= 0 || nya >= MAXDUNY) {
+					f1 = TRUE;
+				} else {
+					AddMissile(nxa, nya, nxa + XDirAdd[sd], nya + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
+					nxa += XDirAdd[dira];
+					nya += YDirAdd[dira];
+				}
+				pn = dPiece[nxb][nyb]; // BUGFIX: dPiece is accessed before check against dungeon size and 0
+				assert((DWORD)pn <= MAXTILES);
+				if (nMissileTable[pn] || f2 || nxb <= 0 || nxb >= MAXDUNX || nyb <= 0 || nyb >= MAXDUNY) {
+					f2 = TRUE;
+				} else {
+					AddMissile(nxb, nyb, nxb + XDirAdd[sd], nyb + YDirAdd[sd], plr[id]._pdir, MIS_FIREMOVE, 0, id, 0, missile[i]._mispllvl);
+					nxb += XDirAdd[dirb];
+					nyb += YDirAdd[dirb];
+				}
 			}
 		}
+		missile[i]._mirange -= 1;
 	}
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
