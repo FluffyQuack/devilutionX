@@ -1393,7 +1393,7 @@ void AddMagmaball(int mi, int sx, int sy, int dx, int dy, int midir, char mienem
 	missile[mi]._mlid = AddLight(sx, sy, 8);
 }
 
-void miss_null_33(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_33(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_KRULL
 {
 	GetMissileVel(mi, sx, sy, dx, dy, 16);
 	missile[mi]._mirange = 256;
@@ -1770,7 +1770,7 @@ void AddChain(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, i
 	UseMana(id, SPL_CHAIN);
 }
 
-void miss_null_11(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_11(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_BLODSTAR
 {
 	SetMissDir(mi, dx);
 	missile[mi]._midam = 0;
@@ -1778,7 +1778,7 @@ void miss_null_11(int mi, int sx, int sy, int dx, int dy, int midir, char mienem
 	missile[mi]._mirange = 250;
 }
 
-void miss_null_12(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_12(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_BONE
 {
 	if (dx > 3)
 		dx = 2;
@@ -1788,7 +1788,7 @@ void miss_null_12(int mi, int sx, int sy, int dx, int dy, int midir, char mienem
 	missile[mi]._mirange = 250;
 }
 
-void miss_null_13(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_13(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_METLHIT
 {
 	if (dx > 3)
 		dx = 2;
@@ -1833,7 +1833,7 @@ void AddRhino(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, i
 	PutMissile(mi);
 }
 
-void miss_null_32(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_32(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_FIREMAN
 {
 	AnimStruct *anim;
 	MonsterStruct *mon;
@@ -1902,7 +1902,7 @@ void AddAcid(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, in
 	PutMissile(mi);
 }
 
-void miss_null_1D(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_1D(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_FIREWALLA
 {
 	missile[mi]._midam = dam;
 	missile[mi]._mixvel = 0;
@@ -2010,12 +2010,12 @@ void AddEtherealize(int mi, int sx, int sy, int dx, int dy, int midir, char mien
 		UseMana(id, SPL_ETHEREALIZE);
 }
 
-void miss_null_1F(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_1F(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_NULL_1F
 {
 	missile[mi]._miDelFlag = TRUE;
 }
 
-void miss_null_23(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam)
+void miss_null_23(int mi, int sx, int sy, int dx, int dy, int midir, char mienemy, int id, int dam) //Used by MIS_BLODBUR
 {
 	missile[mi]._midam = dam;
 	missile[mi]._misx = missile[mi]._mix = sx;
@@ -2827,7 +2827,7 @@ void MI_Lightball(int i)
 	PutMissile(i);
 }
 
-void mi_null_33(int i)
+void mi_null_33(int i) //Used by MIS_KRULL
 {
 	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
