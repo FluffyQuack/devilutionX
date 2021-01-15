@@ -73,6 +73,7 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
   MonsterStruct->_mVar7
   MonsterStruct->_mVar8
   MonsterStruct->_mAnimCnt
+  MonsterStruct->tickCount //New variable
 */
 int gSpeedMod = 1; //Fluffy
 int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters

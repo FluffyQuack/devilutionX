@@ -493,6 +493,8 @@ void InitMonster(int i, int rd, int mtype, int x, int y)
 		monster[i].mArmorClass += HELL_AC_BONUS;
 		monster[i].mMagicRes = monst->MData->mMagicRes2;
 	}
+
+	monster[i].tickCount = 0; //Fluffy
 }
 
 void ClrAllMonsters()
@@ -4465,8 +4467,7 @@ void ProcessMonsters()
 			Monst->_mAISeed = GetRndSeed();
 		}
 
-		//Fluffy TODO: This should only happen at 50ms intervals
-		if (!(monster[mi]._mFlags & MFLAG_NOHEAL) && Monst->_mhitpoints < Monst->_mmaxhp && Monst->_mhitpoints >> 6 > 0) {
+		if (!(monster[mi]._mFlags & MFLAG_NOHEAL) && Monst->_mhitpoints < Monst->_mmaxhp && Monst->_mhitpoints >> 6 > 0 && Monst->tickCount == 0) { //Fluffy: Added a tickCount check so this happens at 50ms intervals like the original game (related to gMonsterSpeedMod)
 			if (Monst->mLevel > 1) {
 				Monst->_mhitpoints += Monst->mLevel >> 1;
 			} else {
@@ -4477,8 +4478,7 @@ void ProcessMonsters()
 		my = Monst->_my;
 #ifndef SPAWN
 
-		//Fluffy TODO: This should only happen at 50ms intervals
-		if (dFlags[mx][my] & BFLAG_VISIBLE && Monst->_msquelch == 0) {
+		if (dFlags[mx][my] & BFLAG_VISIBLE && Monst->_msquelch == 0 && Monst->tickCount == 0) { //Fluffy: Added a tickCount check so this happens at 50ms intervals like the original game (related to gMonsterSpeedMod)
 			if (Monst->MType->mtype == MT_CLEAVER) {
 				PlaySFX(USFX_CLEAVER);
 			}
@@ -4606,6 +4606,11 @@ void ProcessMonsters()
 				}
 			}
 		}
+
+		//Fluffy: Update tickcount value, which is a way we use for having certain things update at the same timing as the original game (since gMonsterSpeedMod can make things happen more often)
+		Monst->tickCount += 1;
+		if (Monst->tickCount >= gSpeedMod)
+			Monst->tickCount = 0;
 	}
 
 	DeleteMonsterList();

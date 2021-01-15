@@ -8,13 +8,14 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *tbuff;
-#define VERSION 3
+#define VERSION 4
 static int version; //Version of savegame we're currently loading
 /*
 * Version 0 = Savegame from base game
 * Version 1 = Savegame from FluffyMod adding some additional values
 * Version 2 = Added ScrollInfo.pxoffDiff and ScrollInfo.pyoffDiff variables to save
 * Version 3 = Added tickCount to MissileStruct
+* Version 4 = Added tickCount to MonsterStruct
 */
 
 char BLoad()
@@ -614,16 +615,19 @@ void LoadMonster(int i)
 	CopyChar(tbuff, &pMonster->leaderflag);
 	CopyChar(tbuff, &pMonster->packsize);
 	CopyChar(tbuff, &pMonster->mlid);
+	if (version >= 4)
+		CopyInt(tbuff, &pMonster->tickCount);
 
 	// Omit pointer mName;
 	// Omit pointer MType;
 	// Omit pointer MData;
 
 	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
-	pMonster->_mVar6 *= gSpeedMod;
-	pMonster->_mVar7 *= gSpeedMod;
-	pMonster->_mVar8 *= gSpeedMod;
-	pMonster->_mAnimCnt *= gSpeedMod;
+	pMonster->_mVar6 *= gMonsterSpeedMod;
+	pMonster->_mVar7 *= gMonsterSpeedMod;
+	pMonster->_mVar8 *= gMonsterSpeedMod;
+	pMonster->_mAnimCnt *= gMonsterSpeedMod;
+	pMonster->tickCount *= gMonsterSpeedMod;
 
 	SyncMonsterAnim(i);
 }
@@ -1309,6 +1313,8 @@ void SaveMonster(int i)
 	int var6 = pMonster->_mVar6 / gMonsterSpeedMod;
 	int var7 = pMonster->_mVar7 / gMonsterSpeedMod;
 	int var8 = pMonster->_mVar8 / gMonsterSpeedMod;
+	int animCnt = pMonster->_mAnimCnt / gMonsterSpeedMod;
+	int tickCount = pMonster->tickCount / gMonsterSpeedMod;
 
 	CopyInt(&pMonster->_mMTidx, tbuff);
 	CopyInt(&pMonster->_mmode, tbuff);
@@ -1338,7 +1344,7 @@ void SaveMonster(int i)
 
 	tbuff += 4; // Skip pointer _mAnimData
 	CopyInt(&pMonster->_mAnimDelay, tbuff);
-	CopyInt(&pMonster->_mAnimCnt, tbuff);
+	CopyInt(&animCnt, tbuff);
 	CopyInt(&pMonster->_mAnimLen, tbuff);
 	CopyInt(&pMonster->_mAnimFrame, tbuff);
 	tbuff += 4; // Skip _meflag
@@ -1396,6 +1402,8 @@ void SaveMonster(int i)
 	CopyChar(&pMonster->leaderflag, tbuff);
 	CopyChar(&pMonster->packsize, tbuff);
 	CopyChar(&pMonster->mlid, tbuff);
+
+	CopyInt(&pMonster->tickCount, tbuff); //Fluffy
 
 	// Omit pointer mName;
 	// Omit pointer MType;
