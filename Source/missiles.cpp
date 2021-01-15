@@ -3386,33 +3386,38 @@ void MI_Guardian(int i)
 	PutMissile(i);
 }
 
-void MI_Chain(int i) //Fluffy TODO: Check this function and the ones below if they play at the correct speed
+void MI_Chain(int i)
 {
 	int sx, sy, id, l, n, m, k, rad, tx, ty, dir;
 	int CrawlNum[19] = { 0, 3, 12, 45, 94, 159, 240, 337, 450, 579, 724, 885, 1062, 1255, 1464, 1689, 1930, 2187, 2460 };
 
-	id = missile[i]._misource;
-	sx = missile[i]._mix;
-	sy = missile[i]._miy;
-	dir = GetDirection(sx, sy, missile[i]._miVar1, missile[i]._miVar2);
-	AddMissile(sx, sy, missile[i]._miVar1, missile[i]._miVar2, dir, MIS_LIGHTCTRL, 0, id, 1, missile[i]._mispllvl);
-	rad = missile[i]._mispllvl + 3;
-	if (rad > 19)
-		rad = 19;
-	for (m = 1; m < rad; m++) {
-		k = CrawlNum[m];
-		l = k + 2;
-		for (n = (BYTE)CrawlTable[k]; n > 0; n--) {
-			tx = sx + CrawlTable[l - 1];
-			ty = sy + CrawlTable[l];
-			if (tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY && dMonster[tx][ty] > 0) {
-				dir = GetDirection(sx, sy, tx, ty);
-				AddMissile(sx, sy, tx, ty, dir, MIS_LIGHTCTRL, 0, id, 1, missile[i]._mispllvl);
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: All of this should only happen once every 50ms to match up with original game (related to gSpeedMod)
+		id = missile[i]._misource;
+		sx = missile[i]._mix;
+		sy = missile[i]._miy;
+		dir = GetDirection(sx, sy, missile[i]._miVar1, missile[i]._miVar2);
+		AddMissile(sx, sy, missile[i]._miVar1, missile[i]._miVar2, dir, MIS_LIGHTCTRL, 0, id, 1, missile[i]._mispllvl);
+		rad = missile[i]._mispllvl + 3;
+		if (rad > 19)
+			rad = 19;
+		for (m = 1; m < rad; m++) {
+			k = CrawlNum[m];
+			l = k + 2;
+			for (n = (BYTE)CrawlTable[k]; n > 0; n--) {
+				tx = sx + CrawlTable[l - 1];
+				ty = sy + CrawlTable[l];
+				if (tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY && dMonster[tx][ty] > 0) {
+					dir = GetDirection(sx, sy, tx, ty);
+					AddMissile(sx, sy, tx, ty, dir, MIS_LIGHTCTRL, 0, id, 1, missile[i]._mispllvl);
+				}
+				l += 2;
 			}
-			l += 2;
 		}
+
+		missile[i]._mirange -= 1;
 	}
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
@@ -3447,7 +3452,7 @@ void MI_Weapexp(int i)
 	}
 	CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
 
-	if (firstTick) //This action we only want to happen once ever
+	if (firstTick) //Fluffy: This action we only want to happen once ever (related to gSpeedMod)
 		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 
 	if (missile[i]._miVar1 && missile[i]._mirange) {
@@ -3511,12 +3516,17 @@ void MI_Acidsplat(int i)
 {
 	int monst, dam;
 
-	if (missile[i]._mirange == missile[i]._miAnimLen) {
-		missile[i]._mix++;
-		missile[i]._miy++;
-		missile[i]._miyoff -= 32;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: This should only happen at 50ms intervals like the original game (related to gSpeedMod)
+		if (missile[i]._mirange == missile[i]._miAnimLen) {
+			missile[i]._mix++;
+			missile[i]._miy++;
+			missile[i]._miyoff -= 32;
+		}
+		missile[i]._mirange -= 1;
 	}
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		monst = missile[i]._misource;
@@ -3532,10 +3542,10 @@ void MI_Teleport(int i)
 	int id;
 
 	id = missile[i]._misource;
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange <= 0) {
 		missile[i]._miDelFlag = TRUE;
-	} else {
+	} else if(newGameplayTick) { //Fluffy: Only let this happen once to match up with original code (related to gSpeedMod)
 		dPlayer[plr[id]._px][plr[id]._py] = 0;
 		PlrClrTrans(plr[id]._px, plr[id]._py);
 		plr[id]._px = missile[i]._mix;
@@ -3562,9 +3572,9 @@ void MI_Stone(int i)
 {
 	int m;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	m = missile[i]._miVar2;
-	if (!monster[m]._mhitpoints && missile[i]._miAnimType != MFILE_SHATTER1) {
+	if (newGameplayTick && !monster[m]._mhitpoints && missile[i]._miAnimType != MFILE_SHATTER1) { //Fluffy: Only let this happen once per 50ms to match up with original code (related to gSpeedMod)
 		missile[i]._mimfnum = 0;
 		missile[i]._miDrawFlag = TRUE;
 		SetMissAnim(i, MFILE_SHATTER1);
@@ -3644,7 +3654,7 @@ void MI_Rhino(int i)
 	PutMissile(i);
 }
 
-void mi_null_32(int i)
+void mi_null_32(int i) //Used by MIS_FIREMAN
 {
 	int src, enemy, ax, ay, bx, by, cx, cy, j;
 
@@ -3673,7 +3683,10 @@ void mi_null_32(int i)
 	} else {
 		j = dMonster[bx][by];
 	}
-	if (!PosOkMissile(bx, by) || j > 0 && !(missile[i]._miVar1 & 1)) {
+
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick && !PosOkMissile(bx, by) || j > 0 && !(missile[i]._miVar1 & 1)) { //Fluffy: This should only happen once per 50ms like the original game (related to gSpeedMod)
 		missile[i]._mixvel *= -1;
 		missile[i]._miyvel *= -1;
 		missile[i]._mimfnum = opposite[missile[i]._mimfnum];
