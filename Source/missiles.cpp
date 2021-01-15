@@ -4100,7 +4100,7 @@ void MI_Bonespirit(int i)
 	int id, mid, sd, dam;
 	int cx, cy;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	dam = missile[i]._midam;
 	id = missile[i]._misource;
 	if (missile[i]._mimfnum == 8) {
@@ -4117,20 +4117,22 @@ void MI_Bonespirit(int i)
 		cx = missile[i]._mix;
 		cy = missile[i]._miy;
 		CheckMissileCol(i, dam, dam, FALSE, cx, cy, FALSE);
-		if (missile[i]._miVar3 == 0 && cx == missile[i]._miVar4 && cy == missile[i]._miVar5)
-			missile[i]._miVar3 = 1;
-		if (missile[i]._miVar3 == 1) {
-			missile[i]._miVar3 = 2;
-			missile[i]._mirange = 255;
-			mid = FindClosest(cx, cy, 19);
-			if (mid > 0) {
-				missile[i]._midam = monster[mid]._mhitpoints >> 7;
-				SetMissDir(i, GetDirection8(cx, cy, monster[mid]._mx, monster[mid]._my));
-				GetMissileVel(i, cx, cy, monster[mid]._mx, monster[mid]._my, 16);
-			} else {
-				sd = plr[id]._pdir;
-				SetMissDir(i, sd);
-				GetMissileVel(i, cx, cy, cx + XDirAdd[sd], cy + YDirAdd[sd], 16);
+		if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+			if (missile[i]._miVar3 == 0 && cx == missile[i]._miVar4 && cy == missile[i]._miVar5)
+				missile[i]._miVar3 = 1;
+			if (missile[i]._miVar3 == 1) {
+				missile[i]._miVar3 = 2;
+				missile[i]._mirange = 255;
+				mid = FindClosest(cx, cy, 19);
+				if (mid > 0) {
+					missile[i]._midam = monster[mid]._mhitpoints >> 7;
+					SetMissDir(i, GetDirection8(cx, cy, monster[mid]._mx, monster[mid]._my));
+					GetMissileVel(i, cx, cy, monster[mid]._mx, monster[mid]._my, 16);
+				} else {
+					sd = plr[id]._pdir;
+					SetMissDir(i, sd);
+					GetMissileVel(i, cx, cy, cx + XDirAdd[sd], cy + YDirAdd[sd], 16);
+				}
 			}
 		}
 		if (cx != missile[i]._miVar1 || cy != missile[i]._miVar2) {
