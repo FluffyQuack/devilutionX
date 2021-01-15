@@ -2611,7 +2611,7 @@ void MI_LArrow(int i)
 	if (missile[i]._miAnimType == MFILE_MINILTNG || missile[i]._miAnimType == MFILE_MAGBLOS) {
 		BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miAnimFrame + 5);
-		if (newGameplayTick) { //Only deal damage once per 50ms like the original game (gSpeedMod related)
+		if (newGameplayTick) { //Fluffy: Only deal damage once per 50ms like the original game (gSpeedMod related)
 			rst = missiledata[missile[i]._mitype].mResist;
 			if (missile[i]._mitype == MIS_LARROW) {
 				if (p != -1) {
@@ -2877,7 +2877,7 @@ void MI_Firewall(int i)
 		AddUnLight(missile[i]._mlid);
 	}
 	if (missile[i]._mimfnum && missile[i]._mirange && missile[i]._miAnimAdd != -1 && missile[i]._miVar2 < 12) {
-		if (newGameplayTick && !missile[i]._miVar2) //This action we only want to happen once ever
+		if (newGameplayTick && !missile[i]._miVar2) //Fluffy: This action we only want to happen once ever (gSpeedMod related)
 			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
 		if (newGameplayTick)
@@ -3116,7 +3116,7 @@ void MI_Flash(int i)
 			plr[missile[i]._misource]._pInvincible = TRUE;
 	}
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	if (newGameplayTick) { //Only deal damage once every 50ms as like the original game (gSpeedMod related)
+	if (newGameplayTick) { //Fluffy: Only deal damage once every 50ms as like the original game (gSpeedMod related)
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy, TRUE);
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, TRUE);
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy, TRUE);
@@ -3141,7 +3141,7 @@ void MI_Flash2(int i)
 			plr[missile[i]._misource]._pInvincible = TRUE;
 	}
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	if (newGameplayTick) {                               //Only deal damage once every 50ms as like the original game (gSpeedMod related)
+	if (newGameplayTick) { //Fluffy: Only deal damage once every 50ms as like the original game (gSpeedMod related)
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix - 1, missile[i]._miy - 1, TRUE);
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy - 1, TRUE);
 		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix + 1, missile[i]._miy - 1, TRUE);
@@ -3486,7 +3486,7 @@ void MI_Misexp(int i)
 		return;
 	}
 
-	if (firstTick) //This action we only want to happen once ever
+	if (firstTick) //Fluffy: This action we only want to happen once ever (related to gSpeedMod)
 		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
 
 	if (missile[i]._miVar1) {
