@@ -2802,23 +2802,25 @@ void MI_Lightball(int i)
 
 	tx = missile[i]._miVar1;
 	ty = missile[i]._miVar2;
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
-	j = missile[i]._mirange;
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
-	if (missile[i]._miHitFlag == TRUE)
-		missile[i]._mirange = j;
-	obj = dObject[tx][ty];
-	if (obj && tx == missile[i]._mix && ty == missile[i]._miy) {
-		if (obj > 0) {
-			oi = obj - 1;
-		} else {
-			oi = -1 - obj;
-		}
-		if (object[oi]._otype == OBJ_SHRINEL || object[oi]._otype == OBJ_SHRINER)
+	if (newGameplayTick) { //Fluffy: We want this to be happening at 50ms intervals like the original game and not sped up thanks to gSpeedMod
+		j = missile[i]._mirange;
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
+		if (missile[i]._miHitFlag == TRUE)
 			missile[i]._mirange = j;
+		obj = dObject[tx][ty];
+		if (obj && tx == missile[i]._mix && ty == missile[i]._miy) {
+			if (obj > 0) {
+				oi = obj - 1;
+			} else {
+				oi = -1 - obj;
+			}
+			if (object[oi]._otype == OBJ_SHRINEL || object[oi]._otype == OBJ_SHRINER)
+				missile[i]._mirange = j;
+		}
 	}
 	if (!missile[i]._mirange)
 		missile[i]._miDelFlag = TRUE;
@@ -2841,16 +2843,18 @@ void MI_Acidpud(int i)
 {
 	int range;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	range = missile[i]._mirange;
-	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
-	missile[i]._mirange = range;
-	if (!range) {
-		if (missile[i]._mimfnum) {
-			missile[i]._miDelFlag = TRUE;
-		} else {
-			SetMissDir(i, 1);
-			missile[i]._mirange = missile[i]._miAnimLen;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	if (newGameplayTick) { //Fluffy: We want this to be happening at 50ms intervals like the original game and not sped up thanks to gSpeedMod
+		range = missile[i]._mirange;
+		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
+		missile[i]._mirange = range;
+		if (!range) {
+			if (missile[i]._mimfnum) {
+				missile[i]._miDelFlag = TRUE;
+			} else {
+				SetMissDir(i, 1);
+				missile[i]._mirange = missile[i]._miAnimLen;
+			}
 		}
 	}
 	PutMissile(i);
@@ -3059,12 +3063,14 @@ void MI_Lightning(int i)
 {
 	int j;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
-	j = missile[i]._mirange;
-	if (missile[i]._mix != missile[i]._misx || missile[i]._miy != missile[i]._misy)
-		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
-	if (missile[i]._miHitFlag == TRUE)
-		missile[i]._mirange = j;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	if (newGameplayTick) { //Fluffy: We want this to be happening at 50ms intervals like the original game and not sped up thanks to gSpeedMod
+		j = missile[i]._mirange;
+		if (missile[i]._mix != missile[i]._misx || missile[i]._miy != missile[i]._misy)
+			CheckMissileCol(i, missile[i]._midam, missile[i]._midam, TRUE, missile[i]._mix, missile[i]._miy, FALSE);
+		if (missile[i]._miHitFlag == TRUE)
+			missile[i]._mirange = j;
+	}
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
 		AddUnLight(missile[i]._mlid);
@@ -3427,7 +3433,7 @@ void MI_Chain(int i)
 		missile[i]._miDelFlag = TRUE;
 }
 
-void mi_null_11(int i)
+void mi_null_11(int i) //Used for MIS_BLODTAR, MIS_BONE, MIS_METLHIT, and MIS_BLODBUR
 {
 	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (!missile[i]._mirange)
