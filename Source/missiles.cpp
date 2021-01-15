@@ -4023,7 +4023,7 @@ void MI_Element(int i)
 {
 	int mid, sd, dam, cx, cy, px, py, id;
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	dam = missile[i]._midam;
 	id = missile[i]._misource;
 	if (missile[i]._miAnimType == MFILE_BIGEXP) {
@@ -4032,24 +4032,26 @@ void MI_Element(int i)
 		px = plr[id]._px;
 		py = plr[id]._py;
 		ChangeLight(missile[i]._mlid, cx, cy, missile[i]._miAnimFrame);
-		if (!CheckBlock(px, py, cx, cy))
-			CheckMissileCol(i, dam, dam, TRUE, cx, cy, TRUE);
-		if (!CheckBlock(px, py, cx, cy + 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx, cy + 1, TRUE);
-		if (!CheckBlock(px, py, cx, cy - 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx, cy - 1, TRUE);
-		if (!CheckBlock(px, py, cx + 1, cy))
-			CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy, TRUE); /* check x/y */
-		if (!CheckBlock(px, py, cx + 1, cy - 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy - 1, TRUE);
-		if (!CheckBlock(px, py, cx + 1, cy + 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy + 1, TRUE);
-		if (!CheckBlock(px, py, cx - 1, cy))
-			CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy, TRUE);
-		if (!CheckBlock(px, py, cx - 1, cy + 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy + 1, TRUE);
-		if (!CheckBlock(px, py, cx - 1, cy - 1))
-			CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy - 1, TRUE);
+		if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+			if (!CheckBlock(px, py, cx, cy))
+				CheckMissileCol(i, dam, dam, TRUE, cx, cy, TRUE);
+			if (!CheckBlock(px, py, cx, cy + 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx, cy + 1, TRUE);
+			if (!CheckBlock(px, py, cx, cy - 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx, cy - 1, TRUE);
+			if (!CheckBlock(px, py, cx + 1, cy))
+				CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy, TRUE); /* check x/y */
+			if (!CheckBlock(px, py, cx + 1, cy - 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy - 1, TRUE);
+			if (!CheckBlock(px, py, cx + 1, cy + 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx + 1, cy + 1, TRUE);
+			if (!CheckBlock(px, py, cx - 1, cy))
+				CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy, TRUE);
+			if (!CheckBlock(px, py, cx - 1, cy + 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy + 1, TRUE);
+			if (!CheckBlock(px, py, cx - 1, cy - 1))
+				CheckMissileCol(i, dam, dam, TRUE, cx - 1, cy - 1, TRUE);
+		}
 		if (!missile[i]._mirange) {
 			missile[i]._miDelFlag = TRUE;
 			AddUnLight(missile[i]._mlid);
@@ -4061,20 +4063,22 @@ void MI_Element(int i)
 		cx = missile[i]._mix;
 		cy = missile[i]._miy;
 		CheckMissileCol(i, dam, dam, FALSE, cx, cy, FALSE);
-		if (!missile[i]._miVar3 && cx == missile[i]._miVar4 && cy == missile[i]._miVar5)
-			missile[i]._miVar3 = 1;
-		if (missile[i]._miVar3 == 1) {
-			missile[i]._miVar3 = 2;
-			missile[i]._mirange = 255;
-			mid = FindClosest(cx, cy, 19);
-			if (mid > 0) {
-				sd = GetDirection8(cx, cy, monster[mid]._mx, monster[mid]._my);
-				SetMissDir(i, sd);
-				GetMissileVel(i, cx, cy, monster[mid]._mx, monster[mid]._my, 16);
-			} else {
-				sd = plr[id]._pdir;
-				SetMissDir(i, sd);
-				GetMissileVel(i, cx, cy, cx + XDirAdd[sd], cy + YDirAdd[sd], 16);
+		if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+			if (!missile[i]._miVar3 && cx == missile[i]._miVar4 && cy == missile[i]._miVar5)
+				missile[i]._miVar3 = 1;
+			if (missile[i]._miVar3 == 1) {
+				missile[i]._miVar3 = 2;
+				missile[i]._mirange = 255;
+				mid = FindClosest(cx, cy, 19);
+				if (mid > 0) {
+					sd = GetDirection8(cx, cy, monster[mid]._mx, monster[mid]._my);
+					SetMissDir(i, sd);
+					GetMissileVel(i, cx, cy, monster[mid]._mx, monster[mid]._my, 16);
+				} else {
+					sd = plr[id]._pdir;
+					SetMissDir(i, sd);
+					GetMissileVel(i, cx, cy, cx + XDirAdd[sd], cy + YDirAdd[sd], 16);
+				}
 			}
 		}
 		if (cx != missile[i]._miVar1 || cy != missile[i]._miVar2) {
