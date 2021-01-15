@@ -593,7 +593,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mmaxhp;
 	int _mhitpoints;
 	unsigned char _mAi;
-	unsigned char _mint;
+	unsigned char _mint; //I think this is some kind of difficulty modifier. Higher values mean enemy might be more deadly or aggressive.
 	short falign_9A;
 	int _mFlags;
 	BYTE _msquelch;
