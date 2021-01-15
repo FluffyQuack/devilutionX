@@ -3946,28 +3946,32 @@ void MI_Cbolt(int i)
 	int md;
 	int bpath[16] = { -1, 0, 1, -1, 0, 1, -1, -1, 0, 0, 1, 1, 0, 1, -1, 0 };
 
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._miAnimType != MFILE_LGHNING) {
-		if (!missile[i]._miVar3) {
-			md = (missile[i]._miVar2 + bpath[missile[i]._mirnd]) & 7;
-			missile[i]._mirnd = (missile[i]._mirnd + 1) & 0xF;
-			GetMissileVel(i, missile[i]._mix, missile[i]._miy, missile[i]._mix + XDirAdd[md], missile[i]._miy + YDirAdd[md], 8);
-			missile[i]._miVar3 = 16;
-		} else {
-			missile[i]._miVar3--;
+		if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+			if (!missile[i]._miVar3) {
+				md = (missile[i]._miVar2 + bpath[missile[i]._mirnd]) & 7;
+				missile[i]._mirnd = (missile[i]._mirnd + 1) & 0xF;
+				GetMissileVel(i, missile[i]._mix, missile[i]._miy, missile[i]._mix + XDirAdd[md], missile[i]._miy + YDirAdd[md], 8);
+				missile[i]._miVar3 = 16;
+			} else {
+				missile[i]._miVar3--;
+			}
 		}
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
 		GetMissilePos(i);
-		CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
-		if (missile[i]._miHitFlag == TRUE) {
-			missile[i]._miVar1 = 8;
-			missile[i]._mimfnum = 0;
-			missile[i]._mixoff = 0;
-			missile[i]._miyoff = 0;
-			SetMissAnim(i, MFILE_LGHNING);
-			missile[i]._mirange = missile[i]._miAnimLen;
-			GetMissilePos(i);
+		if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+			CheckMissileCol(i, missile[i]._midam, missile[i]._midam, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
+			if (missile[i]._miHitFlag == TRUE) {
+				missile[i]._miVar1 = 8;
+				missile[i]._mimfnum = 0;
+				missile[i]._mixoff = 0;
+				missile[i]._miyoff = 0;
+				SetMissAnim(i, MFILE_LGHNING);
+				missile[i]._mirange = missile[i]._miAnimLen;
+				GetMissilePos(i);
+			}
 		}
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, missile[i]._miVar1);
 	}
