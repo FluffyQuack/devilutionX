@@ -4160,16 +4160,20 @@ void MI_Rportal(int i)
 {
 	int ExpLight[17] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
 
-	if (missile[i]._mirange > 1)
-		UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL firstTick = missile[i].tickCount == 0 && missile[i]._miVar2 == 0;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick && missile[i]._mirange > 1)
+		missile[i]._mirange -= 1;
 	if (missile[i]._mirange == missile[i]._miVar1)
 		SetMissDir(i, 1);
 
 	if (currlevel && missile[i]._mimfnum != 1 && missile[i]._mirange != 0) {
-		if (!missile[i]._miVar2)
+		if (firstTick) //Fluffy
 			missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 1);
 		ChangeLight(missile[i]._mlid, missile[i]._mix, missile[i]._miy, ExpLight[missile[i]._miVar2]);
-		missile[i]._miVar2++;
+		if (newGameplayTick) //Fluffy
+			missile[i]._miVar2++;
 	}
 	if (!missile[i]._mirange) {
 		missile[i]._miDelFlag = TRUE;
