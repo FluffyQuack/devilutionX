@@ -3744,25 +3744,29 @@ void MI_Apoca(int i)
 	int j, k, id;
 	BOOL exit;
 
-	id = missile[i]._misource;
-	exit = FALSE;
-	for (j = missile[i]._miVar2; j < missile[i]._miVar3 && !exit; j++) {
-		for (k = missile[i]._miVar4; k < missile[i]._miVar5 && !exit; k++) {
-			if (dMonster[k][j] > 3 && !nSolidTable[dPiece[k][j]]) {
-				AddMissile(k, j, k, j, plr[id]._pdir, MIS_BOOM, 0, id, missile[i]._midam, 0);
-				exit = TRUE;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], false, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: Only let this happen once per 50ms to match original timing (related to gSpeedMod)
+		id = missile[i]._misource;
+		exit = FALSE;
+		for (j = missile[i]._miVar2; j < missile[i]._miVar3 && !exit; j++) {
+			for (k = missile[i]._miVar4; k < missile[i]._miVar5 && !exit; k++) {
+				if (dMonster[k][j] > 3 && !nSolidTable[dPiece[k][j]]) {
+					AddMissile(k, j, k, j, plr[id]._pdir, MIS_BOOM, 0, id, missile[i]._midam, 0);
+					exit = TRUE;
+				}
+			}
+			if (!exit) {
+				missile[i]._miVar4 = missile[i]._miVar6;
 			}
 		}
-		if (!exit) {
-			missile[i]._miVar4 = missile[i]._miVar6;
-		}
-	}
 
-	if (exit == TRUE) {
-		missile[i]._miVar2 = j - 1;
-		missile[i]._miVar4 = k;
-	} else {
-		missile[i]._miDelFlag = TRUE;
+		if (exit == TRUE) {
+			missile[i]._miVar2 = j - 1;
+			missile[i]._miVar4 = k;
+		} else {
+			missile[i]._miDelFlag = TRUE;
+		}
 	}
 }
 
