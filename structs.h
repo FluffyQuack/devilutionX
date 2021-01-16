@@ -598,8 +598,8 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mFlags;
 	BYTE _msquelch;
 	int falign_A4;
-	int _lastx;
-	int _lasty;
+	int _lastx; //I think this corresponds to the last seen X coordinate of the monster's target
+	int _lasty; //I think this corresponds to the last seen Y coordinate of the monster's target
 	int _mRndSeed;
 	int _mAISeed;
 	int falign_B8;
