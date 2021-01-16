@@ -4501,12 +4501,11 @@ void ProcessMonsters()
 			Monst->_menemyx = plr[Monst->_menemy]._pfutx;
 			Monst->_menemyy = plr[Monst->_menemy]._pfuty;
 
-			//Fluffy TODO: This should only happen at 50ms intervals
 			if (dFlags[mx][my] & BFLAG_VISIBLE) {
 				Monst->_msquelch = UCHAR_MAX;
 				Monst->_lastx = plr[Monst->_menemy]._pfutx;
 				Monst->_lasty = plr[Monst->_menemy]._pfuty;
-			} else if (Monst->_msquelch != 0 && Monst->_mAi != MT_DIABLO) { /// BUGFIX: change '_mAi' to 'MType->mtype'
+			} else if (Monst->_msquelch != 0 && Monst->_mAi != MT_DIABLO && Monst->tickCount == 0) { /// BUGFIX: change '_mAi' to 'MType->mtype' //Fluffy: Added a tickCount check so this happens at 50ms intervals like the original game (related to gMonsterSpeedMod)
 				Monst->_msquelch--;
 			}
 		}
