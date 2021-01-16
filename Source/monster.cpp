@@ -4514,10 +4514,12 @@ void ProcessMonsters()
 			}
 		}
 		do {
-			if (!(Monst->_mFlags & MFLAG_SEARCH)) {
-				AiProc[Monst->_mAi](mi);
-			} else if (!MAI_Path(mi)) {
-				AiProc[Monst->_mAi](mi);
+			if (Monst->tickCount == 0) { //Fluffy: Maybe not the ideal solution, but a lot of generic AI functions (and also MAI_Path()) includes a lot of random chance and variables which tick up and down, so I'm limiting it all to 50ms for now (related to gMonsterSpeedMod)
+				if (!(Monst->_mFlags & MFLAG_SEARCH)) {
+					AiProc[Monst->_mAi](mi);
+				} else if (!MAI_Path(mi)) {
+					AiProc[Monst->_mAi](mi);
+				}
 			}
 			switch (Monst->_mmode) {
 			case MM_STAND:
