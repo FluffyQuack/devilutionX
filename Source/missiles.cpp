@@ -2549,16 +2549,14 @@ int Sentfire(int i, int sx, int sy)
 
 static BOOL UpdateMissileRangeAndDist(MissileStruct *mi, bool range, bool dist) //Fluffy: This is related to gSpeedMod and is code most missiles call once per tick
 {
-	mi->tickCount += 1;
-	if (mi->tickCount >= gSpeedMod) {
-		mi->tickCount = 0;
+	if (mi->tickCount == 0) {
 		if (range)
 			mi->_mirange -= 1;
 		if (dist)
 			mi->_midist += 1;
-		return true;
-	} else
-		return false;
+	}
+
+	return mi->tickCount == 0;
 }
 
 void MI_Dummy(int i)
@@ -3470,7 +3468,7 @@ void MI_Weapexp(int i)
 
 		//Fluffy: Interpolate between different values in ExpLight
 		int value;
-		if (missile[i].tickCount == 0 || missile[i]._miVar1 == 9)
+		if (newGameplayTick || missile[i]._miVar1 == 9)
 			value = ExpLight[missile[i]._miVar1];
 		else
 			value = InterpolateBetweenTwoPoints_Int32(ExpLight[missile[i]._miVar1], ExpLight[missile[i]._miVar1 + 1], (double) missile[i].tickCount / gSpeedMod);
@@ -3509,7 +3507,7 @@ void MI_Misexp(int i)
 
 		//Fluffy: Interpolate between different values in ExpLight
 		int value;
-		if (missile[i].tickCount == 0 || missile[i]._miVar1 == 9)
+		if (newGameplayTick || missile[i]._miVar1 == 9)
 			value = ExpLight[missile[i]._miVar1];
 		else
 			value = InterpolateBetweenTwoPoints_Int32(ExpLight[missile[i]._miVar1], ExpLight[missile[i]._miVar1 + 1], (double) missile[i].tickCount / gSpeedMod);
@@ -4234,6 +4232,11 @@ void ProcessMissiles()
 					missile[mi]._miAnimFrame = missile[mi]._miAnimLen;
 			}
 		}
+
+		//Fluffy: We use this to measure the distance between original gameplay ticks in the base game (related to gSpeedMod)
+		missile[mi].tickCount += 1;
+		if (missile[mi].tickCount >= gSpeedMod)
+			missile[mi].tickCount = 0;
 	}
 
 	if (ManashieldFlag) {
