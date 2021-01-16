@@ -596,7 +596,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	unsigned char _mint; //I think this is some kind of difficulty modifier. Higher values mean enemy might be more deadly or aggressive.
 	short falign_9A;
 	int _mFlags;
-	BYTE _msquelch;
+	BYTE _msquelch; //Seems to be a counter to the last time the enemy was visible. While visible this is maxed out and the AI can do whatever it wants. While below max, the enemy will try to follow its target. If zero, the enemy does nothing.
 	int falign_A4;
 	int _lastx; //I think this corresponds to the last seen X coordinate of the monster's target
 	int _lasty; //I think this corresponds to the last seen Y coordinate of the monster's target
