@@ -411,7 +411,7 @@ void InitMonster(int i, int rd, int mtype, int x, int y)
 	monster[i].MData = monst->MData;
 	monster[i]._mAnimData = monst->Anims[MA_STAND].Data[rd];
 	monster[i]._mAnimDelay = monst->Anims[MA_STAND].Rate;
-	monster[i]._mAnimCnt = random_(88, monster[i]._mAnimDelay - 1); //Fluffy TODO: Update in regards to gMonsterSpeedMod
+	monster[i]._mAnimCnt = random_(88, monster[i]._mAnimDelay - 1) * gMonsterSpeedMod; //Fluffy: Scale progress using gMonsterSpeedMod
 	monster[i]._mAnimLen = monst->Anims[MA_STAND].Frames;
 	monster[i]._mAnimFrame = random_(88, monster[i]._mAnimLen - 1) + 1;
 
@@ -1143,7 +1143,7 @@ BOOL M_Talker(int i)
 	    || ai == AI_LAZHELP;
 }
 
-void M_Enemy(int i)
+void M_Enemy(int i) //I think this updates what target this enemy has
 {
 	int j;
 	int mi, pnum;
@@ -1869,10 +1869,12 @@ BOOL M_DoStand(int i)
 	else
 		Monst->_mAnimData = Monst->MType->Anims[MA_STAND].Data[Monst->_mdir];
 
-	if (Monst->_mAnimFrame == Monst->_mAnimLen) //Fluffy TODO: Update this using gMonsterSpeedMod
-		M_Enemy(i);
+	if (Monst->_mAnimFrame == Monst->_mAnimLen && Monst->_mAnimCnt == 0) //Fluffy: Fix related to gMonsterSpeedMod so this only happens once at this animation frame
+		M_Enemy(i); //This updates who the monster is targeting
 
-	Monst->_mVar2++;
+
+	if (Monst->tickCount == 0) //Fluffy: We want this happening at 50ms intervals like the original game (related to gMonsterSpeedMod) TODO: Do we need to make sure this increases by one the first time this is called after monster changes to stand state?
+		Monst->_mVar2++; //I think this counts for how long the enemy has been idle and is used in various enemy AI loops to decide when to attack or move
 
 	return FALSE;
 }
@@ -2115,20 +2117,20 @@ BOOL M_DoAttack(int i)
 	if (Monst->MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoAttack: Monster %d \"%s\" MData NULL", i, Monst->mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit, monster[i].mMinDamage, monster[i].mMaxDamage);
 		if (monster[i]._mAi != AI_SNAKE)
 			PlayEffect(i, 0);
 	}
-	if (monster[i].MType->mtype >= MT_NMAGMA && monster[i].MType->mtype <= MT_WMAGMA && monster[i]._mAnimFrame == 9) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i].MType->mtype >= MT_NMAGMA && monster[i].MType->mtype <= MT_WMAGMA && monster[i]._mAnimFrame == 9 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit + 10, monster[i].mMinDamage - 2, monster[i].mMaxDamage - 2);
 		PlayEffect(i, 0);
 	}
-	if (monster[i].MType->mtype >= MT_STORM && monster[i].MType->mtype <= MT_MAEL && monster[i]._mAnimFrame == 13) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i].MType->mtype >= MT_STORM && monster[i].MType->mtype <= MT_MAEL && monster[i]._mAnimFrame == 13 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit - 20, monster[i].mMinDamage + 4, monster[i].mMaxDamage + 4);
 		PlayEffect(i, 0);
 	}
-	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1) //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		PlayEffect(i, 0);
 	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
@@ -2149,7 +2151,7 @@ BOOL M_DoRAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoRAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		if (monster[i]._mVar1 != -1) {
 			if (monster[i]._mVar1 != MIS_CBOLT)
 				multimissiles = 1;
@@ -2172,7 +2174,7 @@ BOOL M_DoRAttack(int i)
 		PlayEffect(i, 0);
 	}
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2189,7 +2191,7 @@ int M_DoRSpAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoRSpAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && !monster[i]._mAnimCnt) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && monster[i]._mAnimCnt == 0) {
 		AddMissile(
 		    monster[i]._mx,
 		    monster[i]._my,
@@ -2204,7 +2206,7 @@ int M_DoRSpAttack(int i)
 		PlayEffect(i, 3);
 	}
 
-	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		int hadV2 = monster[i]._mVar2;
 		monster[i]._mVar2++;
 		if (hadV2 == 0) {
@@ -2214,7 +2216,7 @@ int M_DoRSpAttack(int i)
 		}
 	}
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2231,10 +2233,10 @@ BOOL M_DoSAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoSAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2) //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit2, monster[i].mMinDamage2, monster[i].mMaxDamage2);
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -2247,7 +2249,7 @@ BOOL M_DoFadein(int i)
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("M_DoFadein: Invalid monster %d", i);
 
-	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1) //Fluffy TODO: Update this using gMonsterSpeedMod
+	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1)
 	    && (monster[i]._mFlags & MFLAG_LOCK_ANIMATION || monster[i]._mAnimFrame != monster[i]._mAnimLen)) {
 		return FALSE;
 	}
@@ -2265,7 +2267,7 @@ BOOL M_DoFadeout(int i)
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("M_DoFadeout: Invalid monster %d", i);
 
-	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1) //Fluffy TODO: Update this using gMonsterSpeedMod
+	if ((!(monster[i]._mFlags & MFLAG_LOCK_ANIMATION) || monster[i]._mAnimFrame != 1)
 	    && (monster[i]._mFlags & MFLAG_LOCK_ANIMATION || monster[i]._mAnimFrame != monster[i]._mAnimLen)) {
 		return FALSE;
 	}
@@ -2296,7 +2298,7 @@ int M_DoHeal(int i)
 		return FALSE;
 	}
 
-	if (Monst->_mAnimFrame == 1) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (Monst->_mAnimFrame == 1 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		Monst->_mFlags &= ~MFLAG_LOCK_ANIMATION;
 		Monst->_mFlags |= MFLAG_ALLOW_SPECIAL;
 		if (Monst->_mVar1 + Monst->_mhitpoints < Monst->_mmaxhp) {
@@ -2428,7 +2430,7 @@ BOOL M_DoGotHit(int i)
 
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoGotHit: Monster %d \"%s\" MType NULL", i, monster[i].mName);
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
 
 		return TRUE;
@@ -2535,36 +2537,38 @@ BOOL M_DoDeath(int i)
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoDeath: Monster %d \"%s\" MType NULL", i, monster[i].mName);
 
-	monster[i]._mVar1++;
-	var1 = monster[i]._mVar1;
-	if (monster[i].MType->mtype == MT_DIABLO) {
-		x = monster[i]._mx - ViewX;
-		if (x < 0)
-			x = -1;
-		else
-			x = x > 0;
-		ViewX += x;
+	if (monster[i].tickCount == 0) { //Fluffy: Make this happen at a 50ms interval to match it up with the original game (related to gMonsterSpeedMod)
+		monster[i]._mVar1++;
+		var1 = monster[i]._mVar1;
+		if (monster[i].MType->mtype == MT_DIABLO) {
+			x = monster[i]._mx - ViewX;
+			if (x < 0)
+				x = -1;
+			else
+				x = x > 0;
+			ViewX += x;
 
-		y = monster[i]._my - ViewY;
-		if (y < 0) {
-			y = -1;
-		} else {
-			y = y > 0;
+			y = monster[i]._my - ViewY;
+			if (y < 0) {
+				y = -1;
+			} else {
+				y = y > 0;
+			}
+			ViewY += y;
+
+			if (var1 == 140)
+				PrepDoEnding();
+		} else if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
+			if (monster[i]._uniqtype == 0)
+				AddDead(monster[i]._mx, monster[i]._my, monster[i].MType->mdeadval, (direction)monster[i]._mdir);
+			else
+				AddDead(monster[i]._mx, monster[i]._my, monster[i]._udeadval, (direction)monster[i]._mdir);
+
+			dMonster[monster[i]._mx][monster[i]._my] = 0;
+			monster[i]._mDelFlag = TRUE;
+
+			M_UpdateLeader(i);
 		}
-		ViewY += y;
-
-		if (var1 == 140)
-			PrepDoEnding();
-	} else if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
-		if (monster[i]._uniqtype == 0)
-			AddDead(monster[i]._mx, monster[i]._my, monster[i].MType->mdeadval, (direction)monster[i]._mdir);
-		else
-			AddDead(monster[i]._mx, monster[i]._my, monster[i]._udeadval, (direction)monster[i]._mdir);
-
-		dMonster[monster[i]._mx][monster[i]._my] = 0;
-		monster[i]._mDelFlag = TRUE;
-
-		M_UpdateLeader(i);
 	}
 	return FALSE;
 }
@@ -2576,10 +2580,10 @@ BOOL M_DoSpStand(int i)
 	if (monster[i].MType == NULL)
 		app_fatal("M_DoSpStand: Monster %d \"%s\" MType NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2) //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && monster[i]._mAnimCnt == 0) //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		PlayEffect(i, 3);
 
-	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
 		return TRUE;
 	}
@@ -3334,7 +3338,7 @@ void MAI_Fallen(int i)
 		}
 	}
 
-	if (Monst->_mAnimFrame == Monst->_mAnimLen) { //Fluffy TODO: Update this using gMonsterSpeedMod
+	if (Monst->_mAnimFrame == Monst->_mAnimLen) {
 		if (random_(113, 4)) {
 			return;
 		}
