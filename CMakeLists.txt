@@ -249,6 +249,7 @@ add_library(devilution STATIC
   Source/trigs.cpp
   Source/wave.cpp
   Source/Misc/misc.cpp
+  Source/IO/fluffy-savegame.cpp
   )
 
 set(devilutionx_SRCS

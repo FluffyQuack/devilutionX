@@ -4,113 +4,11 @@
  * Implementation of save game functionality.
  */
 #include "all.h"
+#include "IO\fluffy-savegame.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *tbuff;
-#define VERSION 4
-static int version; //Version of savegame we're currently loading
-/*
-* Version 0 = Savegame from base game
-* Version 1 = Savegame from FluffyMod adding some additional values
-* Version 2 = Added ScrollInfo.pxoffDiff and ScrollInfo.pyoffDiff variables to save
-* Version 3 = Added tickCount to MissileStruct
-* Version 4 = Added tickCount to MonsterStruct
-*/
-
-char BLoad()
-{
-	return *tbuff++;
-}
-
-int WLoad()
-{
-	int rv = *tbuff++ << 24;
-	rv |= *tbuff++ << 16;
-	rv |= *tbuff++ << 8;
-	rv |= *tbuff++;
-
-	return rv;
-}
-
-int ILoad()
-{
-	int rv = *tbuff++ << 24;
-	rv |= *tbuff++ << 16;
-	rv |= *tbuff++ << 8;
-	rv |= *tbuff++;
-
-	return rv;
-}
-
-BOOL OLoad()
-{
-	if (*tbuff++ == TRUE)
-		return TRUE;
-	else
-		return FALSE;
-}
-
-void CopyBytes(const void *src, const int n, void *dst)
-{
-	memcpy(dst, src, n);
-	tbuff += n;
-}
-
-void CopyChar(const void *src, void *dst)
-{
-	*(char *)dst = *(char *)src;
-	tbuff += 1;
-}
-
-void CopyShort(const void *src, void *dst)
-{
-	unsigned short buf;
-	memcpy(&buf, src, 2);
-	tbuff += 2;
-	buf = SwapLE16(buf);
-	memcpy(dst, &buf, 2);
-}
-
-void CopyShorts(const void *src, const int n, void *dst)
-{
-	const unsigned short *s = reinterpret_cast<const unsigned short *>(src);
-	unsigned short *d = reinterpret_cast<unsigned short *>(dst);
-	for (int i = 0; i < n; i++) {
-		CopyShort(s, d);
-		++d;
-		++s;
-	}
-}
-
-void CopyInt(const void *src, void *dst)
-{
-	unsigned int buf;
-	memcpy(&buf, src, 4);
-	tbuff += 4;
-	buf = SwapLE32(buf);
-	memcpy(dst, &buf, 4);
-}
-
-void CopyInts(const void *src, const int n, void *dst)
-{
-	const unsigned int *s = reinterpret_cast<const unsigned int *>(src);
-	const unsigned int *d = reinterpret_cast<unsigned int *>(dst);
-	for (int i = 0; i < n; i++) {
-		CopyInt(s, (void *)d);
-		++d;
-		++s;
-	}
-}
-
-void CopyInt64(const void *src, void *dst)
-{
-	unsigned long long buf;
-	memcpy(&buf, src, 8);
-	tbuff += 8;
-	buf = SDL_SwapLE64(buf);
-	memcpy(dst, &buf, 8);
-}
 
 /**
  * @brief Load game state
@@ -130,17 +28,8 @@ void LoadGame(BOOL firstflag)
 	LoadBuff = pfile_read(szName, &dwLen);
 	tbuff = LoadBuff;
 
-	//Fluffy: Check if this is a save from the base game or FluffyMod
-	int magic = ILoad();
-	if (magic == 'RETL')
-		version = 0;
-	else if (magic == 'RETF')
-		version = 1;
-	else
+	if (ILoad() != 'RETL')
 		app_fatal("Invalid save file");
-
-	//Fluffy: If FluffyMod, then we load a version number
-	version = ILoad();
 
 	setlevel = OLoad();
 	setlvlnum = WLoad();
@@ -161,12 +50,6 @@ void LoadGame(BOOL firstflag)
 	}
 
 	LoadPlayer(myplr);
-
-	//Fluffy: Load values related to camera scrolling
-	if (version >= 2) { 
-		CopyInt(tbuff, &ScrollInfo.pxoffDiff);
-		CopyInt(tbuff, &ScrollInfo.pyoffDiff);
-	}
 
 	gnDifficulty = plr[myplr].pDifficulty;
 	if (gnDifficulty < DIFF_NORMAL || gnDifficulty > DIFF_HELL)
@@ -290,6 +173,7 @@ void LoadGame(BOOL firstflag)
 
 	automapflag = OLoad();
 	AutoMapScale = WLoad();
+	LoadGame_ExtendedData(); //Fluffy: Load extra data for FluffyMod
 	mem_free_dbg(LoadBuff);
 	AutomapZoomReset();
 	ResyncQuests();
@@ -305,6 +189,100 @@ void LoadGame(BOOL firstflag)
 	gbProcessPlayers = TRUE;
 }
 
+char BLoad()
+{
+	return *tbuff++;
+}
+
+int WLoad()
+{
+	int rv = *tbuff++ << 24;
+	rv |= *tbuff++ << 16;
+	rv |= *tbuff++ << 8;
+	rv |= *tbuff++;
+
+	return rv;
+}
+
+int ILoad()
+{
+	int rv = *tbuff++ << 24;
+	rv |= *tbuff++ << 16;
+	rv |= *tbuff++ << 8;
+	rv |= *tbuff++;
+
+	return rv;
+}
+
+BOOL OLoad()
+{
+	if (*tbuff++ == TRUE)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+void CopyBytes(const void *src, const int n, void *dst)
+{
+	memcpy(dst, src, n);
+	tbuff += n;
+}
+
+void CopyChar(const void *src, void *dst)
+{
+	*(char *)dst = *(char *)src;
+	tbuff += 1;
+}
+
+void CopyShort(const void *src, void *dst)
+{
+	unsigned short buf;
+	memcpy(&buf, src, 2);
+	tbuff += 2;
+	buf = SwapLE16(buf);
+	memcpy(dst, &buf, 2);
+}
+
+void CopyShorts(const void *src, const int n, void *dst)
+{
+	const unsigned short *s = reinterpret_cast<const unsigned short *>(src);
+	unsigned short *d = reinterpret_cast<unsigned short *>(dst);
+	for (int i = 0; i < n; i++) {
+		CopyShort(s, d);
+		++d;
+		++s;
+	}
+}
+
+void CopyInt(const void *src, void *dst)
+{
+	unsigned int buf;
+	memcpy(&buf, src, 4);
+	tbuff += 4;
+	buf = SwapLE32(buf);
+	memcpy(dst, &buf, 4);
+}
+
+void CopyInts(const void *src, const int n, void *dst)
+{
+	const unsigned int *s = reinterpret_cast<const unsigned int *>(src);
+	const unsigned int *d = reinterpret_cast<unsigned int *>(dst);
+	for (int i = 0; i < n; i++) {
+		CopyInt(s, (void *)d);
+		++d;
+		++s;
+	}
+}
+
+void CopyInt64(const void *src, void *dst)
+{
+	unsigned long long buf;
+	memcpy(&buf, src, 8);
+	tbuff += 8;
+	buf = SDL_SwapLE64(buf);
+	memcpy(dst, &buf, 8);
+}
+
 void LoadPlayer(int i)
 {
 	PlayerStruct *pPlayer = &plr[i];
@@ -312,8 +290,6 @@ void LoadPlayer(int i)
 
 	CopyInt(tbuff, &pPlayer->_pmode);
 	CopyBytes(tbuff, MAX_PATH_LENGTH, pPlayer->walkpath);
-	if (version >= 1)
-		CopyBytes(tbuff, 1, &pPlayer->walkedLastTick); //Fluffy
 	CopyBytes(tbuff, 1, &pPlayer->plractive);
 	tbuff += 2; // Alignment
 	CopyInt(tbuff, &pPlayer->destAction);
@@ -457,16 +433,6 @@ void LoadPlayer(int i)
 	CopyInt(tbuff, &pPlayer->_pBFrames);
 	CopyInt(tbuff, &pPlayer->_pBWidth);
 
-	//Fluffy
-	if (version >= 1) {
-		tbuff += 4 * 8; // Skip pointers _pNAnim_c
-		CopyInt(tbuff, &pPlayer->_pNFrames_c);
-		CopyInt(tbuff, &pPlayer->_pNWidth_c);
-		tbuff += 4 * 8; // Skip pointers _pWAnim_c
-		CopyInt(tbuff, &pPlayer->_pWFrames_c);
-		CopyInt(tbuff, &pPlayer->_pWWidth_c);
-	}
-
 	LoadItems(NUM_INVLOC, pPlayer->InvBody);
 	LoadItems(NUM_INV_GRID_ELEM, pPlayer->InvList);
 	CopyInt(tbuff, &pPlayer->_pNumInv);
@@ -490,7 +456,7 @@ void LoadPlayer(int i)
 	CopyChar(tbuff, &pPlayer->_pISplCost);
 	CopyChar(tbuff, &tempChar);
 	pPlayer->pDifficulty = tempChar & 3; // Use 2 alignment bits for difficulty
-	tbuff += 1; // Alignment
+	tbuff += 1;                          // Alignment
 	CopyInt(tbuff, &pPlayer->_pISplDur);
 	CopyInt(tbuff, &pPlayer->_pIEnAc);
 	CopyInt(tbuff, &pPlayer->_pIFMinDam);
@@ -518,15 +484,7 @@ void LoadPlayer(int i)
 	// Omit pointer _pHData
 	// Omit pointer _pDData
 	// Omit pointer _pBData
-	// Omit pointer _pNData_c
-	// Omit pointer _pWData_c
 	// Omit pointer pReserved
-
-	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
-	pPlayer->_pVar6 *= gSpeedMod;
-	pPlayer->_pVar7 *= gSpeedMod;
-	pPlayer->_pVar8 *= gSpeedMod;
-	pPlayer->_pAnimCnt *= gSpeedMod;
 }
 
 void LoadMonster(int i)
@@ -615,19 +573,10 @@ void LoadMonster(int i)
 	CopyChar(tbuff, &pMonster->leaderflag);
 	CopyChar(tbuff, &pMonster->packsize);
 	CopyChar(tbuff, &pMonster->mlid);
-	if (version >= 4)
-		CopyInt(tbuff, &pMonster->tickCount);
 
 	// Omit pointer mName;
 	// Omit pointer MType;
 	// Omit pointer MData;
-
-	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
-	pMonster->_mVar6 *= gMonsterSpeedMod;
-	pMonster->_mVar7 *= gMonsterSpeedMod;
-	pMonster->_mVar8 *= gMonsterSpeedMod;
-	pMonster->_mAnimCnt *= gMonsterSpeedMod;
-	pMonster->tickCount *= gMonsterSpeedMod;
 
 	SyncMonsterAnim(i);
 }
@@ -681,14 +630,6 @@ void LoadMissile(int i)
 	CopyInt(tbuff, &pMissile->_miVar6);
 	CopyInt(tbuff, &pMissile->_miVar7);
 	CopyInt(tbuff, &pMissile->_miVar8);
-	if (version >= 3)
-		CopyInt(tbuff, &pMissile->tickCount);
-
-	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
-	pMissile->_miAnimCnt *= gSpeedMod;
-	pMissile->_mitxoff *= gSpeedMod;
-	pMissile->_mityoff *= gSpeedMod;
-	pMissile->tickCount *= gSpeedMod;
 }
 
 void LoadObject(int i)
@@ -728,9 +669,6 @@ void LoadObject(int i)
 	CopyInt(tbuff, &pObject->_oVar6);
 	CopyInt(tbuff, &pObject->_oVar7);
 	CopyInt(tbuff, &pObject->_oVar8);
-
-	//Fluffy: As a final step, we change a few values to make them match up with our current gSpeedMod value
-	pObject->_oAnimCnt *= gSpeedMod;
 }
 
 void LoadItem(int i)
@@ -749,8 +687,6 @@ void LoadItemData(ItemStruct *pItem)
 	CopyInt(tbuff, &pItem->_iy);
 	CopyInt(tbuff, &pItem->_iAnimFlag);
 	tbuff += 4; // Skip pointer _iAnimData
-	if (version >= 2) //Fluffy: New var for gSpeedMod
-		CopyInt(tbuff, &pItem->iAnimCnt);
 	CopyInt(tbuff, &pItem->_iAnimLen);
 	CopyInt(tbuff, &pItem->_iAnimFrame);
 	CopyInt(tbuff, &pItem->_iAnimWidth);
@@ -915,9 +851,7 @@ void SaveGame()
 	BYTE *SaveBuff = DiabloAllocPtr(dwLen);
 	tbuff = SaveBuff;
 
-	ISave('RETF'); //Fluffy: New magic to indicate this is a FluffyMod save
-	int version = VERSION;
-	WSave(version);
+	ISave('RETL');
 	OSave(setlevel);
 	WSave(setlvlnum);
 	WSave(currlevel);
@@ -938,10 +872,6 @@ void SaveGame()
 
 	plr[myplr].pDifficulty = gnDifficulty;
 	SavePlayer(myplr);
-
-	//Fluffy: Load values related to camera scrolling
-	CopyInt(&ScrollInfo.pxoffDiff, tbuff);
-	CopyInt(&ScrollInfo.pyoffDiff, tbuff);
 
 	for (i = 0; i < MAXQUESTS; i++)
 		SaveQuest(i);
@@ -1051,6 +981,7 @@ void SaveGame()
 	dwLen = codec_get_encoded_len(tbuff - SaveBuff);
 	pfile_write_save_file(szName, SaveBuff, tbuff - SaveBuff, dwLen);
 	mem_free_dbg(SaveBuff);
+	SaveGame_ExtendedData(); //Fluffy: Extra data for FluffyMod
 	gbValidSaveFile = TRUE;
 	pfile_rename_temp_to_perm();
 	pfile_write_hero();
@@ -1090,15 +1021,8 @@ void SavePlayer(int i)
 	PlayerStruct *pPlayer = &plr[i];
 	char tempChar;
 
-	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
-	int var6 = pPlayer->_pVar6 / gSpeedMod;
-	int var7 = pPlayer->_pVar7 / gSpeedMod;
-	int var8 = pPlayer->_pVar8 / gSpeedMod;
-	int animCnt = pPlayer->_pAnimCnt / gSpeedMod;
-
 	CopyInt(&pPlayer->_pmode, tbuff);
 	CopyBytes(&pPlayer->walkpath, MAX_PATH_LENGTH, tbuff);
-	CopyBytes(&pPlayer->walkedLastTick, 1, tbuff); //Fluffy
 	CopyBytes(&pPlayer->plractive, 1, tbuff);
 	tbuff += 2; // Alignment
 	CopyInt(&pPlayer->destAction, tbuff);
@@ -1126,7 +1050,7 @@ void SavePlayer(int i)
 	CopyInt(&pPlayer->_pgfxnum, tbuff);
 	tbuff += 4; // Skip pointer _pAnimData
 	CopyInt(&pPlayer->_pAnimDelay, tbuff);
-	CopyInt(&animCnt, tbuff);
+	CopyInt(&pPlayer->_pAnimCnt, tbuff);
 	CopyInt(&pPlayer->_pAnimLen, tbuff);
 	CopyInt(&pPlayer->_pAnimFrame, tbuff);
 	CopyInt(&pPlayer->_pAnimWidth, tbuff);
@@ -1205,9 +1129,9 @@ void SavePlayer(int i)
 	CopyInt(&pPlayer->_pVar3, tbuff);
 	CopyInt(&pPlayer->_pVar4, tbuff);
 	CopyInt(&pPlayer->_pVar5, tbuff);
-	CopyInt(&var6, tbuff);
-	CopyInt(&var7, tbuff);
-	CopyInt(&var8, tbuff);
+	CopyInt(&pPlayer->_pVar6, tbuff);
+	CopyInt(&pPlayer->_pVar7, tbuff);
+	CopyInt(&pPlayer->_pVar8, tbuff);
 	CopyBytes(&pPlayer->_pLvlVisited, NUMLEVELS, tbuff);
 	CopyBytes(&pPlayer->_pSLvlVisited, NUMLEVELS, tbuff); // only 10 used
 	tbuff += 2;                                           // Alignment
@@ -1238,14 +1162,6 @@ void SavePlayer(int i)
 	tbuff += 4 * 8; // Skip pointers _pBAnim
 	CopyInt(&pPlayer->_pBFrames, tbuff);
 	CopyInt(&pPlayer->_pBWidth, tbuff);
-
-	//Fluffy
-	tbuff += 4 * 8; // Skip pointers _pNAnim_c
-	CopyInt(&pPlayer->_pNFrames_c, tbuff);
-	CopyInt(&pPlayer->_pNWidth_c, tbuff);
-	tbuff += 4 * 8; // Skip pointers _pWAnim_c
-	CopyInt(&pPlayer->_pWFrames_c, tbuff);
-	CopyInt(&pPlayer->_pWWidth_c, tbuff);
 
 	SaveItems(pPlayer->InvBody, NUM_INVLOC);
 	SaveItems(pPlayer->InvList, NUM_INV_GRID_ELEM);
@@ -1299,8 +1215,6 @@ void SavePlayer(int i)
 	// Omit pointer _pHData
 	// Omit pointer _pDData
 	// Omit pointer _pBData
-	// Omit pointer _pNData_c
-	// Omit pointer _pWData_c
 	// Omit pointer pReserved
 }
 
@@ -1308,13 +1222,6 @@ void SaveMonster(int i)
 {
 	MonsterStruct *pMonster = &monster[i];
 	char tempChar;
-
-	//Fluffy: Values which are affected by gMonsterSpeedMod we save in a lower range as if this save is made in 20fps mode
-	int var6 = pMonster->_mVar6 / gMonsterSpeedMod;
-	int var7 = pMonster->_mVar7 / gMonsterSpeedMod;
-	int var8 = pMonster->_mVar8 / gMonsterSpeedMod;
-	int animCnt = pMonster->_mAnimCnt / gMonsterSpeedMod;
-	int tickCount = pMonster->tickCount / gMonsterSpeedMod;
 
 	CopyInt(&pMonster->_mMTidx, tbuff);
 	CopyInt(&pMonster->_mmode, tbuff);
@@ -1344,7 +1251,7 @@ void SaveMonster(int i)
 
 	tbuff += 4; // Skip pointer _mAnimData
 	CopyInt(&pMonster->_mAnimDelay, tbuff);
-	CopyInt(&animCnt, tbuff);
+	CopyInt(&pMonster->_mAnimCnt, tbuff);
 	CopyInt(&pMonster->_mAnimLen, tbuff);
 	CopyInt(&pMonster->_mAnimFrame, tbuff);
 	tbuff += 4; // Skip _meflag
@@ -1354,9 +1261,9 @@ void SaveMonster(int i)
 	CopyInt(&pMonster->_mVar3, tbuff);
 	CopyInt(&pMonster->_mVar4, tbuff);
 	CopyInt(&pMonster->_mVar5, tbuff);
-	CopyInt(&var6, tbuff);
-	CopyInt(&var7, tbuff);
-	CopyInt(&var8, tbuff);
+	CopyInt(&pMonster->_mVar6, tbuff);
+	CopyInt(&pMonster->_mVar7, tbuff);
+	CopyInt(&pMonster->_mVar8, tbuff);
 	CopyInt(&pMonster->_mmaxhp, tbuff);
 	CopyInt(&pMonster->_mhitpoints, tbuff);
 
@@ -1403,8 +1310,6 @@ void SaveMonster(int i)
 	CopyChar(&pMonster->packsize, tbuff);
 	CopyChar(&pMonster->mlid, tbuff);
 
-	CopyInt(&pMonster->tickCount, tbuff); //Fluffy
-
 	// Omit pointer mName;
 	// Omit pointer MType;
 	// Omit pointer MData;
@@ -1413,12 +1318,6 @@ void SaveMonster(int i)
 void SaveMissile(int i)
 {
 	MissileStruct *pMissile = &missile[i];
-
-	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
-	int animCnt = pMissile->_miAnimCnt / gSpeedMod;
-	int mitxoff = pMissile->_mitxoff / gSpeedMod;
-	int mityoff = pMissile->_mityoff / gSpeedMod;
-	int tickCount = pMissile->tickCount / gSpeedMod;
 
 	CopyInt(&pMissile->_mitype, tbuff);
 	CopyInt(&pMissile->_mix, tbuff);
@@ -1429,8 +1328,8 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miyvel, tbuff);
 	CopyInt(&pMissile->_misx, tbuff);
 	CopyInt(&pMissile->_misy, tbuff);
-	CopyInt(&mitxoff, tbuff);
-	CopyInt(&mityoff, tbuff);
+	CopyInt(&pMissile->_mitxoff, tbuff);
+	CopyInt(&pMissile->_mityoff, tbuff);
 	CopyInt(&pMissile->_mimfnum, tbuff);
 	CopyInt(&pMissile->_mispllvl, tbuff);
 	CopyInt(&pMissile->_miDelFlag, tbuff);
@@ -1442,7 +1341,7 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miAnimLen, tbuff);
 	CopyInt(&pMissile->_miAnimWidth, tbuff);
 	CopyInt(&pMissile->_miAnimWidth2, tbuff);
-	CopyInt(&animCnt, tbuff); //Fluffy
+	CopyInt(&pMissile->_miAnimCnt, tbuff);
 	CopyInt(&pMissile->_miAnimAdd, tbuff);
 	CopyInt(&pMissile->_miAnimFrame, tbuff);
 	CopyInt(&pMissile->_miDrawFlag, tbuff);
@@ -1465,15 +1364,11 @@ void SaveMissile(int i)
 	CopyInt(&pMissile->_miVar6, tbuff);
 	CopyInt(&pMissile->_miVar7, tbuff);
 	CopyInt(&pMissile->_miVar8, tbuff);
-	CopyInt(&tickCount, tbuff);
 }
 
 void SaveObject(int i)
 {
 	ObjectStruct *pObject = &object[i];
-
-	//Fluffy: Values which are affected by gSpeedMod we save in a lower range as if this save is made in 20fps mode
-	int animCnt = pObject->_oAnimCnt / gSpeedMod;
 
 	CopyInt(&pObject->_otype, tbuff);
 	CopyInt(&pObject->_ox, tbuff);
@@ -1482,7 +1377,7 @@ void SaveObject(int i)
 	CopyInt(&pObject->_oAnimFlag, tbuff);
 	tbuff += 4; // Skip pointer _oAnimData
 	CopyInt(&pObject->_oAnimDelay, tbuff);
-	CopyInt(&animCnt, tbuff);
+	CopyInt(&pObject->_oAnimCnt, tbuff);
 	CopyInt(&pObject->_oAnimLen, tbuff);
 	CopyInt(&pObject->_oAnimFrame, tbuff);
 	CopyInt(&pObject->_oAnimWidth, tbuff);
@@ -1520,7 +1415,6 @@ void SaveItem(ItemStruct *pItem)
 	CopyInt(&pItem->_iy, tbuff);
 	CopyInt(&pItem->_iAnimFlag, tbuff);
 	tbuff += 4; // Skip pointer _iAnimData
-	CopyInt(&pItem->iAnimCnt, tbuff); //Fluffy
 	CopyInt(&pItem->_iAnimLen, tbuff);
 	CopyInt(&pItem->_iAnimFrame, tbuff);
 	CopyInt(&pItem->_iAnimWidth, tbuff);

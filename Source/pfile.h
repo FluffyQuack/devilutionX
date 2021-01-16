@@ -48,6 +48,7 @@ void pfile_rename_temp_to_perm();
 BOOL GetPermSaveNames(DWORD dwIndex, char *szPerm);
 void pfile_write_save_file(const char *pszName, BYTE *pbData, DWORD dwLen, DWORD qwLen);
 void pfile_strcpy(char *dst, const char *src);
+BOOLEAN pfile_CheckIfFileExists(const char *pszName);
 BYTE *pfile_read(const char *pszName, DWORD *pdwLen);
 void pfile_update(BOOL force_save);
 

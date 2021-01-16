@@ -532,6 +532,28 @@ void pfile_strcpy(char *dst, const char *src)
 	strcpy(dst, src);
 }
 
+BOOLEAN pfile_CheckIfFileExists(const char *pszName) //Fluffy: For checking if a file exists without the game quitting with an error message
+{
+	DWORD save_num;
+	char FileName[MAX_PATH];
+	HANDLE archive, save;
+
+	pfile_strcpy(FileName, pszName);
+	save_num = pfile_get_save_num_from_name(plr[myplr]._pName);
+	archive = pfile_open_save_archive(NULL, save_num);
+	if (archive == NULL)
+		app_fatal("Unable to open save file archive");
+
+	if (!SFileOpenFileEx(archive, FileName, 0, &save)) {
+		pfile_SFileCloseArchive(archive);
+		return 0;
+	}
+
+	SFileCloseFile(save);
+	pfile_SFileCloseArchive(archive);
+	return 1;
+}
+
 BYTE *pfile_read(const char *pszName, DWORD *pdwLen)
 {
 	DWORD save_num, nread;
