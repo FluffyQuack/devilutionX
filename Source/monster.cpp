@@ -2608,7 +2608,8 @@ BOOL M_DoDelay(int i)
 	}
 
 	mVar2 = monster[i]._mVar2;
-	monster[i]._mVar2--;
+	if (monster[i].tickCount == 0) //Fluffy: Only let this happen once every 50ms (related to gMonsterSpeedMod)
+		monster[i]._mVar2--;
 
 	if (!mVar2) {
 		oFrame = monster[i]._mAnimFrame;
@@ -2676,6 +2677,9 @@ void GroupUnity(int i)
 
 	if ((DWORD)i >= MAXMONSTERS)
 		app_fatal("GroupUnity: Invalid monster %d", i);
+
+	if (monster[i].tickCount == 0) //Fluffy: Limit this to 50ms (related to gMonsterSpeedMod). TODO: We should double check if it's necessary to limit this
+		return;
 
 	if (monster[i].leaderflag) {
 		leader = monster[i].leader;
