@@ -582,8 +582,8 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	int _mAnimFrame; //Current animation frame
 	BOOL _meflag;
 	BOOL _mDelFlag;
-	int _mVar1;
-	int _mVar2;
+	int _mVar1; //This value is used differently for different states. Walking = Stores an X coordinate. Standing = Stores the previous state type the monster was in.
+	int _mVar2; //This value is used differently for different states. Walking = Stores an Y coordinate. Standing = Ticks up counting the amount of time spent idle. Attacking = Stores the damage it will deal.
 	int _mVar3;
 	int _mVar4;
 	int _mVar5;
