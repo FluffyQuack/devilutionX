@@ -1917,7 +1917,7 @@ BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 		}
 
 		rv = TRUE;
-	} else /*if (!monster[i]._mAnimCnt)*/ { //Fluffy I don't understan the point of this mAnimCnt check as we always want to update offset when we haven't reached the tile. I've commented it out since it intefers with gMonsterSpeedMod
+	} else /*if (!monster[i]._mAnimCnt)*/ { //Fluffy I don't understand the point of this mAnimCnt check as we always want to update offset when we haven't reached the tile. I've commented it out since it interfers with gMonsterSpeedMod
 		//Monster didn't reach a new tile, so update monster render offset
 		monster[i]._mVar8++;
 		monster[i]._mVar6 += monster[i]._mxvel;
@@ -2130,7 +2130,7 @@ BOOL M_DoAttack(int i)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit - 20, monster[i].mMinDamage + 4, monster[i].mMaxDamage + 4);
 		PlayEffect(i, 0);
 	}
-	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
+	if (monster[i]._mAi == AI_SNAKE && monster[i]._mAnimFrame == 1 && monster[i]._mAnimCnt == 0) //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		PlayEffect(i, 0);
 	if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 		M_StartStand(i, monster[i]._mdir);
@@ -2233,7 +2233,7 @@ BOOL M_DoSAttack(int i)
 	if (monster[i].MType == NULL) // BUGFIX: should check MData
 		app_fatal("M_DoSAttack: Monster %d \"%s\" MData NULL", i, monster[i].mName);
 
-	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
+	if (monster[i]._mAnimFrame == monster[i].MData->mAFNum2 && monster[i]._mAnimCnt == 0) //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
 		M_TryH2HHit(i, monster[i]._menemy, monster[i].mHit2, monster[i].mMinDamage2, monster[i].mMaxDamage2);
 
 	if (monster[i]._mAnimFrame == monster[i]._mAnimLen && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
