@@ -251,11 +251,8 @@ void selgame_Diff_Select(int value)
 	}
 
 	//selgame_GameSpeedSelection(); //Fluffy: Skip speed selection as it doesn't make sense for high framerate support
-
-	//Fluffy TODO: Should we do this differently?
 	gbTickRate = ticks_per_sec;
-	gSpeedMod = ticks_per_sec / 20;
-	gMonsterSpeedMod = ticks_per_sec / 20;
+
 	if (provider == SELCONN_LOOPBACK) {
 		selgame_Password_Select(0);
 		return;
@@ -414,9 +411,14 @@ void selgame_Password_Select(int value)
 		return;
 	}
 
+	//Update values for multiplayer game init
 	_gamedata *info = m_client_info->initdata;
 	info->bDiff = gbDifficulty;
+
+	//Fluffy TODO: Should we make it possible to customize these for multiplayer?
 	info->bRate = gbTickRate;
+	info->gSpeedMod = gbTickRate / 20;
+	info->gMonsterSpeedMod = gbTickRate / 20;
 
 	if (SNetCreateGame(NULL, selgame_Password, NULL, 0, (char *)info, sizeof(_gamedata), MAX_PLRS, NULL, NULL, gdwPlayerId)) {
 		UiInitList_clear();
