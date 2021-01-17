@@ -168,6 +168,9 @@ static void ExtendedDataMissing() //This is called if extended data is missing
 
 	ScrollInfo.pxoffDiff = 0;
 	ScrollInfo.pyoffDiff = 0;
+	ScrollInfo._sdir = 0;
+	ScrollInfo._sxoff = 0;
+	ScrollInfo._syoff = 0;
 
 	if (gSpeedMod > 1)
 		AdjustSpeedModValues(1);
