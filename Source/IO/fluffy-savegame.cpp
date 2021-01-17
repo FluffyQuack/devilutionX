@@ -84,9 +84,7 @@ void SaveGame_ExtendedData()
 
 	//Save to file
 	int finalEncodedSize = codec_get_encoded_len(pos);
-	char szName[MAX_PATH];
-	sprintf(szName, "FluffyModSaveGame");
-	pfile_write_save_file(szName, buffer, pos, finalEncodedSize);
+	pfile_write_save_file("FluffyModSaveGame", buffer, pos, finalEncodedSize);
 	mem_free_dbg(buffer);
 }
 
@@ -180,16 +178,13 @@ static void ExtendedDataMissing() //This is called if extended data is missing
 void LoadGame_ExtendedData()
 {
 	//Load savegame
-	char szName[MAX_PATH];
-	sprintf(szName, "FluffyModSaveGame");
-
-	if (!pfile_CheckIfFileExists(szName)) {
+	if (!pfile_CheckIfFileExists("FluffyModSaveGame")) {
 		ExtendedDataMissing();
 		return;
 	}
 	BYTE *buffer;
 	DWORD dwLen;
-	buffer = pfile_read(szName, &dwLen);
+	buffer = pfile_read("FluffyModSaveGame", &dwLen);
 
 	//Verify magic
 	DWORD pos = 0;
