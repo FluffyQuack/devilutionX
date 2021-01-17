@@ -390,6 +390,7 @@ void selgame_Password_Init(int value)
 	vecSelGameDialog.push_back(new UiArtTextButton("CANCEL", &UiFocusNavigationEsc, rect7, UIS_CENTER | UIS_VCENTER | UIS_BIG | UIS_GOLD));
 
 	UiInitList(0, 0, NULL, selgame_Password_Select, selgame_Password_Esc, vecSelGameDialog);
+	textInput_ReplaceNoTextWithA = true;
 }
 
 void selgame_Password_Select(int value)

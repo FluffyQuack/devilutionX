@@ -47,6 +47,7 @@ bool UiItemsWraps;
 char *UiTextInput;
 int UiTextInputLen;
 bool textInputActive = true;
+bool textInput_ReplaceNoTextWithA = false; //Fluffy: If true, if the user writes no text input then it gets replaced with "a"
 
 int SelectedItem = 0;
 
@@ -94,6 +95,7 @@ void UiInitList(int min, int max, void (*fnFocus)(int value), void (*fnSelect)(i
 	SDL_StopTextInput(); // input is enabled by default
 #endif
 	textInputActive = false;
+	textInput_ReplaceNoTextWithA = false;
 	for (std::size_t i = 0; i < items.size(); i++) {
 		if (items[i]->m_type == UI_EDIT) {
 			UiEdit *pItemUIEdit = (UiEdit *)items[i];
@@ -378,7 +380,11 @@ void UiFocusNavigationSelect()
 	UiPlaySelectSound();
 	if (textInputActive) {
 		if (strlen(UiTextInput) == 0) {
-			return;
+			if (textInput_ReplaceNoTextWithA) {
+				UiTextInput[0] = 'a';
+				UiTextInput[1] = 0;
+			} else
+				return;
 		}
 #ifndef __SWITCH__
 		SDL_StopTextInput();
