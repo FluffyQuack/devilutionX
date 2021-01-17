@@ -1065,6 +1065,8 @@ void FixPlayerLocation(int pnum, int bDir)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
+		ScrollInfo.pxoffDiff = 0;
+		ScrollInfo.pyoffDiff = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1118,6 +1120,8 @@ void StartWalkStand(int pnum)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
+		ScrollInfo.pxoffDiff = 0;
+		ScrollInfo.pyoffDiff = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
 		ViewY = plr[pnum]._py;
@@ -1184,7 +1188,7 @@ void PM_ChangeOffset(int pnum)
 
 	if (pnum == myplr && ScrollInfo._sdir) {
 		//Fluffy: We base camera offset on player offset so it's 100% in sync
-		ScrollInfo._sxoff = -(plr[pnum]._pxoff - ScrollInfo.pxoffDiff); //Fluffy TODO: These values should be added to the savegame
+		ScrollInfo._sxoff = -(plr[pnum]._pxoff - ScrollInfo.pxoffDiff);
 		ScrollInfo._syoff = -(plr[pnum]._pyoff - ScrollInfo.pyoffDiff);
 	}
 

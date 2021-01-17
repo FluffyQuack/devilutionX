@@ -42,7 +42,7 @@ int PauseMode;
 int sgnTimeoutCurs;
 char sgbMouseDown;
 int color_cycle_timer;
-int ticks_per_sec = 20;
+int ticks_per_sec = 60;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
 
 /*
@@ -54,6 +54,8 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
 
   An example: One of the camera offsets can range from to 0 to 16 and it's supposed to be increased by 2 each gameplay tick (if we're at the standard 20fps). We multiply the 16 (goal value) by gSpeedMod
   and then when using the camera offset for rendering we divide it by the same amount. The result is that we modify game speed with minimal changes to the code with everything behaving almost exactly the same.
+
+  The above is done for a lot of values related to rendering. Another thing done a lot is using a value called "tickCount" which cycles between 0 and the max value of gSpeedMod - 1. Whenever it is 0 we see that as a true gameplayTick (aka matching original timing) and we only do certain actions then.
 
   Here is a complete list of all the variables which can have their value affected due to gSpeedMod:
   PlayerStruct->_pVar6
@@ -80,7 +82,7 @@ int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 
 //Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
 BOOL gameSetup_fastWalkInTown = true;
-BOOL gameSetup_allowAttacksInTown = true;
+BOOL gameSetup_allowAttacksInTown = false;
 
 /* rdata */
 
@@ -510,6 +512,8 @@ void diablo_init_screen()
 	ScrollInfo._sdy = 0;
 	ScrollInfo._sxoff = 0;
 	ScrollInfo._syoff = 0;
+	ScrollInfo.pxoffDiff = 0;
+	ScrollInfo.pyoffDiff = 0;
 	ScrollInfo._sdir = SDIR_NONE;
 
 	ClrDiabloMsg();

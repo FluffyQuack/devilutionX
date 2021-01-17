@@ -6,9 +6,10 @@ DEVILUTION_BEGIN_NAMESPACE
 
 /* Version numbers
 * 1 = First version
+* 2 = Save camera offset and direction
 */
 
-#define SAVEGAME_VERSION 1
+#define SAVEGAME_VERSION 2
 #define SAVEGAME_MAGIC 'GVSF'
 
 static int version = 0;
@@ -38,7 +39,7 @@ void SaveGame_ExtendedData()
 	bufferSize += 1 * (1 + 4 + 4 + 4 + 4); //walkedLastTick, _pNFrames_c, _pNWidth_c, _pWFrames_c, and _pWWidth_c
 	bufferSize += nummissiles * (4); //tickCount for every missile
 	bufferSize += numitems * (4); //iAnimCnt for every item
-	bufferSize += 4 + 4; //ScrollInfo.pxoffDiff and ScrollInfo.pyoffDiff
+	bufferSize += 4 + 4 + 4 + 4 + 4; //ScrollInfo.pxoffDiff, ScrollInfo.pyoffDiff, ScrollInfo._sdir, ScrollInfo._sxoff, ScrollInfo._syoff
 
 	//Allocate memory
 	BYTE *buffer;
@@ -76,6 +77,9 @@ void SaveGame_ExtendedData()
 	}
 	SaveInt(buffer, &pos, ScrollInfo.pxoffDiff);
 	SaveInt(buffer, &pos, ScrollInfo.pyoffDiff);
+	SaveInt(buffer, &pos, ScrollInfo._sdir);
+	SaveInt(buffer, &pos, ScrollInfo._sxoff);
+	SaveInt(buffer, &pos, ScrollInfo._syoff);
 	assert(pos == bufferSize);
 
 	//Save to file
@@ -126,6 +130,8 @@ static void AdjustSpeedModValues(int from)
 
 	ScrollInfo.pxoffDiff /= modifier;
 	ScrollInfo.pyoffDiff /= modifier;
+	ScrollInfo._sxoff /= modifier;
+	ScrollInfo._syoff /= modifier;
 }
 
 static void AdjustMonsterSpeedModValues(int from)
@@ -184,7 +190,7 @@ void LoadGame_ExtendedData()
 	BYTE *buffer;
 	DWORD dwLen;
 	buffer = pfile_read(szName, &dwLen);
-	
+
 	//Verify magic
 	DWORD pos = 0;
 	int magic;
@@ -242,6 +248,11 @@ void LoadGame_ExtendedData()
 	}
 	ReadInt(buffer, &pos, &ScrollInfo.pxoffDiff);
 	ReadInt(buffer, &pos, &ScrollInfo.pyoffDiff);
+	if (version >= 2) {
+		ReadInt(buffer, &pos, &ScrollInfo._sdir);
+		ReadInt(buffer, &pos, &ScrollInfo._sxoff);
+		ReadInt(buffer, &pos, &ScrollInfo._syoff);
+	}
 	mem_free_dbg(buffer);
 
 	//If the savegame has different speed modifiers, then we'll need to adjust some values
