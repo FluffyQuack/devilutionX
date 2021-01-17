@@ -379,8 +379,8 @@ void UiFocusNavigationSelect()
 {
 	UiPlaySelectSound();
 	if (textInputActive) {
-		if (strlen(UiTextInput) == 0) {
-			if (textInput_ReplaceNoTextWithA) {
+		if (UiTextInput == NULL || strlen(UiTextInput) == 0) {
+			if (UiTextInput != NULL && textInput_ReplaceNoTextWithA) {
 				UiTextInput[0] = 'a';
 				UiTextInput[1] = 0;
 			} else
