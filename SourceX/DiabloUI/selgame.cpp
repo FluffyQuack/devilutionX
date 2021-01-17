@@ -250,7 +250,18 @@ void selgame_Diff_Select(int value)
 		return;
 	}
 
-	selgame_GameSpeedSelection();
+	//selgame_GameSpeedSelection(); //Fluffy: Skip speed selection as it doesn't make sense for high framerate support
+
+	//Fluffy TODO: Should we do this differently?
+	gbTickRate = ticks_per_sec;
+	gSpeedMod = ticks_per_sec / 20;
+	gMonsterSpeedMod = ticks_per_sec / 20;
+	if (provider == SELCONN_LOOPBACK) {
+		selgame_Password_Select(0);
+		return;
+	}
+
+	selgame_Password_Init(0);
 }
 
 void selgame_Diff_Esc()
