@@ -38,7 +38,7 @@ TMenuItem sgOptionsMenu[] = {
 	{ GMENU_ENABLED | GMENU_SLIDER, NULL,            &gamemenu_sound_volume  },
 	{ GMENU_ENABLED | GMENU_SLIDER, "Gamma",         &gamemenu_gamma         },
 //	{ GMENU_ENABLED               , NULL,            &gamemenu_color_cycling },
-	{ GMENU_ENABLED | GMENU_SLIDER, "Speed",         &gamemenu_speed         },
+	//{ GMENU_ENABLED | GMENU_SLIDER, "Speed",         &gamemenu_speed         }, //Fluffy: Disable this for now
 	{ GMENU_ENABLED               , "Previous Menu", &gamemenu_previous      },
 	{ GMENU_ENABLED               , NULL,            NULL                    },
 	// clang-format on
@@ -179,7 +179,7 @@ void gamemenu_options(BOOL bActivate)
 	gamemenu_get_music();
 	gamemenu_get_sound();
 	gamemenu_get_gamma();
-	gamemenu_get_speed();
+	//gamemenu_get_speed(); //Fluffy: Disable this for now
 	//gamemenu_get_color_cycling();
 	gmenu_set_items(sgOptionsMenu, NULL);
 }
