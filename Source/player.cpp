@@ -891,12 +891,12 @@ void InitPlayer(int pnum, BOOL FirstTime)
 				NewPlrAnim(pnum, plr[pnum]._pNAnim[DIR_S], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
 				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames - 1) + 1;
 			}
-			plr[pnum]._pAnimCnt = random_(2, 3); //Fluffy TODO: This needs to be modified by gSpeedMod
+			plr[pnum]._pAnimCnt = random_(2, 3) * gSpeedMod; //Fluffy: Scale progress based on gSpeedMod
 		} else {
 			plr[pnum]._pmode = PM_DEATH;
 			NewPlrAnim(pnum, plr[pnum]._pDAnim[DIR_S], plr[pnum]._pDFrames, 1, plr[pnum]._pDWidth);
 			plr[pnum]._pAnimFrame = plr[pnum]._pAnimLen - 1;
-			plr[pnum]._pVar8 = (2 * plr[pnum]._pAnimLen) / gSpeedMod; //Fluffy: Divide by gSpeedMod to get the var's "real" value (TODO: We should double check we're doing the correct changes to var8)
+			plr[pnum]._pVar8 = (2 * plr[pnum]._pAnimLen) * gSpeedMod; //Fluffy: Scale progress based on gSpeedMod
 		}
 
 		plr[pnum]._pdir = DIR_S;
@@ -1456,7 +1456,7 @@ void StartSpell(int pnum, int d, int cx, int cy)
 	plr[pnum]._pVar1 = cx;
 	plr[pnum]._pVar2 = cy;
 	plr[pnum]._pVar4 = GetSpellLevel(pnum, plr[pnum]._pSpell);
-	plr[pnum]._pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
+	plr[pnum]._pVar8 = 1 * gSpeedMod; //Fluffy: Scale progress based on gSpeedMod
 }
 
 void FixPlrWalkTags(int pnum)
@@ -1540,7 +1540,7 @@ void StartPlrHit(int pnum, int dam, BOOL forcehit)
 
 		plr[pnum]._pmode = PM_GOTHIT;
 		FixPlayerLocation(pnum, pd);
-		plr[pnum]._pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
+		plr[pnum]._pVar8 = 1 * gSpeedMod; //Fluffy: Scale progress based on gSpeedMod
 		FixPlrWalkTags(pnum);
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 		SetPlayerOld(pnum);
@@ -2639,8 +2639,6 @@ BOOL PM_DoBlock(int pnum)
 		app_fatal("PM_DoBlock: illegal player %d", pnum);
 	}
 
-	//Fluffy TODO: Do we have to do anything here in regards to gSpeedMod?
-
 	if (plr[pnum]._pIFlags & ISPL_FASTBLOCK && plr[pnum]._pAnimFrame != 1) {
 		plr[pnum]._pAnimFrame = plr[pnum]._pBFrames;
 	}
@@ -2720,8 +2718,6 @@ BOOL PM_DoGotHit(int pnum)
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_DoGotHit: illegal player %d", pnum);
 	}
-
-	//Fluffy TODO: Do we have to do anything here in regards to gSpeedMod?
 
 	frame = plr[pnum]._pAnimFrame;
 	if (plr[pnum]._pIFlags & ISPL_FASTRECOVER && frame == 3) {
