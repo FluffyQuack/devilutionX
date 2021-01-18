@@ -1624,7 +1624,7 @@ void StartPlayerKill(int pnum, int earflag)
 	p->_pmode = PM_DEATH;
 	p->_pInvincible = TRUE;
 	SetPlayerHitPoints(pnum, 0);
-	p->_pVar8 = 1; //Fluffy TODO: How to handle this with gSpeedMod?
+	p->_pVar8 = 1 * gSpeedMod; //Fluffy: Scale up progress based on gSpeedMod
 
 	if (pnum != myplr && !earflag && !diablolevel) {
 		for (i = 0; i < NUM_INVLOC; i++) {
@@ -2535,7 +2535,7 @@ BOOL PM_DoAttack(int pnum)
 		}
 	}
 
-	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFrames) { //Fluffy TODO: Does this have to be modified in regards to gSpeedMod?
+	if (plr[pnum]._pAnimFrame == plr[pnum]._pAFrames) {
 		StartStand(pnum, plr[pnum]._pdir);
 		ClearPlrPVars(pnum);
 		return TRUE;
@@ -2589,7 +2589,7 @@ BOOL PM_DoRangeAttack(int pnum)
 		}
 	}
 
-	if (plr[pnum]._pAnimFrame >= plr[pnum]._pAFrames) { //Fluffy TODO: Does this have to be modified in regards to gSpeedMod?
+	if (plr[pnum]._pAnimFrame >= plr[pnum]._pAFrames) {
 		StartStand(pnum, plr[pnum]._pdir);
 		ClearPlrPVars(pnum);
 		return TRUE;
