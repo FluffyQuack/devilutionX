@@ -12,6 +12,8 @@ namespace dvl {
 
 int sgdwLockCount;
 BYTE *gpBuffer;
+BYTE *gpBuffer_24bit; //Fluffy
+BYTE *gpBuffer_32bit; //Fluffy
 #ifdef _DEBUG
 int locktbl[256];
 #endif
