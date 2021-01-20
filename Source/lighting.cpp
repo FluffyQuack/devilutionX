@@ -508,7 +508,7 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 	}
 }
 
-void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum)
+void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
 	int x, y, v, xoff, yoff, mult, radius_block;
 	int min_x, max_x, min_y, max_y;
@@ -631,7 +631,7 @@ void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum)
 	}
 }
 
-void DoUnLight(int nXPos, int nYPos, int nRadius)
+void DoUnLight(int nXPos, int nYPos, int nRadius) //Similar to DoLighting() but it removes lighting from dLight array instead
 {
 	int x, y, min_x, min_y, max_x, max_y;
 
@@ -662,7 +662,7 @@ void DoUnLight(int nXPos, int nYPos, int nRadius)
 	}
 }
 
-void DoUnVision(int nXPos, int nYPos, int nRadius)
+void DoUnVision(int nXPos, int nYPos, int nRadius) //Same as DoVision() but it removes vision instead
 {
 	int i, j, x1, y1, x2, y2;
 
@@ -692,7 +692,7 @@ void DoUnVision(int nXPos, int nYPos, int nRadius)
 	}
 }
 
-void DoVision(int nXPos, int nYPos, int nRadius, BOOL doautomap, BOOL visible)
+void DoVision(int nXPos, int nYPos, int nRadius, BOOL doautomap, BOOL visible) //This applies vision. Vision is only used by players defining line of sight, which controls what enemies/players we can see, and defines whether or not enemies are "awake"
 {
 	BOOL nBlockerFlag;
 	int nCrawlX, nCrawlY, nLineLen, nTrans;
