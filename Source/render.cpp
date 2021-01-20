@@ -133,7 +133,7 @@ static DWORD LeftFoliageMask[TILE_HEIGHT] = {
 	0xFFFFFFF0, 0xFFFFFFFC,
 };
 
-inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD mask)
+inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD mask) //Draw a horizontal line
 {
 	int i;
 
@@ -145,7 +145,7 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 	}
 #endif
 
-	if (mask == 0xFFFFFFFF) {
+	if (mask == 0xFFFFFFFF) { //Opaque
 		if (light_table_index == lightmax) {
 			memset(*dst, 0, n);
 			(*src) += n;
@@ -159,7 +159,7 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 				(*dst)[0] = tbl[(*src)[0]];
 			}
 		}
-	} else {
+	} else { //Transparency (this alternates between drawing and not drawing, aka dithering)
 		if (light_table_index == lightmax) {
 			(*src) += n;
 			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
@@ -204,8 +204,8 @@ void RenderTile(BYTE *pBuff)
 	tile = (level_cel_block & 0x7000) >> 12;
 	tbl = &pLightTbl[256 * light_table_index];
 
+	//The mask defines what parts of the tile should be replaced with transparency (aka dithering)
 	mask = &SolidMask[TILE_HEIGHT - 1];
-
 	if (cel_transparency_active) {
 		if (arch_draw_type == 0) {
 			mask = &WallMask[TILE_HEIGHT - 1];
@@ -241,12 +241,12 @@ void RenderTile(BYTE *pBuff)
 #endif
 
 	switch (tile) {
-	case RT_SQUARE:
+	case RT_SQUARE: //Draws a 32x32 square. This is used for walls
 		for (i = TILE_HEIGHT; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
 			RenderLine(&dst, &src, TILE_WIDTH / 2, tbl, *mask);
 		}
 		break;
-	case RT_TRANSPARENT:
+	case RT_TRANSPARENT: //I've seen this be used for tiles with rubble on them (the rubble extends upwards beyond the normal boundaries of the tile). I've also seen it be used by top parts of walls, the tiles containing bottom part of torches, and pillars
 		for (i = TILE_HEIGHT; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
 			m = *mask;
 			for (j = TILE_WIDTH / 2; j != 0; j -= v, v == TILE_WIDTH / 2 ? m = 0 : m <<= v) {
@@ -260,31 +260,31 @@ void RenderTile(BYTE *pBuff)
 			}
 		}
 		break;
-	case RT_LTRIANGLE:
-		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+	case RT_LTRIANGLE: //This is used for 99% of floor tiles
+		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Bottomleft
 			src += i & 2;
 			dst += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 		}
-		for (i = 2; i != TILE_WIDTH / 2; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+		for (i = 2; i != TILE_WIDTH / 2; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topleft
 			src += i & 2;
 			dst += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 		}
 		break;
-	case RT_RTRIANGLE:
-		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+	case RT_RTRIANGLE: //This is used for 99% of floor tiles
+		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Bottomright
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
-		}
-		for (i = 2; i != TILE_HEIGHT; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+		} 
+		for (i = 2; i != TILE_HEIGHT; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topright
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
 		}
 		break;
-	case RT_LTRAPEZOID:
+	case RT_LTRAPEZOID: //Used for parts of walls
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
 			src += i & 2;
 			dst += i;
@@ -294,7 +294,7 @@ void RenderTile(BYTE *pBuff)
 			RenderLine(&dst, &src, TILE_WIDTH / 2, tbl, *mask);
 		}
 		break;
-	case RT_RTRAPEZOID:
+	case RT_RTRAPEZOID: //Used for parts of walls
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
