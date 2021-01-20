@@ -10,7 +10,7 @@ DEVILUTION_BEGIN_NAMESPACE
 /**
  * Specifies the current light entry.
  */
-int light_table_index;
+int light_table_index; //0 means fully lit. Higher value means darker lighting (usually maxes out at 15)
 DWORD sgdwCursWdtOld;
 DWORD sgdwCursX;
 DWORD sgdwCursY;
