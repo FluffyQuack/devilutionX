@@ -147,36 +147,42 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 
 	if (mask == 0xFFFFFFFF) { //Opaque
 		if (light_table_index == lightmax) {
-			memset(*dst, 0, n);
+			memset(*dst, 0, n); //Render the full line as darkness
 			(*src) += n;
 			(*dst) += n;
 		} else if (light_table_index == 0) {
-			memcpy(*dst, *src, n);
+			memcpy(*dst, *src, n); //Render the full line fully lit
 			(*src) += n;
 			(*dst) += n;
 		} else {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++) {
-				(*dst)[0] = tbl[(*src)[0]];
+				(*dst)[0] = tbl[(*src)[0]]; //Draw pixels in partial darkness
 			}
 		}
 	} else { //Transparency (this alternates between drawing and not drawing, aka dithering)
 		if (light_table_index == lightmax) {
 			(*src) += n;
 			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
-					(*dst)[0] = 0;
+				(*dst)[0] = palette_transparency_lookup[(*dst)[0]][0]; //Fluffy: Transparency
+
+				if (0 && mask & 0x80000000) {
+					(*dst)[0] = 0; //Draw completely black pixel
 				}
 			}
 		} else if (light_table_index == 0) {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
-					(*dst)[0] = (*src)[0];
+				(*dst)[0] = palette_transparency_lookup[(*dst)[0]][(*src)[0]]; //Fluffy: Transparency
+
+				if (0 && mask & 0x80000000) {
+					(*dst)[0] = (*src)[0]; //Draw fully lit pixel
 				}
 			}
 		} else {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
-					(*dst)[0] = tbl[(*src)[0]];
+				(*dst)[0] = palette_transparency_lookup[(*dst)[0]][tbl[(*src)[0]]]; //Fluffy: Transparency
+
+				if (0 && mask & 0x80000000) {
+					(*dst)[0] = tbl[(*src)[0]]; //Draw pixel in partial darkness
 				}
 			}
 		}
