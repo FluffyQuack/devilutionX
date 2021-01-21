@@ -569,6 +569,7 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
 			* We also need to improve the line of sight code because enabling this reveals we have a lot of "blindspots" which should be within the line of sight
 			* We could re-do the lighting multiple times, with the extra times using an offset starting position and weaker light, that way we'll have some weak light bleeding around corners
 			* The best solution would probably be to implement this as line-of-sight code: https://www.albertford.com/shadowcasting/
+			* An idea which might have some potential is doing flood-fill combined with raycasting. Do floodfilling primarily, and then do raycasting to verify line of sight. If raycasting fails, then flood fill 1-2 tiles while letting light level drop rapidly (that way we get a softer shadow edge)
 			*/
 			//if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
 				//break;
