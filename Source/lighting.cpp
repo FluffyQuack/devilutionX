@@ -511,8 +511,13 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 
 #define DOLIGHTING_ANGLESTEP 5 //How slowly we progress the angle directions
 #define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
-void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
+void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) //Fluffy
 {
+	int orig_nXPos = nXPos;
+	int orig_nYPos = nYPos;
+	int orig_nRadius = nRadius;
+	int orig_Lnum = Lnum;
+
 	int xoff = 0;
 	int yoff = 0;
 	if (Lnum >= 0) {
@@ -564,15 +569,15 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
 			tile[x][y].totalLight += light;
 
 			/*
-			* TODO: The light blocking needs BIG changes in order to look good. One idea would be to make areas turning dark fade into black rather than instantly turning black, but it needs way more work beyond that
+			* TODO: The light blocking needs BIG changes in order to look good.
 			* Another idea would be to somehow make it "bleed" through corners and allow some light go through
 			* We also need to improve the line of sight code because enabling this reveals we have a lot of "blindspots" which should be within the line of sight
 			* We could re-do the lighting multiple times, with the extra times using an offset starting position and weaker light, that way we'll have some weak light bleeding around corners
 			* The best solution would probably be to implement this as line-of-sight code: https://www.albertford.com/shadowcasting/
 			* An idea which might have some potential is doing flood-fill combined with raycasting. Do floodfilling primarily, and then do raycasting to verify line of sight. If raycasting fails, then flood fill 1-2 tiles while letting light level drop rapidly (that way we get a softer shadow edge)
 			*/
-			//if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
-				//break;
+			if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
+				break;
 		}
 
 		angle += DOLIGHTING_ANGLESTEP;
@@ -589,11 +594,25 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
 		}
 	}
 	delete[]tile;
+
+	/* //Done as a test to give smoother shadows around corners, but it didn't work very well. It also lets you see around corners too well when you're very close to them. If this is removed, then "fromMain" can be removed from this function's argument list too
+	if (fromMain) {
+		DoLighting_New(orig_nXPos + 1, orig_nYPos, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos, orig_nYPos + 1, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos, orig_nYPos - 1, orig_nRadius - 2, orig_Lnum, 0);
+
+		DoLighting_New(orig_nXPos + 1, orig_nYPos - 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos + 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos + 1, orig_nYPos + 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos - 1, orig_nRadius - 3, orig_Lnum, 0);
+	}
+	*/
 }
 
 void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
-	DoLighting_New(nXPos, nYPos, nRadius, Lnum);
+	DoLighting_New(nXPos, nYPos, nRadius, Lnum, 1);
 	return;
 
 	int x, y, v, xoff, yoff, mult, radius_block;
@@ -1206,6 +1225,21 @@ void ProcessLightList()
 	if (lightflag != 0) {
 		return;
 	}
+
+
+	/* //This was done as a test and can be removed as the effect didn't look very good
+	//Fluffy: Gradually fade out all lights (active light will override this)
+	if (dolighting) {
+		for (int x = 0; x < MAXDUNX; x++)
+			for (int y = 0; y < MAXDUNY; y++) {
+				dLight[x][y] += 1;
+				if (dLight[x][y] > 15)
+					dLight[x][y] = 15;
+				else if (dLight[x][y] > dPreLight[x][y])
+					dLight[x][y] = dPreLight[x][y];
+			}
+	}
+	*/
 
 	if (dolighting) {
 		for (i = 0; i < numlights; i++) {
