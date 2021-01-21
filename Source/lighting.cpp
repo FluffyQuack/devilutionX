@@ -508,7 +508,38 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 	}
 }
 
-void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
+void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum)
+{
+	int xoff = 0;
+	int yoff = 0;
+	if (Lnum >= 0) {
+		xoff = LightList[Lnum]._xoff;
+		yoff = LightList[Lnum]._yoff;
+		if (xoff < 0) {
+			xoff += 8;
+			nXPos--;
+		}
+		if (yoff < 0) {
+			yoff += 8;
+			nYPos--;
+		}
+	}
+
+	int x = nXPos;
+	int y = nYPos;
+	dLight[x][y] = 0;
+}
+
+/*
+void DoUnLight(int nXPos, int nYPos, int nRadius)
+{
+	int x = nXPos;
+	int y = nYPos;
+	dLight[x][y] = dPreLight[x][y];
+}
+*/
+
+void DoLighting_Old(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
 	int x, y, v, xoff, yoff, mult, radius_block;
 	int min_x, max_x, min_y, max_y;
@@ -631,7 +662,7 @@ void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one 
 	}
 }
 
-void DoUnLight(int nXPos, int nYPos, int nRadius) //Similar to DoLighting() but it removes lighting from dLight array instead
+void DoUnLight(int nXPos, int nYPos, int nRadius) //Similar to DoLighting() but it removes lighting from dLight array instead (or rather, it reverts lighting to its initial state when the level was loaded). Each time lighting is updated, "unlights" happen first, and then "lighting" happens afterwards. This means that the algorithm for unlight can be very straightforward as it doesn't have to ensure it touches the exact same tiles as DoLighting()
 {
 	int x, y, min_x, min_y, max_x, max_y;
 
