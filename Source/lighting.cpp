@@ -562,8 +562,9 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
 				continue;
 			tile[x][y].num += 1;
 			tile[x][y].totalLight += light;
+
 			/*
-			* TODO: This needs BIG changes in order to look good. One idea would be to make areas turning dark fade into black rather than instantly turning black, but it needs way more work beyond that
+			* TODO: The light blocking needs BIG changes in order to look good. One idea would be to make areas turning dark fade into black rather than instantly turning black, but it needs way more work beyond that
 			* Another idea would be to somehow make it "bleed" through corners and allow some light go through
 			* We also need to improve the line of sight code because enabling this reveals we have a lot of "blindspots" which should be within the line of sight
 			*/
