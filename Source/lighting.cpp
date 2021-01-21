@@ -4,6 +4,7 @@
  * Implementation of light and vision.
  */
 #include "all.h"
+#include "Misc\misc.h" //Fluffy: For vector rotation
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -508,7 +509,9 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 	}
 }
 
-void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum)
+#define DOLIGHTING_ANGLESTEP 5 //How slowly we progress the angle directions
+#define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
+void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum) //Fluffy
 {
 	int xoff = 0;
 	int yoff = 0;
@@ -524,23 +527,71 @@ void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum)
 			nYPos--;
 		}
 	}
+	/*
+	Fluffy: This is how we do the lighting:
+	- Calculate the end point (aka vector) of one light trace
+	- Step from start to end of vector (not sure at which accuracy), and light up each tile (decrease light based on iteration progress). Stop if we hit a tile blocking line of sight
+	- Rotate vector, and repeat previous step. Stop once vector has been rotated 360 degrees
+	- Since we might hit the same tiles multiple times, we tally them up and calculate the average as the last step
+	*/
 
-	int x = nXPos;
-	int y = nYPos;
-	dLight[x][y] = 0;
+	//Start with a north vector
+	struct tile_s {
+		int totalLight;
+		int num;
+	};
+	tile_s (*tile)[MAXDUNX] = new tile_s[MAXDUNX][MAXDUNY];
+	memset(tile, 0, sizeof(tile_s) * MAXDUNX * MAXDUNY);
+
+	//Iterate through different angles
+	int vectorX = 0;
+	int vectorY = -nRadius;
+	double angle = 0;
+	while (angle < 360.0) {
+
+		double rotatedX = vectorX;
+		double rotatedY = vectorY;
+		RotateVector(angle, &rotatedX, &rotatedY);
+
+		for (int i = 0; i < nRadius * DOLIGHTING_RAYACCURACY; i++) {
+			double progress = ((double)i) / ((nRadius * DOLIGHTING_RAYACCURACY) - 1);
+			int light = (progress * 15) + 0.5;
+			int x = nXPos + ((rotatedX * progress) + 0.5 + ((double) xoff / 8)); //Add in start position for light, our "ray" progress, round to nearest integer, and adjustment based on light offset (aka sub-tile position)
+			int y = nYPos + ((rotatedY * progress) + 0.5 + ((double) yoff / 8));
+			if (x < 0 || y < 0 || x >= MAXDUNX || y >= MAXDUNY) //Out of bounds check
+				continue;
+			tile[x][y].num += 1;
+			tile[x][y].totalLight += light;
+			/*
+			* TODO: This needs BIG changes in order to look good. One idea would be to make areas turning dark fade into black rather than instantly turning black, but it needs way more work beyond that
+			* Another idea would be to somehow make it "bleed" through corners and allow some light go through
+			* We also need to improve the line of sight code because enabling this reveals we have a lot of "blindspots" which should be within the line of sight
+			*/
+			//if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
+				//break;
+		}
+
+		angle += DOLIGHTING_ANGLESTEP;
+	}
+
+	//Calculate averages
+	for (int x = 0; x < MAXDUNX; x++) {
+		for (int y = 0; y < MAXDUNY; y++) {
+			int light = 15;
+			if (tile[x][y].num > 0)
+				light = tile[x][y].totalLight / tile[x][y].num;
+			if (dLight[x][y] > light)
+				dLight[x][y] = light;
+		}
+	}
+	delete[]tile;
 }
 
-/*
-void DoUnLight(int nXPos, int nYPos, int nRadius)
+void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
-	int x = nXPos;
-	int y = nYPos;
-	dLight[x][y] = dPreLight[x][y];
-}
-*/
+	DoLighting_New(nXPos, nYPos, nRadius, Lnum);
+	return;
 
-void DoLighting_Old(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
-{
 	int x, y, v, xoff, yoff, mult, radius_block;
 	int min_x, max_x, min_y, max_y;
 	int dist_x, dist_y, light_x, light_y, block_x, block_y, temp_x, temp_y;
