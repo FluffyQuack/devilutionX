@@ -163,7 +163,7 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 		if (light_table_index == lightmax) {
 			(*src) += n;
 			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
-				(*dst)[0] = palette_transparency_lookup[(*dst)[0]][0]; //Fluffy: Transparency
+				(*dst)[0] = palette_transparency_lookup[0][(*dst)[0]]; //Fluffy: Transparency
 
 				if (0 && mask & 0x80000000) {
 					(*dst)[0] = 0; //Draw completely black pixel
