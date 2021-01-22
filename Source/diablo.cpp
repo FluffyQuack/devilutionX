@@ -7,6 +7,7 @@
 #include "../3rdParty/Storm/Source/storm.h"
 #include "../DiabloUI/diabloui.h"
 #include <config.h>
+#include "misc\config.h" //Fluffy: For reading options from config during startup
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -80,9 +81,10 @@ unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolu
 int gSpeedMod = 1; //Fluffy
 int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 
-//Fluffy: New global variables which are updated when loading config file (or loaded via network if we join a network game)
+//Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 BOOL gameSetup_fastWalkInTown = true;
 BOOL gameSetup_allowAttacksInTown = false;
+BOOL options_transparency = false;
 
 /* rdata */
 
@@ -384,6 +386,7 @@ void diablo_quit(int exitStatus)
 int DiabloMain(int argc, char **argv)
 {
 	diablo_parse_flags(argc, argv);
+	LoadOptionsFromConfig(); //Fluffy: Read options from config here
 	diablo_init();
 	diablo_splash();
 	mainmenu_loop();

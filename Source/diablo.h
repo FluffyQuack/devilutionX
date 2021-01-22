@@ -52,9 +52,10 @@ extern unsigned long long tick_delay_highResolution; //Fluffy
 extern int gSpeedMod;
 extern int gMonsterSpeedMod;
 
-//Fluffy: New global variables which are updated when loading config file (or loaded via network if we joined a network game)
+//Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 extern BOOL gameSetup_fastWalkInTown;
 extern BOOL gameSetup_allowAttacksInTown;
+extern BOOL options_transparency;
 
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
