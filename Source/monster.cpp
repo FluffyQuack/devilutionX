@@ -2206,7 +2206,7 @@ int M_DoRSpAttack(int i)
 		PlayEffect(i, 3);
 	}
 
-	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3 && monster[i]._mAnimCnt == 0) { //Fluffy: Only let this happen once per animation frame (gMonsterSpeedMod related)
+	if (monster[i]._mAi == AI_MEGA && monster[i]._mAnimFrame == 3 && monster[i].tickCount == 0) { //Fluffy: Only let this happen once per 50ms (gMonsterSpeedMod related)
 		int hadV2 = monster[i]._mVar2;
 		monster[i]._mVar2++;
 		if (hadV2 == 0) {
