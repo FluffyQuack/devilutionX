@@ -7,7 +7,7 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-static void LoadGameSetupVariableFromConfig(char *name, BOOL *variable)
+static void LoadBoolVariableFromConfig(char *name, BOOL *variable)
 {
 	int temp = *variable;
 	if (SRegLoadValue("devilutionx", name, 0, &temp))
@@ -35,10 +35,11 @@ void LoadOptionsFromConfig()
 	if (gMonsterSpeedMod < 1)
 		gMonsterSpeedMod = 1;
 
-	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
-	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
-	LoadGameSetupVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
-	LoadGameSetupVariableFromConfig("Transparency", &options_transparency);
+	//Fluffy: Various new config toggles (gameplay-changing ones are updated via network)
+	LoadBoolVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
+	LoadBoolVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
+	LoadBoolVariableFromConfig("Transparency", &options_transparency);
+	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
 }
 
 DEVILUTION_END_NAMESPACE

@@ -524,8 +524,9 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy);
  * @param y dPiece coordinate
  * @param sx Back buffer coordinate
  * @param sy Back buffer coordinate
+ * @param importantObjectNaarby Whether or not a player, monster, item, etc is nearby (Fluffy)
  */
-static void drawCell(int x, int y, int sx, int sy)
+static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 {
 	BYTE *dst;
 	MICROS *pMap;
@@ -533,7 +534,12 @@ static void drawCell(int x, int y, int sx, int sy)
 	dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	pMap = &dpiece_defs_map_2[x][y];
 	level_piece_id = dPiece[x][y];
-	cel_transparency_active = (BYTE)(nTransTable[level_piece_id] & TransList[dTransVal[x][y]]);
+
+	if (options_opaqueWallsUnlessObscuring && !importantObjectNearby) //Fluffy: Make this opaque if there's nothing important nearby
+		cel_transparency_active = 0;
+	else
+		cel_transparency_active = (BYTE)(nTransTable[level_piece_id] & TransList[dTransVal[x][y]]);
+
 	cel_foliage_active = !nSolidTable[level_piece_id];
 	for (int i = 0; i<MicroTileLen>> 1; i++) {
 		level_cel_block = pMap->mt[2 * i];
@@ -696,7 +702,24 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 
 	light_table_index = dLight[sx][sy];
 
-	drawCell(sx, sy, dx, dy);
+	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
+	bool importantObjectNearby = 0;
+	if (options_opaqueWallsUnlessObscuring && light_table_index < lightmax) {
+		for (int i = -3; i < 1; i++)
+			for (int j = -3; j < 2; j++) {
+				int x = i + sx;
+				int y = j + sy;
+				if (x < 0 || x >= MAXDUNX || y < 0 || y >= MAXDUNY)
+					continue;
+				if (dPlayer[x][y] > 0 || dFlags[x][y] & BFLAG_PLAYERLR || dObject[x][y] > 0 || dItem[x][y] > 0
+				    || dMonster[x][y] > 0 || dFlags[x][y] & BFLAG_MONSTLR || dFlags[x][y] & BFLAG_MISSILE) {
+					importantObjectNearby = 1;
+					break;
+				}
+			}
+	}
+
+	drawCell(sx, sy, dx, dy, importantObjectNearby);
 
 	bFlag = dFlags[sx][sy];
 	bDead = dDead[sx][sy];
@@ -753,18 +776,16 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 	if (leveltype != DTYPE_TOWN) {
 		bArch = dSpecial[sx][sy];
 		if (bArch != 0) {
-			cel_transparency_active = TransList[bMap];
+			if (options_opaqueWallsUnlessObscuring && !importantObjectNearby) //Fluffy: Make this opaque if nothing important is nearby
+				cel_transparency_active = 0;
+			else
+				cel_transparency_active = TransList[bMap];
 #ifdef _DEBUG
 			if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000) {
 				cel_transparency_active = 0; //Fluffy: Turn transparency off here for debugging
 			}
 #endif
 			CelClippedBlitLightTrans(&gpBuffer[dx + BUFFER_WIDTH * dy], pSpecialCels, bArch, 64);
-#ifdef _DEBUG
-			if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000) {
-				cel_transparency_active = TransList[bMap]; //Fluffy: Turn transparency back to its normal state
-			}
-#endif
 		}
 	} else {
 		// Tree leafs should always cover player when entering or leaving the tile,

@@ -19,7 +19,7 @@ enum {
 };
 
 /** Fluffy: Fully transparent variant of WallMask. */
-static DWORD WallMask_FullyTrasparent[TILE_HEIGHT] = {
+static DWORD WallMask_FullyTransparent[TILE_HEIGHT] = {
 	0x00000000, 0x00000000,
 	0x00000000, 0x00000000,
 	0x00000000, 0x00000000,
@@ -215,31 +215,31 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 			(*dst) += n;
 		} else {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++) {
-				(*dst)[0] = tbl[(*src)[0]]; //Draw pixels in partial darkness
+				(*dst)[0] = tbl[(*src)[0]]; //Draw pixels partially lit
 			}
 		}
-	} else { //Draw mask (if options_trasparency is true, then we draw proper transparency on masked pixels. By default this would be dithering)
+	} else { //Draw based on mask (if options_trasparency is true, then we draw proper transparency on masked pixels. By default this would be dithering)
 		if (light_table_index == lightmax) {
 			(*src) += n;
 			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
 				if (mask & 0x80000000) {
 					(*dst)[0] = 0; //Draw completely black pixel
 				} else if (options_transparency)
-					(*dst)[0] = palette_transparency_lookup[0][(*dst)[0]]; //Fluffy: Tranparent pixel
+					(*dst)[0] = palette_transparency_lookup[0][(*dst)[0]]; //Fluffy: Transparency
 			}
 		} else if (light_table_index == 0) {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
 				if (mask & 0x80000000) {
 					(*dst)[0] = (*src)[0]; //Draw fully lit pixel
 				} else if (options_transparency)
-					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][(*src)[0]]; //Fluffy: Tranparent pixel
+					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][(*src)[0]]; //Fluffy: Transparency
 			}
 		} else {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
 				if (mask & 0x80000000) {
-					(*dst)[0] = tbl[(*src)[0]]; //Draw pixel in partial darkness
+					(*dst)[0] = tbl[(*src)[0]]; //Draw partially lit pixel
 				} else if (options_transparency)
-					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][tbl[(*src)[0]]]; //Fluffy: Tranparent pixel
+					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][tbl[(*src)[0]]]; //Fluffy: Transparency
 			}
 		}
 	}
@@ -271,7 +271,7 @@ void RenderTile(BYTE *pBuff)
 	if (cel_transparency_active) {
 		if (arch_draw_type == 0) {
 			if (options_transparency == 1) //Fluffy
-				mask = &WallMask_FullyTrasparent[TILE_HEIGHT - 1];
+				mask = &WallMask_FullyTransparent[TILE_HEIGHT - 1];
 			else
 				mask = &WallMask[TILE_HEIGHT - 1];
 		}
