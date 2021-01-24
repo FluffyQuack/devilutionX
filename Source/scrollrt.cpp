@@ -611,7 +611,7 @@ static void DrawItem(int x, int y, int sx, int sy, BOOL pre)
 }
 
 /**
- * @brief Check if and how a mosnter should be rendered
+ * @brief Check if and how a monster should be rendered
  * @param y dPiece coordinate
  * @param x dPiece coordinate
  * @param oy dPiece Y offset
@@ -711,8 +711,19 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				int y = j + sy;
 				if (x < 0 || x >= MAXDUNX || y < 0 || y >= MAXDUNY)
 					continue;
-				if (dPlayer[x][y] > 0 || dFlags[x][y] & BFLAG_PLAYERLR || dObject[x][y] > 0 || dItem[x][y] > 0
-				    || dMonster[x][y] > 0 || dFlags[x][y] & BFLAG_MONSTLR || dFlags[x][y] & BFLAG_MISSILE) {
+
+				//Check for interactable object
+				if (dObject[x][y] != 0) { 
+					int ob = dObject[x][y] > 0 ? dObject[x][y] - 1 : -(dObject[x][y] + 1);
+					if (object[ob]._oSelFlag >= 1) { 
+						importantObjectNearby = 1;
+						break;
+					}
+				}
+
+				//Check for player, monster, item, and missile
+				if (dPlayer[x][y] != 0 || dFlags[x][y] & BFLAG_PLAYERLR || dItem[x][y] > 0 
+				    || dMonster[x][y] != 0 || dFlags[x][y] & BFLAG_MONSTLR || dFlags[x][y] & BFLAG_MISSILE) {
 					importantObjectNearby = 1;
 					break;
 				}
