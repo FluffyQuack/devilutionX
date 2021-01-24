@@ -77,6 +77,8 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 void CelBlitLightTransSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth);
 void CelDrawLightRedSafe(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, char light);
 void CelBlitWidth(BYTE *pBuff, int x, int y, int wdt, BYTE *pCelBuff, int nCel, int nWidth);
+void CelBlit_ShadowPixels(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
+void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
 void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void ENG_set_pixel(int sx, int sy, BYTE col);
 void engine_draw_pixel(int sx, int sy);

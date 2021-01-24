@@ -600,6 +600,139 @@ void CelBlitWidth(BYTE *pBuff, int x, int y, int wdt, BYTE *pCelBuff, int nCel, 
 	}
 }
 
+//Fluffy: Just a quick debug function for highlighting pixels with the value 0 in the CEL format
+/*
+void CelBlit_ShadowPixels(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
+{
+	int nDataSize, i, w;
+	BYTE width;
+	BYTE *src, *dst, *end;
+
+	assert(pCelBuff != NULL);
+	assert(gpBuffer);
+
+	src = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+	dst = &gpBuffer[sx + BUFFER_WIDTH * sy];
+	end = &src[nDataSize];
+	w = nWidth;
+
+	for (; src != end; dst -= BUFFER_WIDTH + w) {
+		for (i = w; i;) {
+			width = *src++;
+			if (!(width & 0x80)) {
+				i -= width;
+				if (dst < gpBufEnd && dst > gpBufStart) {
+					for (int j = 0; j < width; j++) {
+						if (*src == 0)
+							*dst = col;
+						src++;
+						dst++;
+					}
+				} else {
+					src += width;
+					dst += width;
+				}
+			} else {
+				width = -(char)width;
+				dst += width;
+				i -= width;
+			}
+		}
+	}
+}
+*/
+
+//Fluffy: Same as CelBlitOutline() but it only draws pixels for the outline and nothing else
+void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
+{
+/*
+	TODO: This function doesn't work well because 0 isn't only used for shadow, it's used for a lot of different pixels. I think the only proper fix would be to alter the assets
+
+	One possible fix (though it would need a lot of work) is to do a "floodfill" action on assets for pixels of value 0, and then check if those resulting regions touch empty space. If they do, we assume it's a shadow and we separate them
+	That would work for most sprites, but there are sprites which would need manual attention. For instance, the shields for skeletons are so dark it uses value 0 along its edge
+*/
+	int nDataSize, w;
+	BYTE *src, *dst, *end;
+	BYTE width;
+
+	assert(pCelBuff != NULL);
+	assert(gpBuffer);
+
+	src = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+	end = &src[nDataSize];
+	dst = &gpBuffer[sx + BUFFER_WIDTH * sy];
+
+	//Get height of sprite
+	int height = 0;
+	BYTE *srcBack = src;
+	while (src != end) {
+		height++;
+		for (int i = nWidth; i;) {
+			width = *src++;
+			if (!(width & 0x80)) {
+				i -= width;
+				src += width;
+			} else {
+				width = -(char)width;
+				i -= width;
+			}
+		}
+	}
+
+	//Write sprite to buffer (we only care about what pixels are opaque or not, so we don't add the real colour values)
+	BYTE *buffer = new BYTE[nWidth * height];
+	BYTE *bufferPtr = buffer;
+	src = srcBack;
+	while (src != end) {
+		for (int i = nWidth; i;) {
+			width = *src++;
+			if (!(width & 0x80)) { //Run-length encoding. Positive signed byte means it defines quantity of bytes with image data
+				for (int j = 0; j < width; j++) { //We have to go pixel by pixel here because we want to skip shadow pixels
+					if (*src != 0)
+						*bufferPtr = 1;
+					else
+						*bufferPtr = 0;
+					src++;
+					bufferPtr += 1;
+				}
+			} else { //Negative signed byte means it's defining quantity of skipped pixels
+				width = -(char)width;
+				memset(bufferPtr, 0, width);
+				bufferPtr += width;
+			}
+			i -= width;
+		}
+	}
+	assert(buffer + (nWidth * height) == bufferPtr);
+
+	//Draw outline
+	bufferPtr = buffer;
+	BYTE *bufferEnd = buffer + (nWidth * height);
+	BYTE *bufferOneRow = buffer + nWidth;
+	while (bufferPtr < bufferEnd) {
+		for (int i = nWidth; i;) {
+			if (*bufferPtr == 1 && dst <= gpBufEnd && dst >= gpBufStart) {
+				if (dst < gpBufEnd - BUFFER_WIDTH && (bufferPtr < bufferOneRow || bufferPtr[-nWidth] == 0))
+					dst[BUFFER_WIDTH] = col;
+				if (i == nWidth || bufferPtr <= buffer || bufferPtr[-1] == 0)
+					dst[-1] = col;
+				if (i == 1 || bufferPtr + 1 >= bufferEnd || bufferPtr[1] == 0)
+					dst[1] = col;
+				if (bufferPtr + nWidth >= bufferEnd || bufferPtr[nWidth] == 0)
+					dst[-BUFFER_WIDTH] = col;
+				//dst[0] = col;
+			}
+			bufferPtr += 1;
+			dst += 1;
+			i--;
+		}
+		dst -= BUFFER_WIDTH + nWidth;
+	}
+	delete[] buffer;
+
+	//TODO: We can greatly optimize this function by making it more similar to the CelBlitOutline() function but keeping the previous horizontal line as a buffer so we can compare against that as we process line by line
+}
+
 /**
  * @brief Blit a solid colder shape one pixel larger then the given sprite shape, to the back buffer at the given coordianates
  * @param col Color index from current palette
