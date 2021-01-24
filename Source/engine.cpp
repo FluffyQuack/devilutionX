@@ -720,7 +720,6 @@ void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, 
 					dst[1] = col;
 				if (bufferPtr + nWidth >= bufferEnd || bufferPtr[nWidth] == 0)
 					dst[-BUFFER_WIDTH] = col;
-				//dst[0] = col;
 			}
 			bufferPtr += 1;
 			dst += 1;
