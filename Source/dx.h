@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 extern BYTE *gpBuffer;
+extern BYTE *gpBuffer_important; //Fluffy
 
 void dx_init(HWND hWnd);
 void lock_buf(BYTE idx);

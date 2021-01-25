@@ -204,6 +204,10 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 	}
 #endif
 
+	BYTE *importantBuff; //Fluffy: For wall transparency. (Only used if certain toggles are on)
+	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+		importantBuff = gpBuffer_important + ((*dst) - gpBuffer);
+
 	if (mask == 0xFFFFFFFF) { //Fully opaque
 		if (light_table_index == lightmax) {
 			memset(*dst, 0, n); //Render the full line as darkness
@@ -218,28 +222,45 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 				(*dst)[0] = tbl[(*src)[0]]; //Draw pixels partially lit
 			}
 		}
-	} else { //Draw based on mask (if options_trasparency is true, then we draw proper transparency on masked pixels. By default this would be dithering)
+		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+			importantBuff += n; //Fluffy
+	} else { //Draw based on mask (if options_transparency is true, then we draw proper transparency on masked pixels. By default this would be dithering)
 		if (light_table_index == lightmax) {
 			(*src) += n;
 			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
+				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					(*dst)[0] = palette_transparency_lookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 					(*dst)[0] = 0; //Draw completely black pixel
-				} else if (options_transparency)
+				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 					(*dst)[0] = palette_transparency_lookup[0][(*dst)[0]]; //Fluffy: Transparency
+
+				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					importantBuff++;
 			}
 		} else if (light_table_index == 0) {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
+				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					(*dst)[0] = palette_transparency_lookup[(*src)[0]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 					(*dst)[0] = (*src)[0]; //Draw fully lit pixel
-				} else if (options_transparency)
+				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][(*src)[0]]; //Fluffy: Transparency
+					
+				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					importantBuff++;
 			}
 		} else {
 			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (mask & 0x80000000) {
+				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					(*dst)[0] = palette_transparency_lookup[tbl[(*src)[0]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 					(*dst)[0] = tbl[(*src)[0]]; //Draw partially lit pixel
-				} else if (options_transparency)
+				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][tbl[(*src)[0]]]; //Fluffy: Transparency
+					
+				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					importantBuff++;
 			}
 		}
 	}

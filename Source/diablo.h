@@ -57,6 +57,8 @@ extern BOOL gameSetup_fastWalkInTown;
 extern BOOL gameSetup_allowAttacksInTown;
 extern BOOL options_transparency;
 extern BOOL options_opaqueWallsUnlessObscuring;
+extern BOOL options_opaqueWallsWithBlobs;
+extern BOOL options_opaqueWallsWithSilhouette;
 
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);

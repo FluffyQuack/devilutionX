@@ -78,6 +78,8 @@ void CelBlitLightTransSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int 
 void CelDrawLightRedSafe(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, char light);
 void CelBlitWidth(BYTE *pBuff, int x, int y, int wdt, BYTE *pCelBuff, int nCel, int nWidth);
 void CelBlit_ShadowPixels(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
+void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
+void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline); //Fluffy
 void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
 void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void ENG_set_pixel(int sx, int sy, BYTE col);
@@ -94,6 +96,8 @@ BYTE *LoadFileInMem(char *pszName, DWORD *pdwFileLen);
 DWORD LoadFileWithMem(const char *pszName, BYTE *p);
 void Cl2ApplyTrans(BYTE *p, BYTE *ttbl, int nCel);
 void Cl2Draw(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
+void Cl2DrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
+void Cl2DrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline);
 void Cl2DrawOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void Cl2DrawLightTbl(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, char light);
 void Cl2DrawLight(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);

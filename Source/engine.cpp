@@ -343,6 +343,10 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 		tbl = &pLightTbl[light_table_index * 256];
 	w = nWidth;
 
+	BYTE *importantBuff; //Fluffy: We use this for wall transparency (if certain toggles are turned on)
+	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+		importantBuff = gpBuffer_important + (dst - gpBuffer);
+
 	for (; src != &pRLEBytes[nDataSize]; dst -= BUFFER_WIDTH + w) {
 		for (i = w; i;) {
 			width = *src++;
@@ -350,36 +354,63 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 				i -= width;
 				if (dst < gpBufEnd && dst > gpBufStart) {
 					if (width & 1) {
-						dst[0] = palette_transparency_lookup[dst[0]][tbl[src[0]]];
+						if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+							dst[0] = palette_transparency_lookup[*importantBuff][tbl[src[0]]]; //Render silhoutte using colour saved in important buffer
+						else if (!options_opaqueWallsWithSilhouette && (!options_opaqueWallsWithBlobs || *importantBuff == 1))
+							dst[0] = palette_transparency_lookup[dst[0]][tbl[src[0]]]; //Transparency
+						else
+							dst[0] = tbl[src[0]]; //Opaque
 						src++;
 						dst++;
+						if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+							importantBuff++;
 					}
 					width >>= 1;
 					if (width & 1) {
-						dst[0] = palette_transparency_lookup[dst[0]][tbl[src[0]]];
-						dst[1] = palette_transparency_lookup[dst[1]][tbl[src[1]]];
+						for (int j = 0; j < 2; j++) {
+							if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+								dst[j] = palette_transparency_lookup[*importantBuff][tbl[src[j]]]; //Render silhoutte using colour saved in important buffer
+							else if (!options_opaqueWallsWithSilhouette && (!options_opaqueWallsWithBlobs || *importantBuff == 1))
+								dst[j] = palette_transparency_lookup[dst[j]][tbl[src[j]]]; //Transparency
+							else
+								dst[j] = tbl[src[j]]; //Opaque
+						}
 						src += 2;
 						dst += 2;
+						if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+							importantBuff += 2;
 					}
 					width >>= 1;
 					for (; width; width--) {
-						dst[0] = palette_transparency_lookup[dst[0]][tbl[src[0]]];
-						dst[1] = palette_transparency_lookup[dst[1]][tbl[src[1]]];
-						dst[2] = palette_transparency_lookup[dst[2]][tbl[src[2]]];
-						dst[3] = palette_transparency_lookup[dst[3]][tbl[src[3]]];
+						for (int j = 0; j < 4; j++) {
+							if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+								dst[j] = palette_transparency_lookup[*importantBuff][tbl[src[j]]]; //Render silhoutte using colour saved in important buffer
+							else if (!options_opaqueWallsWithSilhouette && (!options_opaqueWallsWithBlobs || *importantBuff == 1))
+								dst[j] = palette_transparency_lookup[dst[j]][tbl[src[j]]]; //Transparency
+							else
+								dst[j] = tbl[src[j]]; //Opaque
+						}
 						src += 4;
 						dst += 4;
+						if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+							importantBuff += 4;
 					}
 				} else {
 					src += width;
 					dst += width;
+					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+						importantBuff += width;
 				}
 			} else {
 				width = -(char)width;
 				dst += width;
 				i -= width;
+				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					importantBuff += width;
 			}
 		}
+		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+			importantBuff -= BUFFER_WIDTH + w;
 	}
 }
 
@@ -641,6 +672,163 @@ void CelBlit_ShadowPixels(char col, int sx, int sy, BYTE *pCelBuff, int nCel, in
 	}
 }
 */
+
+inline static void DrawImportantAsEllipse_DrawHorizontalLine(BYTE *dst, BYTE *buffStart, BYTE *buffEnd, int length)
+{
+	if (dst < buffStart) {
+		length -= buffStart - dst;
+		dst = buffStart;
+	}
+	if (length > 0) {
+		if (&dst[length] > buffEnd)
+			length -= &dst[length] - buffEnd;
+		if (length > 0)
+			memset(dst, 1, length);
+	}
+}
+
+static void DrawImportantAsEllipse(int sx, int sy, int height, int width, double scale)
+{
+	//Draw ellipse
+	BYTE *dst = &gpBuffer_important[sx + BUFFER_WIDTH * sy] + -(BUFFER_WIDTH * (height / 2)) + (width / 2); //Calculate middle position of sprite which is our origin position for the ellipse
+	BYTE *buffEnd = gpBuffer_important + (gpBufEnd - gpBuffer);
+	BYTE *buffStart = gpBuffer_important + (gpBufStart - gpBuffer);
+
+	//Adjust scale
+	height /= scale;
+	width /= scale;
+
+	//Draw the middle row
+	BYTE *dstBeg = &dst[-(width - 1)]; //To make the ellipse smoother, I reduce the length by one (otherwise the middle would stick out by one pixel)
+	int length = (width * 2) - 1;
+	DrawImportantAsEllipse_DrawHorizontalLine(dstBeg, buffStart, buffEnd, length);
+
+	//Now we move down the ellipse and render rows (we also invert Y to render the upper rows)
+	int hh = height * height;
+	int ww = width * width;
+	int hhww = hh * ww;
+	int curWidth = width; //Width of the current row
+	int widthReduce = 0; //How much width is reduced with current iteration
+	for (int y = 1; y <= height; y++) { //Iterate through rows (starting from one row ahead of the middle)
+		int x = curWidth - (widthReduce - 1);
+		while (x > 0) { //Determine length of this row
+			if (x * x * hh + y * y * ww <= hhww)
+				break;
+			x--;
+		}
+		widthReduce = curWidth - x;
+		curWidth = x;
+
+		//Lower row
+		dstBeg = &dst[(y * BUFFER_WIDTH) - x];
+		length = (x * 2) + 1;
+		if (length == 1) //Avoid having the final part of the ellipse be a single pixel
+			continue;
+		DrawImportantAsEllipse_DrawHorizontalLine(dstBeg, buffStart, buffEnd, length);
+
+		//Upper row
+		dstBeg = &dst[(-y * BUFFER_WIDTH) - x];
+		length = (x * 2) + 1;
+		DrawImportantAsEllipse_DrawHorizontalLine(dstBeg, buffStart, buffEnd, length);
+	}
+}
+
+//Fluffy: Draw an ellipse shape to the important buffer
+void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
+{
+	int nDataSize, w;
+	BYTE *src, *dst, *end;
+	BYTE width;
+
+	assert(pCelBuff != NULL);
+	assert(gpBuffer);
+
+	src = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+	end = &src[nDataSize];
+	dst = &gpBuffer[sx + BUFFER_WIDTH * sy];
+
+	//Get height of sprite
+	int height = 0;
+	BYTE *srcBack = src;
+	while (src != end) {
+		height++;
+		for (int i = nWidth; i;) {
+			width = *src++;
+			if (!(width & 0x80)) {
+				i -= width;
+				src += width;
+			} else {
+				width = -(char)width;
+				i -= width;
+			}
+		}
+	}
+
+	DrawImportantAsEllipse(sx, sy, height, nWidth, 2.5);
+}
+
+//Fluffy: Draw a cel as solid colour (with or without outline) to the "important buffer" (used for wall rendering)
+void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline)
+{
+	int nDataSize, w;
+	BYTE *src, *end;
+	BYTE width;
+
+	assert(pCelBuff != NULL);
+	assert(gpBuffer_important);
+
+	src = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+	end = &src[nDataSize];
+	BYTE *dst = &gpBuffer_important[sx + BUFFER_WIDTH * sy];
+	BYTE *buffEnd = gpBuffer_important + (gpBufEnd - gpBuffer);
+	BYTE *buffStart = gpBuffer_important + (gpBufStart - gpBuffer);
+
+	for (; src != end; dst -= BUFFER_WIDTH + nWidth) {
+		for (w = nWidth; w;) {
+			width = *src++;
+			if (!(width & 0x80)) {
+				w -= width;
+				if (dst < buffEnd && dst > buffStart) {
+					if (dst >= buffEnd - BUFFER_WIDTH) {
+						while (width) {
+							if (*src++) {
+								if (outline) {
+									dst[-BUFFER_WIDTH] = col;
+									dst[-1] = col;
+									dst[1] = col;
+								} else
+									dst[0] = col;
+							}
+							dst++;
+							width--;
+						}
+					} else {
+						while (width) {
+							if (*src++) {
+								if (outline) {
+									dst[-BUFFER_WIDTH] = col;
+									dst[-1] = col;
+									dst[1] = col;
+									dst[BUFFER_WIDTH] = col;
+								} else
+									dst[0] = col;
+							}
+							dst++;
+							width--;
+						}
+					}
+				} else {
+					src += width;
+					dst += width;
+				}
+			} else {
+				width = -(char)width;
+				dst += width;
+				w -= width;
+			}
+		}
+	}
+}
 
 //Fluffy: Same as CelBlitOutline() but it only draws pixels for the outline and nothing else
 void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
@@ -1190,6 +1378,162 @@ void Cl2BlitSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
 			}
 		}
 	}
+}
+
+//Fluffy: Same as Cl2DrawToImportant() but we draw an ellipse based on center point of sprite
+void Cl2DrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
+{
+	int nDataSize;
+	BYTE *pRLEBytes;
+
+	assert(gpBuffer != NULL);
+	assert(pCelBuff != NULL);
+	assert(nCel > 0);
+
+	pRLEBytes = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+
+	gpBufEnd -= BUFFER_WIDTH;
+
+	char width;
+	BYTE *src = pRLEBytes;
+	
+	int w = nWidth;
+	int rows = 0;
+	while (nDataSize) {
+		width = *src++;
+		nDataSize--;
+		if (width < 0) {
+			width = -width;
+			if (width > 65) {
+				width -= 65;
+				nDataSize--;
+				src++;
+			} else {
+				nDataSize -= width;
+				src += width;
+			}
+		}
+		while (width) {
+			if (width > w) {
+				width -= w;
+				w = 0;
+			} else {
+				w -= width;
+				width = 0;
+			}
+			if (!w) {
+				w = nWidth;
+				rows++;
+			}
+		}
+	}
+
+	DrawImportantAsEllipse(sx, sy, rows, nWidth, 2.5);
+
+	gpBufEnd += BUFFER_WIDTH;
+}
+
+//Fluffy: Similar to Cl2DrawOutline() but it writes to gpBuffer_important
+void Cl2DrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline)
+{
+	int nDataSize;
+	BYTE *pRLEBytes;
+
+	assert(gpBuffer != NULL);
+	assert(pCelBuff != NULL);
+	assert(nCel > 0);
+
+	pRLEBytes = CelGetFrameClipped(pCelBuff, nCel, &nDataSize);
+
+	gpBufEnd -= BUFFER_WIDTH;
+
+	char width;
+	BYTE *src = pRLEBytes;
+	BYTE *dst = &gpBuffer_important[sx + BUFFER_WIDTH * sy];
+	BYTE *buffEnd = gpBuffer_important + (gpBufEnd - gpBuffer);
+	BYTE *buffStart = gpBuffer_important + (gpBufStart - gpBuffer);
+	int w = nWidth;
+
+	int rows = 0;
+	while (nDataSize) {
+		width = *src++;
+		nDataSize--;
+		if (width < 0) {
+			width = -width;
+			if (width > 65) {
+				width -= 65;
+				nDataSize--;
+				if (*src++ && dst < buffEnd && dst > buffStart) {
+					w -= width;
+					if (outline) {
+						dst[-1] = col;
+						dst[width] = col;
+					}
+					while (width) {
+						if (outline) {
+							dst[-BUFFER_WIDTH] = col;
+							dst[BUFFER_WIDTH] = col;
+							
+						} else
+							dst[0] = col;
+						dst++;
+						width--;
+					}
+					if (!w) {
+						w = nWidth;
+						dst -= BUFFER_WIDTH + w;
+						rows++;
+					}
+					continue;
+				}
+			} else {
+				nDataSize -= width;
+				if (dst < buffEnd && dst > buffStart) {
+					w -= width;
+					while (width) {
+						if (*src++) {
+							if (outline) {
+								dst[-1] = col;
+								dst[1] = col;
+								dst[-BUFFER_WIDTH] = col;
+								// BUGFIX: only set `if (dst+BUFFER_WIDTH < gpBufEnd)`
+								dst[BUFFER_WIDTH] = col;
+							} else
+								dst[0] = col;
+						}
+						dst++;
+						width--;
+					}
+					if (!w) {
+						w = nWidth;
+						dst -= BUFFER_WIDTH + w;
+						rows++;
+					}
+					continue;
+				} else {
+					src += width;
+				}
+			}
+		}
+		while (width) {
+			if (width > w) {
+				dst += w;
+				width -= w;
+				w = 0;
+			} else {
+				dst += width;
+				w -= width;
+				width = 0;
+			}
+			if (!w) {
+				w = nWidth;
+				dst -= BUFFER_WIDTH + w;
+				rows++;
+			}
+		}
+	}
+
+	gpBufEnd += BUFFER_WIDTH;
 }
 
 /**

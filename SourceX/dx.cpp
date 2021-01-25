@@ -12,6 +12,7 @@ namespace dvl {
 
 int sgdwLockCount;
 BYTE *gpBuffer;
+BYTE *gpBuffer_important = 0; //Fluffy: Used for wall transparency
 #ifdef _DEBUG
 int locktbl[256];
 #endif
@@ -43,6 +44,9 @@ static void dx_create_back_buffer()
 	}
 
 	gpBuffer = (BYTE *)pal_surface->pixels;
+	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
+		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
+	}
 
 #ifndef USE_SDL1
 	// In SDL2, `pal_surface` points to the global `palette`.
@@ -130,6 +134,9 @@ void unlock_buf(BYTE idx)
 
 void dx_cleanup()
 {
+	if (gpBuffer_important)
+		delete[] gpBuffer_important; //Fluffy
+
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
 	sgMemCrit.Enter();

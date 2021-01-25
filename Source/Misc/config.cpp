@@ -40,6 +40,8 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
 	LoadBoolVariableFromConfig("Transparency", &options_transparency);
 	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
+	LoadBoolVariableFromConfig("Opaque Walls With Blobs", &options_opaqueWallsWithBlobs);
+	LoadBoolVariableFromConfig("Opaque Walls With Silhouttes", &options_opaqueWallsWithSilhouette);
 }
 
 DEVILUTION_END_NAMESPACE
