@@ -509,8 +509,6 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 	}
 }
 
-#define DOLIGHTING_ANGLESTEP 5 //How slowly we progress the angle directions
-#define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
 void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) //Fluffy
 {
 	int orig_nXPos = nXPos;
@@ -532,6 +530,35 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 			nYPos--;
 		}
 	}
+
+
+	/* Fluffy: A simple circle algorithm */
+	{
+		int radius = nRadius;
+		int maxDist = radius * radius;
+		for (int y = 0; y <= radius; y++) {
+			for (int x = 0; x <= radius; x++) {
+				if (x == 0 && y == 0)
+					continue;
+				int dist = x * x + y * y;
+				if (dist <= maxDist) {
+					int light = (dist * 15) / maxDist;
+					if (dLight[nXPos + x][nYPos + y] > light)
+						dLight[nXPos + x][nYPos + y] = light;
+					if (dLight[nXPos - x][nYPos + y] > light)
+						dLight[nXPos - x][nYPos + y] = light;
+					if (dLight[nXPos + x][nYPos - y] > light)
+						dLight[nXPos + x][nYPos - y] = light;
+					if (dLight[nXPos - x][nYPos - y] > light)
+						dLight[nXPos - x][nYPos - y] = light;
+				}
+			}
+		}
+		dLight[nXPos][nYPos] = 0;
+	}
+	return;
+
+
 	/*
 	Fluffy: This is how we do the lighting:
 	- Calculate the end point (aka vector) of one light trace
@@ -552,6 +579,8 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 	int vectorX = 0;
 	int vectorY = -nRadius;
 	double angle = 0;
+#define DOLIGHTING_ANGLESTEP 5   //How slowly we progress the angle directions
+#define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
 	while (angle < 360.0) {
 
 		double rotatedX = vectorX;
