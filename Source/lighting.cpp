@@ -533,6 +533,7 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 
 
 	/* Fluffy: A simple circle algorithm */
+	if (1)
 	{
 		int radius = nRadius;
 		int maxDist = radius * radius;
@@ -543,21 +544,29 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 				int dist = x * x + y * y;
 				if (dist <= maxDist) {
 					int light = (dist * 15) / maxDist;
-					if (dLight[nXPos + x][nYPos + y] > light)
-						dLight[nXPos + x][nYPos + y] = light;
-					if (dLight[nXPos - x][nYPos + y] > light)
-						dLight[nXPos - x][nYPos + y] = light;
-					if (dLight[nXPos + x][nYPos - y] > light)
-						dLight[nXPos + x][nYPos - y] = light;
-					if (dLight[nXPos - x][nYPos - y] > light)
-						dLight[nXPos - x][nYPos - y] = light;
+					for (int j = 0; j < 4; j++) {
+						int newX = nXPos;
+						int newY = nYPos;
+						if (j == 0 || j == 2)
+							newX += x;
+						else
+							newX -= x;
+						if (j == 0 || j == 1)
+							newY += y;
+						else
+							newY -= y;
+
+						if (newX < 0 || newY < 0 || newX >= MAXDUNX || newY >= MAXDUNY) //Out of bounds check
+							continue;
+						if (dLight[newX][newY] > light)
+							dLight[newX][newY] = light;
+					}
 				}
 			}
 		}
 		dLight[nXPos][nYPos] = 0;
+		return;
 	}
-	return;
-
 
 	/*
 	Fluffy: This is how we do the lighting:
