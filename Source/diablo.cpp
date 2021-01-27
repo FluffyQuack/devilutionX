@@ -1525,6 +1525,9 @@ void CreateLevel(int lvldir)
 
 void LoadGameLevel(BOOL firstflag, int lvldir)
 {
+	memset(dLight_16x, 0, (MAXDUNX * LIGHTACCURACY) * (MAXDUNY * LIGHTACCURACY)); //Fluffy
+	memset(dPreLight_16x, 0, (MAXDUNX * LIGHTACCURACY) * (MAXDUNY * LIGHTACCURACY)); //Fluffy
+
 	int i, j;
 	BOOL visited;
 

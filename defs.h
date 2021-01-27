@@ -46,6 +46,8 @@
 #define MAXCHARLEVEL			51
 #define ITEMTYPES				35
 
+#define LIGHTACCURACY 16 //Fluffy
+
 // number of inventory grid cells
 #define NUM_INV_GRID_ELEM		40
 #define INV_SLOT_SIZE_PX		28

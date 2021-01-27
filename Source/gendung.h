@@ -65,6 +65,8 @@ extern MICROS dpiece_defs_map_2[MAXDUNX][MAXDUNY];
 extern MICROS dpiece_defs_map_1[MAXDUNX * MAXDUNY];
 extern char dTransVal[MAXDUNX][MAXDUNY];
 extern char dLight[MAXDUNX][MAXDUNY];
+extern char dLight_16x[MAXDUNX * LIGHTACCURACY][MAXDUNY * LIGHTACCURACY]; //Fluffy
+extern char dPreLight_16x[MAXDUNX * LIGHTACCURACY][MAXDUNY * LIGHTACCURACY]; //Fluffy
 extern char dPreLight[MAXDUNX][MAXDUNY];
 extern char dFlags[MAXDUNX][MAXDUNY];
 extern char dPlayer[MAXDUNX][MAXDUNY];

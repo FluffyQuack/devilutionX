@@ -123,6 +123,8 @@ MICROS dpiece_defs_map_1[MAXDUNX * MAXDUNY];
 /** Specifies the transparency at each coordinate of the map. */
 char dTransVal[MAXDUNX][MAXDUNY];
 char dLight[MAXDUNX][MAXDUNY];
+char dLight_16x[MAXDUNX * LIGHTACCURACY][MAXDUNY * LIGHTACCURACY]; //Fluffy
+char dPreLight_16x[MAXDUNX * LIGHTACCURACY][MAXDUNY * LIGHTACCURACY]; //Fluffy
 char dPreLight[MAXDUNX][MAXDUNY];
 char dFlags[MAXDUNX][MAXDUNY];
 /** Contains the player numbers (players array indices) of the map. */

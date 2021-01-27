@@ -509,6 +509,147 @@ void RotateRadius(int *x, int *y, int *dx, int *dy, int *lx, int *ly, int *bx, i
 	}
 }
 
+void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) //Fluffy
+{
+	int orig_nXPos = nXPos;
+	int orig_nYPos = nYPos;
+	int orig_nRadius = nRadius;
+	int orig_Lnum = Lnum;
+
+	int xoff = 0;
+	int yoff = 0;
+	if (Lnum >= 0) {
+		xoff = LightList[Lnum]._xoff;
+		yoff = LightList[Lnum]._yoff;
+		if (xoff < 0) {
+			xoff += 8;
+			nXPos--;
+		}
+		if (yoff < 0) {
+			yoff += 8;
+			nYPos--;
+		}
+	}
+
+	nXPos *= LIGHTACCURACY;
+	nYPos *= LIGHTACCURACY;
+	nRadius *= LIGHTACCURACY;
+
+	/* Fluffy: A simple circle algorithm */
+	if (0) {
+		int radius = nRadius;
+		int maxDist = radius * radius;
+		for (int y = 0; y <= radius; y++) {
+			for (int x = 0; x <= radius; x++) {
+				if (x == 0 && y == 0)
+					continue;
+				int dist = x * x + y * y;
+				if (dist <= maxDist) {
+					int light = (dist * 15) / maxDist;
+					for (int j = 0; j < 4; j++) {
+						int newX = nXPos;
+						int newY = nYPos;
+						if (j == 0 || j == 2)
+							newX += x;
+						else
+							newX -= x;
+						if (j == 0 || j == 1)
+							newY += y;
+						else
+							newY -= y;
+
+						if (newX < 0 || newY < 0 || newX >= MAXDUNX || newY >= MAXDUNY) //Out of bounds check
+							continue;
+						if (dLight[newX][newY] > light)
+							dLight[newX][newY] = light;
+					}
+				}
+			}
+		}
+		dLight[nXPos][nYPos] = 0;
+		return;
+	}
+
+	/*
+	Fluffy: This is how we do the lighting:
+	- Calculate the end point (aka vector) of one light trace
+	- Step from start to end of vector (not sure at which accuracy), and light up each tile (decrease light based on iteration progress). Stop if we hit a tile blocking line of sight
+	- Rotate vector, and repeat previous step. Stop once vector has been rotated 360 degrees
+	- Since we might hit the same tiles multiple times, we tally them up and calculate the average as the last step
+	*/
+
+	//Start with a north vector
+	struct tile_s {
+		int totalLight;
+		int num;
+	};
+	tile_s(*tile)[MAXDUNY * LIGHTACCURACY] = new tile_s[MAXDUNX * LIGHTACCURACY][MAXDUNY * LIGHTACCURACY];
+	memset(tile, 0, sizeof(tile_s) * (MAXDUNX * LIGHTACCURACY) * (MAXDUNY * LIGHTACCURACY));
+
+	//Iterate through different angles
+	int vectorX = 0;
+	int vectorY = -nRadius;
+	double angle = 0;
+#define DOLIGHTING_ANGLESTEP 5   //How slowly we progress the angle directions
+#define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
+	while (angle < 360.0) {
+
+		double rotatedX = vectorX;
+		double rotatedY = vectorY;
+		RotateVector(angle, &rotatedX, &rotatedY);
+
+		for (int i = 0; i < nRadius * DOLIGHTING_RAYACCURACY; i++) {
+			double progress = ((double)i) / ((nRadius * DOLIGHTING_RAYACCURACY) - 1);
+			int light = (progress * 15) + 0.5;
+			int x = nXPos + ((rotatedX * progress) + 0.5 /*+ ((double)xoff / 8)*/); //Add in start position for light, our "ray" progress, round to nearest integer, and adjustment based on light offset (aka sub-tile position)
+			int y = nYPos + ((rotatedY * progress) + 0.5 /*+ ((double)yoff / 8)*/);
+			if (x < 0 || y < 0 || x >= MAXDUNX || y >= MAXDUNY) //Out of bounds check
+				continue;
+			tile[x][y].num += 1;
+			tile[x][y].totalLight += light;
+
+			/*
+			* TODO: The light blocking needs BIG changes in order to look good.
+			* Another idea would be to somehow make it "bleed" through corners and allow some light go through
+			* We also need to improve the line of sight code because enabling this reveals we have a lot of "blindspots" which should be within the line of sight
+			* We could re-do the lighting multiple times, with the extra times using an offset starting position and weaker light, that way we'll have some weak light bleeding around corners
+			* The best solution would probably be to implement this as line-of-sight code: https://www.albertford.com/shadowcasting/
+			* An idea which might have some potential is doing flood-fill combined with raycasting. Do floodfilling primarily, and then do raycasting to verify line of sight. If raycasting fails, then flood fill 1-2 tiles while letting light level drop rapidly (that way we get a softer shadow edge)
+			*/
+			//if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
+			//break;
+		}
+
+		angle += DOLIGHTING_ANGLESTEP;
+	}
+
+	//Calculate averages
+	for (int x = 0; x < MAXDUNX; x++) {
+		for (int y = 0; y < MAXDUNY; y++) {
+			int light = 15;
+			if (tile[x][y].num > 0)
+				light = tile[x][y].totalLight / tile[x][y].num;
+			if (dLight_16x[x][y] > light)
+				dLight_16x[x][y] = light;
+		}
+	}
+	delete[] tile;
+
+	/* //Done as a test to give smoother shadows around corners, but it didn't work very well. It also lets you see around corners too well when you're very close to them. If this is removed, then "fromMain" can be removed from this function's argument list too
+	if (fromMain) {
+		DoLighting_New(orig_nXPos + 1, orig_nYPos, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos, orig_nYPos + 1, orig_nRadius - 2, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos, orig_nYPos - 1, orig_nRadius - 2, orig_Lnum, 0);
+
+		DoLighting_New(orig_nXPos + 1, orig_nYPos - 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos + 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos + 1, orig_nYPos + 1, orig_nRadius - 3, orig_Lnum, 0);
+		DoLighting_New(orig_nXPos - 1, orig_nYPos - 1, orig_nRadius - 3, orig_Lnum, 0);
+	}
+	*/
+}
+
 void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) //Fluffy
 {
 	int orig_nXPos = nXPos;
@@ -533,7 +674,7 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 
 
 	/* Fluffy: A simple circle algorithm */
-	if (1)
+	if (0)
 	{
 		int radius = nRadius;
 		int maxDist = radius * radius;
@@ -614,8 +755,8 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 			* The best solution would probably be to implement this as line-of-sight code: https://www.albertford.com/shadowcasting/
 			* An idea which might have some potential is doing flood-fill combined with raycasting. Do floodfilling primarily, and then do raycasting to verify line of sight. If raycasting fails, then flood fill 1-2 tiles while letting light level drop rapidly (that way we get a softer shadow edge)
 			*/
-			if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
-				break;
+			//if (nBlockTable[dPiece[x][y]]) //Check if we should block lighting
+				//break;
 		}
 
 		angle += DOLIGHTING_ANGLESTEP;
@@ -651,6 +792,7 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
 	DoLighting_New(nXPos, nYPos, nRadius, Lnum, 1);
+	DoLighting_New16x(nXPos, nYPos, nRadius, Lnum, 1);
 	return;
 
 	int x, y, v, xoff, yoff, mult, radius_block;
@@ -1279,6 +1421,9 @@ void ProcessLightList()
 	}
 	*/
 
+	//Fluffy: Reset lighting array
+	memcpy(dLight_16x, dPreLight_16x, sizeof(dLight_16x)); //Fluffy
+
 	if (dolighting) {
 		for (i = 0; i < numlights; i++) {
 			j = lightactive[i];
@@ -1314,6 +1459,7 @@ void ProcessLightList()
 
 void SavePreLighting()
 {
+	memcpy(dPreLight_16x, dLight_16x, sizeof(dPreLight_16x)); //Fluffy
 	memcpy(dPreLight, dLight, sizeof(dPreLight));
 }
 
