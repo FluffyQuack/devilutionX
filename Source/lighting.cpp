@@ -516,6 +516,7 @@ void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMai
 	int orig_nRadius = nRadius;
 	int orig_Lnum = Lnum;
 
+	/*
 	int xoff = 0;
 	int yoff = 0;
 	if (Lnum >= 0) {
@@ -530,43 +531,54 @@ void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMai
 			nYPos--;
 		}
 	}
+	*/
 
-	nXPos *= LIGHTACCURACY;
-	nYPos *= LIGHTACCURACY;
+	nXPos = (nXPos * LIGHTACCURACY);
+	nYPos = (nYPos * LIGHTACCURACY);
 	nRadius *= LIGHTACCURACY;
+	if (Lnum >= 0) {
+		if(LightList[Lnum]._xoff != 0)
+			nXPos += LightList[Lnum]._xoff / 1;
+		if (LightList[Lnum]._yoff != 0)
+			nYPos += LightList[Lnum]._yoff / 1;
+	}
 
 	/* Fluffy: A simple circle algorithm */
-	if (0) {
-		int radius = nRadius;
-		int maxDist = radius * radius;
-		for (int y = 0; y <= radius; y++) {
-			for (int x = 0; x <= radius; x++) {
-				if (x == 0 && y == 0)
-					continue;
-				int dist = x * x + y * y;
-				if (dist <= maxDist) {
-					int light = (dist * 15) / maxDist;
-					for (int j = 0; j < 4; j++) {
-						int newX = nXPos;
-						int newY = nYPos;
-						if (j == 0 || j == 2)
-							newX += x;
-						else
-							newX -= x;
-						if (j == 0 || j == 1)
-							newY += y;
-						else
-							newY -= y;
+	if (1) {
+		//for (int k = nRadius; k > 0; k--) {
+		for (int k = nRadius; k >= nRadius; k--) {
+			//int light = (k * 15) / nRadius;
+			int radius = k;
+			int maxDist = radius * radius;
+			for (int y = 0; y <= radius; y++) {
+				for (int x = 0; x <= radius; x++) {
+					if (x == 0 && y == 0)
+						continue;
+					int dist = x * x + y * y;
+					if (dist <= maxDist) {
+						int light = (dist * 15) / maxDist;
+						for (int j = 0; j < 4; j++) {
+							int newX = nXPos;
+							int newY = nYPos;
+							if (j == 0 || j == 2)
+								newX += x;
+							else
+								newX -= x;
+							if (j == 0 || j == 1)
+								newY += y;
+							else
+								newY -= y;
 
-						if (newX < 0 || newY < 0 || newX >= MAXDUNX || newY >= MAXDUNY) //Out of bounds check
-							continue;
-						if (dLight[newX][newY] > light)
-							dLight[newX][newY] = light;
+							if (newX < 0 || newY < 0 || newX >= MAXDUNX * LIGHTACCURACY || newY >= MAXDUNY * LIGHTACCURACY) //Out of bounds check
+								continue;
+							if (dLight_16x[newX][newY] > light)
+								dLight_16x[newX][newY] = light;
+						}
 					}
 				}
 			}
 		}
-		dLight[nXPos][nYPos] = 0;
+		dLight_16x[nXPos][nYPos] = 0;
 		return;
 	}
 
@@ -590,8 +602,8 @@ void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMai
 	int vectorX = 0;
 	int vectorY = -nRadius;
 	double angle = 0;
-#define DOLIGHTING_ANGLESTEP 5   //How slowly we progress the angle directions
-#define DOLIGHTING_RAYACCURACY 2 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
+#define DOLIGHTING_ANGLESTEP 1 //How slowly we progress the angle directions
+#define DOLIGHTING_RAYACCURACY 100 //This number is multipled by nRadius. Higher value means we step through the ray more slowly
 	while (angle < 360.0) {
 
 		double rotatedX = vectorX;
@@ -603,7 +615,7 @@ void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMai
 			int light = (progress * 15) + 0.5;
 			int x = nXPos + ((rotatedX * progress) + 0.5 /*+ ((double)xoff / 8)*/); //Add in start position for light, our "ray" progress, round to nearest integer, and adjustment based on light offset (aka sub-tile position)
 			int y = nYPos + ((rotatedY * progress) + 0.5 /*+ ((double)yoff / 8)*/);
-			if (x < 0 || y < 0 || x >= MAXDUNX || y >= MAXDUNY) //Out of bounds check
+			if (x < 0 || y < 0 || x >= MAXDUNX * LIGHTACCURACY || y >= MAXDUNY * LIGHTACCURACY) //Out of bounds check
 				continue;
 			tile[x][y].num += 1;
 			tile[x][y].totalLight += light;
@@ -624,8 +636,8 @@ void DoLighting_New16x(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMai
 	}
 
 	//Calculate averages
-	for (int x = 0; x < MAXDUNX; x++) {
-		for (int y = 0; y < MAXDUNY; y++) {
+	for (int x = 0; x < MAXDUNX * LIGHTACCURACY; x++) {
+		for (int y = 0; y < MAXDUNY * LIGHTACCURACY; y++) {
 			int light = 15;
 			if (tile[x][y].num > 0)
 				light = tile[x][y].totalLight / tile[x][y].num;
@@ -674,33 +686,36 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 
 
 	/* Fluffy: A simple circle algorithm */
-	if (0)
+	if (1)
 	{
-		int radius = nRadius;
-		int maxDist = radius * radius;
-		for (int y = 0; y <= radius; y++) {
-			for (int x = 0; x <= radius; x++) {
-				if (x == 0 && y == 0)
-					continue;
-				int dist = x * x + y * y;
-				if (dist <= maxDist) {
-					int light = (dist * 15) / maxDist;
-					for (int j = 0; j < 4; j++) {
-						int newX = nXPos;
-						int newY = nYPos;
-						if (j == 0 || j == 2)
-							newX += x;
-						else
-							newX -= x;
-						if (j == 0 || j == 1)
-							newY += y;
-						else
-							newY -= y;
+		for (int k = nRadius; k > 0; k--) {
+			int light = (k * 15) / nRadius;
+			int radius = k;
+			int maxDist = radius * radius;
+			for (int y = 0; y <= radius; y++) {
+				for (int x = 0; x <= radius; x++) {
+					if (x == 0 && y == 0)
+						continue;
+					int dist = x * x + y * y;
+					if (dist <= maxDist) {
+						//int light = (dist * 15) / maxDist;
+						for (int j = 0; j < 4; j++) {
+							int newX = nXPos;
+							int newY = nYPos;
+							if (j == 0 || j == 2)
+								newX += x;
+							else
+								newX -= x;
+							if (j == 0 || j == 1)
+								newY += y;
+							else
+								newY -= y;
 
-						if (newX < 0 || newY < 0 || newX >= MAXDUNX || newY >= MAXDUNY) //Out of bounds check
-							continue;
-						if (dLight[newX][newY] > light)
-							dLight[newX][newY] = light;
+							if (newX < 0 || newY < 0 || newX >= MAXDUNX || newY >= MAXDUNY) //Out of bounds check
+								continue;
+							if (dLight[newX][newY] > light)
+								dLight[newX][newY] = light;
+						}
 					}
 				}
 			}
@@ -791,9 +806,9 @@ void DoLighting_New(int nXPos, int nYPos, int nRadius, int Lnum, bool fromMain) 
 
 void DoLighting(int nXPos, int nYPos, int nRadius, int Lnum) //This applies one light source to the dLight array
 {
-	DoLighting_New(nXPos, nYPos, nRadius, Lnum, 1);
+	//DoLighting_New(nXPos, nYPos, nRadius, Lnum, 1);
 	DoLighting_New16x(nXPos, nYPos, nRadius, Lnum, 1);
-	return;
+	//return;
 
 	int x, y, v, xoff, yoff, mult, radius_block;
 	int min_x, max_x, min_y, max_y;
@@ -1421,10 +1436,11 @@ void ProcessLightList()
 	}
 	*/
 
-	//Fluffy: Reset lighting array
-	memcpy(dLight_16x, dPreLight_16x, sizeof(dLight_16x)); //Fluffy
-
 	if (dolighting) {
+
+		//Fluffy: Reset lighting array
+		memcpy(dLight_16x, dPreLight_16x, sizeof(dLight_16x)); //Fluffy
+
 		for (i = 0; i < numlights; i++) {
 			j = lightactive[i];
 			if (LightList[j]._ldel) {

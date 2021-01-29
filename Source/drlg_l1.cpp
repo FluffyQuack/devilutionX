@@ -578,6 +578,7 @@ void DRLG_Init_Globals()
 		c = 0;
 	}
 	memset(dLight, c, sizeof(dLight));
+	memset(dLight_16x, c, sizeof(dLight_16x)); //Fluffy
 }
 
 static void DRLG_InitL1Vals()

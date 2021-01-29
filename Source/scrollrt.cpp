@@ -518,6 +518,83 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 
 static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy);
 
+static void FixLighting(BYTE *dst, int x, int y) //Fluffy
+{
+	bool oldColours = 1;
+
+	if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000) {
+		oldColours = 0;
+	}
+
+	/*
+	//Entire tile
+	int length = 4;
+	dst -= (BUFFER_WIDTH * 30) - ((TILE_WIDTH / 2) - 2);
+	for (int i = 0; i < 31; i++) {
+		memset(dst, 255, length);
+		dst += BUFFER_WIDTH;
+		if (i < 15) {
+			length += 4;
+			dst -= 2;
+		} else {
+			length -= 4;
+			dst += 2;
+		}
+	}
+	*/
+
+	BYTE *tbl = &pLightTbl[256 * light_table_index];
+
+	dst -= (BUFFER_WIDTH * 30) - ((TILE_WIDTH / 2) - 2); //Start position
+	BYTE *startDst = dst;
+	int newX = x * 16;
+	int newY = y * 16;
+	for (int j = 0; j < 16; j++) { //16 "sub-tiles"
+		if (j != 0) {
+			int xIncrease = j;
+			int yIncrease = j;
+			if (j > 3) {
+				xIncrease -= 5;
+				yIncrease -= 3;
+			}
+			if (j > 7) {
+				xIncrease -= 5;
+				yIncrease -= 3;
+			}
+			if (j > 11) {
+				xIncrease -= 5;
+				yIncrease -= 3;
+			}
+			dst = startDst + (BUFFER_WIDTH * (yIncrease * 4)) + (xIncrease * 8);
+		}
+		newX = (x * 16) + j % 4;
+		newY = (y * 16) + j / 4;
+		int length = 4;
+		for (int i = 0; i < 7; i++) { //Height of one sub-tile
+			if (dst < gpBufStart || dst > gpBufEnd)
+				continue;
+			
+			for (int k = 0; k < length; k++) { //One row
+				if (oldColours)
+					//dst[k] = pLightTbl[(256 * dLight[x][y]) + dst[k]];
+					dst[k] = pLightTbl[(256 * dLight[x][y]) + 255 - 15];
+				else
+					//dst[k] = pLightTbl[(256 * dLight_16x[newX][newY]) + dst[k]];
+					dst[k] = pLightTbl[(256 * dLight_16x[newX][newY]) + 255 - 15];
+			}
+
+			dst += BUFFER_WIDTH;
+			if (i < 3) {
+				length += 4;
+				dst -= 2;
+			} else {
+				length -= 4;
+				dst += 2;
+			}
+		}
+	}
+}
+
 /**
  * @brief Render a cell
  * @param x dPiece coordinate
@@ -529,6 +606,9 @@ static void drawCell(int x, int y, int sx, int sy)
 {
 	BYTE *dst;
 	MICROS *pMap;
+
+	int prevLight = light_table_index;
+	//light_table_index = 0; //Fluffy: Draw as bright
 
 	dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	pMap = &dpiece_defs_map_2[x][y];
@@ -549,6 +629,9 @@ static void drawCell(int x, int y, int sx, int sy)
 		dst -= BUFFER_WIDTH * TILE_HEIGHT;
 	}
 	cel_foliage_active = false;
+
+	//FixLighting(dst, x, y);
+	light_table_index = prevLight; //Fluffy
 }
 
 /**
@@ -561,7 +644,8 @@ static void drawCell(int x, int y, int sx, int sy)
 static void drawFloor(int x, int y, int sx, int sy)
 {
 	cel_transparency_active = 0;
-	light_table_index = dLight[x][y];
+	//light_table_index = dLight[x][y];
+	light_table_index = 0; //Fluffy: Draw as bright
 
 	BYTE *dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	arch_draw_type = 1; // Left
@@ -574,6 +658,9 @@ static void drawFloor(int x, int y, int sx, int sy)
 	if (level_cel_block != 0) {
 		RenderTile(dst + TILE_WIDTH / 2);
 	}
+
+	//Fluffy test: Draw floor as solid colour:
+	FixLighting(dst, x, y);
 }
 
 /**
@@ -1164,6 +1251,7 @@ extern void DrawControllerModifierHints();
  */
 void DrawView(int StartX, int StartY)
 {
+	memset(gpBuffer, 0, BUFFER_HEIGHT * BUFFER_WIDTH); //Fluffy debug
 	DrawGame(StartX, StartY);
 	if (automapflag) {
 		DrawAutomap();
@@ -1389,6 +1477,12 @@ static void DrawFPS()
 			snprintf(String, 100, "ViewY %i", ViewY);
 			RenderDebugLine(&x, &y, String);
 		}
+
+		if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000)
+			snprintf(String, 100, "new lighting: on");
+		else
+			snprintf(String, 100, "new lighting: off");
+		RenderDebugLine(&x, &y, String);
 	}
 }
 

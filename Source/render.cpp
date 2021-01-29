@@ -234,11 +234,13 @@ void RenderTile(BYTE *pBuff)
 		}
 	}
 
+	/*
 #ifdef _DEBUG
 	if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000) {
 		mask = &SolidMask[TILE_HEIGHT - 1];
 	}
 #endif
+*/
 
 	switch (tile) {
 	case RT_SQUARE: //Draws a 32x32 square. This is used for walls
@@ -266,7 +268,7 @@ void RenderTile(BYTE *pBuff)
 			dst += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 		}
-		for (i = 2; i != TILE_WIDTH / 2; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topleft
+		for (i = 2; i != TILE_HEIGHT; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topleft
 			src += i & 2;
 			dst += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
@@ -277,7 +279,7 @@ void RenderTile(BYTE *pBuff)
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
-		} 
+		}
 		for (i = 2; i != TILE_HEIGHT; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topright
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
