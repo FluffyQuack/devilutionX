@@ -4,7 +4,7 @@
  * Implementation of player functionality, leveling, actions, creation, loading, etc.
  */
 #include "all.h"
-#include "misc\misc.cpp" //For smooth interpolation
+#include "misc/misc.cpp" //For smooth interpolation
 
 DEVILUTION_BEGIN_NAMESPACE
 

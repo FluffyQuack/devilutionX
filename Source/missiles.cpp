@@ -4,7 +4,7 @@
  * Implementation of missile functionality.
  */
 #include "all.h"
-#include "misc\misc.h" //For MI_MissExp() and a few other functions
+#include "misc/misc.h" //For MI_MissExp() and a few other functions
 
 DEVILUTION_BEGIN_NAMESPACE
 
