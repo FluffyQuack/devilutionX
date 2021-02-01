@@ -29,6 +29,7 @@ extern Art ArtBackground;
 extern Art ArtCursor;
 extern Art ArtHero;
 extern bool gbSpawned;
+extern bool textInput_ReplaceNoTextWithA; //Fluffy
 
 extern void (*gfnSoundFunction)(char *file);
 extern BOOL (*gfnHeroInfo)(BOOL (*fninfofunc)(_uiheroinfo *));
