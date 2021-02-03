@@ -12,6 +12,7 @@ DEVILUTION_BEGIN_NAMESPACE
 SDL_Color logical_palette[256];
 SDL_Color system_palette[256];
 SDL_Color orig_palette[256];
+BYTE palette_transparency_lookup[256][256]; //Fluffy
 
 /* data */
 
@@ -48,8 +49,8 @@ void ApplyGamma(SDL_Color *dst, const SDL_Color *src, int n)
 
 void SaveGamma()
 {
-	SRegSaveValue(APP_NAME, "Gamma Correction", 0, gamma_correction);
-	SRegSaveValue(APP_NAME, "Color Cycling", FALSE, color_cycling_enabled);
+	SRegSaveValue("Diablo", "Gamma Correction", 0, gamma_correction);
+	SRegSaveValue("Diablo", "Color Cycling", FALSE, color_cycling_enabled);
 }
 
 static void LoadGamma()
@@ -58,7 +59,7 @@ static void LoadGamma()
 	int value;
 
 	value = gamma_correction;
-	if (!SRegLoadValue(APP_NAME, "Gamma Correction", 0, &value))
+	if (!SRegLoadValue("Diablo", "Gamma Correction", 0, &value))
 		value = 100;
 	gamma_value = value;
 	if (value < 30) {
@@ -67,7 +68,7 @@ static void LoadGamma()
 		gamma_value = 100;
 	}
 	gamma_correction = gamma_value - gamma_value % 5;
-	if (!SRegLoadValue(APP_NAME, "Color Cycling", 0, &value))
+	if (!SRegLoadValue("Diablo", "Color Cycling", 0, &value))
 		value = 1;
 	color_cycling_enabled = value;
 }
@@ -79,7 +80,7 @@ void palette_init()
 	InitPalette();
 }
 
-void LoadPalette(char *pszFileName)
+void LoadPalette(const char *pszFileName)
 {
 	int i;
 	void *pBuf;
@@ -87,9 +88,9 @@ void LoadPalette(char *pszFileName)
 
 	assert(pszFileName);
 
-	WOpenFile(pszFileName, &pBuf, FALSE);
-	WReadFile(pBuf, (char *)PalData, sizeof(PalData), pszFileName);
-	WCloseFile(pBuf);
+	SFileOpenFile(pszFileName, &pBuf);
+	SFileReadFile(pBuf, (char *)PalData, sizeof(PalData), NULL, NULL);
+	SFileCloseFile(pBuf);
 
 	for (i = 0; i < 256; i++) {
 		orig_palette[i].r = PalData[i][0];
@@ -98,6 +99,44 @@ void LoadPalette(char *pszFileName)
 #ifndef USE_SDL1
 		orig_palette[i].a = SDL_ALPHA_OPAQUE;
 #endif
+	}
+
+	/* Fluffy: Generate lookup table for transparency
+	*
+	* Explanation for how this works: To mimic 50% transparency we figure out what colours in the existing palette are the best match for the combination of any 2 colours.
+	* We save this info in a lookup table we use during rendering for whenever we want this kind of transparency.
+	* 
+	*/
+	if (options_transparency == 1) {
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {
+				if (i == j) { //No need to calculate transparency between 2 identical colours
+					palette_transparency_lookup[i][j] = j;
+					continue;
+				} else if (i > j) { //Since there's a lot of redundancy ([i][j] will always have the same value as [j][i]), we skip calculating combinations which have already been calculated
+					palette_transparency_lookup[i][j] = palette_transparency_lookup[j][i];
+					continue;
+				}
+
+				Uint8 r = ((int)orig_palette[i].r + (int)orig_palette[j].r) / 2;
+				Uint8 g = ((int)orig_palette[i].g + (int)orig_palette[j].g) / 2;
+				Uint8 b = ((int)orig_palette[i].b + (int)orig_palette[j].b) / 2;
+				BYTE best;
+				int bestDiff = 255 * 3;
+				for (int k = 0; k < 256; k++) {
+					int diffr = orig_palette[k].r - r;
+					int diffg = orig_palette[k].g - g;
+					int diffb = orig_palette[k].b - b;
+					int diff = diffr * diffr + diffg * diffg + diffb * diffb;
+
+					if (k == 0 || bestDiff > diff) {
+						best = k;
+						bestDiff = diff;
+					}
+				}
+				palette_transparency_lookup[i][j] = best;
+			}
+		}
 	}
 }
 
@@ -111,6 +150,15 @@ void LoadRndLvlPal(int l)
 	} else {
 		rv = random_(0, 4) + 1;
 		sprintf(szFileName, "Levels\\L%iData\\L%i_%i.PAL", l, l, rv);
+		if (l == 5) {
+			sprintf(szFileName, "NLevels\\L5Data\\L5Base.PAL");
+		}
+		if (l == 6) {
+			if (!UseNestArt) {
+				rv++;
+			}
+			sprintf(szFileName, "NLevels\\L%iData\\L%iBase%i.PAL", 6, 6, rv);
+		}
 		LoadPalette(szFileName);
 	}
 }
@@ -217,7 +265,83 @@ void palette_update_caves()
 	palette_update();
 }
 
-#ifndef SPAWN
+int dword_6E2D58;
+int dword_6E2D54;
+void palette_update_crypt()
+{
+	int i;
+	SDL_Color col;
+
+	if (dword_6E2D58 > 1) {
+		col = system_palette[15];
+		for (i = 15; i > 1; i--) {
+			system_palette[i].r = system_palette[i - 1].r;
+			system_palette[i].g = system_palette[i - 1].g;
+			system_palette[i].b = system_palette[i - 1].b;
+		}
+		system_palette[i].r = col.r;
+		system_palette[i].g = col.g;
+		system_palette[i].b = col.b;
+
+		dword_6E2D58 = 0;
+	} else {
+		dword_6E2D58++;
+	}
+	if (dword_6E2D54 > 0) {
+		col = system_palette[31];
+		for (i = 31; i > 16; i--) {
+			system_palette[i].r = system_palette[i - 1].r;
+			system_palette[i].g = system_palette[i - 1].g;
+			system_palette[i].b = system_palette[i - 1].b;
+		}
+		system_palette[i].r = col.r;
+		system_palette[i].g = col.g;
+		system_palette[i].b = col.b;
+		palette_update();
+		dword_6E2D54++;
+	} else {
+		dword_6E2D54 = 1;
+	}
+}
+
+int dword_6E2D5C;
+int dword_6E2D60;
+void palette_update_hive()
+{
+	int i;
+	SDL_Color col;
+
+	if (dword_6E2D60 == 2) {
+		col = system_palette[8];
+		for (i = 8; i > 1; i--) {
+			system_palette[i].r = system_palette[i - 1].r;
+			system_palette[i].g = system_palette[i - 1].g;
+			system_palette[i].b = system_palette[i - 1].b;
+		}
+		system_palette[i].r = col.r;
+		system_palette[i].g = col.g;
+		system_palette[i].b = col.b;
+		dword_6E2D60 = 0;
+	} else {
+		dword_6E2D60++;
+	}
+	if (dword_6E2D5C == 2) {
+		col = system_palette[15];
+		for (i = 15; i > 9; i--) {
+			system_palette[i].r = system_palette[i - 1].r;
+			system_palette[i].g = system_palette[i - 1].g;
+			system_palette[i].b = system_palette[i - 1].b;
+		}
+		system_palette[i].r = col.r;
+		system_palette[i].g = col.g;
+		system_palette[i].b = col.b;
+		palette_update();
+		dword_6E2D5C = 0;
+	} else {
+		dword_6E2D5C++;
+	}
+}
+
 void palette_update_quest_palette(int n)
 {
 	int i;
@@ -228,7 +352,6 @@ void palette_update_quest_palette(int n)
 	ApplyGamma(system_palette, logical_palette, 32);
 	palette_update();
 }
-#endif
 
 BOOL palette_get_color_cycling()
 {

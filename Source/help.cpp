@@ -8,13 +8,12 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 int help_select_line;
-int dword_634494;
+int unused_help;
 BOOL helpflag;
 int displayinghelp[22]; /* check, does nothing? */
 int HelpTop;
 
-const char gszHelpText[] = {
-#ifdef SPAWN
+const char gszSpawnHelpText[] = {
 	"Shareware Diablo Help|"
 	"|"
 	"$Keyboard Shortcuts:|"
@@ -362,7 +361,7 @@ const char gszHelpText[] = {
 	"adjust your music and sound effects settings as well as "
 	"the gamma level of the screen.|"
 	"|"
-	"Quit Diablo: This exits the program. Please note that this "
+	"Quit Game: This exits the program. Please note that this "
 	"automatically saves your character.|"
 	"|"
 	"$Auto-map:|"
@@ -372,7 +371,9 @@ const char gszHelpText[] = {
 	"the auto-map. Zooming in and out of the map is done with the + and - "
 	"keys while scrolling the map uses the arrow keys.|"
 	"&"
-#else
+};
+
+const char gszHelpText[] = {
 	"$Keyboard Shortcuts:|"
 	"F1:    Open Help Screen|"
 	"Esc:   Display Main Menu|"
@@ -439,14 +440,34 @@ const char gszHelpText[] = {
 	"Reading more than one book increases your knowledge of that "
 	"spell, allowing you to cast the spell more effectively.|"
 	"&"
-#endif
 };
 
 void InitHelp()
 {
 	helpflag = FALSE;
-	dword_634494 = 0;
+	unused_help = 0;
 	displayinghelp[0] = 0;
+}
+
+static void DrawHelpLine(int x, int y, char *text, char color)
+{
+	int sx, sy, width;
+	BYTE c;
+
+	width = 0;
+	sx = x + 32 + PANEL_X;
+	sy = y * 12 + 44 + SCREEN_Y + UI_OFFSET_Y;
+	while (*text) {
+		c = gbFontTransTbl[(BYTE)*text];
+		text++;
+		c = fontframe[c];
+		width += fontkern[c] + 1;
+		if (c) {
+			if (width <= 577)
+				PrintChar(sx, sy, c, color);
+		}
+		sx += fontkern[c] + 1;
+	}
 }
 
 void DrawHelp()
@@ -457,10 +478,15 @@ void DrawHelp()
 
 	DrawSTextHelp();
 	DrawQTextBack();
-	PrintSString(0, 2, TRUE, "Diablo Help", COL_GOLD, 0);
+	if (gbIsHellfire)
+		PrintSString(0, 2, TRUE, "Hellfire Help", COL_GOLD, 0);
+	else
+		PrintSString(0, 2, TRUE, "Diablo Help", COL_GOLD, 0);
 	DrawSLine(5);
 
 	s = &gszHelpText[0];
+	if (gbIsSpawn)
+		s = &gszSpawnHelpText[0];
 
 	for (i = 0; i < help_select_line; i++) {
 		c = 0;
@@ -515,7 +541,8 @@ void DrawHelp()
 				s++;
 			}
 			tempstr[c] = *s;
-			w += fontkern[fontframe[gbFontTransTbl[(BYTE)tempstr[c]]]] + 1;
+			BYTE tc = gbFontTransTbl[(BYTE)tempstr[c]];
+			w += fontkern[fontframe[tc]] + 1;
 			c++;
 			s++;
 		}
@@ -536,27 +563,6 @@ void DrawHelp()
 	}
 
 	PrintSString(0, 23, TRUE, "Press ESC to end or the arrow keys to scroll.", COL_GOLD, 0);
-}
-
-void DrawHelpLine(int x, int y, char *text, char color)
-{
-	int sx, sy, width;
-	BYTE c;
-
-	width = 0;
-	sx = x + 32 + PANEL_X;
-	sy = y * 12 + 44 + SCREEN_Y + UI_OFFSET_Y;
-	while (*text) {
-		c = gbFontTransTbl[(BYTE)*text];
-		text++;
-		c = fontframe[c];
-		width += fontkern[c] + 1;
-		if (c) {
-			if (width <= 577)
-				PrintChar(sx, sy, c, color);
-		}
-		sx += fontkern[c] + 1;
-	}
 }
 
 void DisplayHelp()

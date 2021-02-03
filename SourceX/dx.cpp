@@ -14,6 +14,7 @@ int sgdwLockCount;
 BYTE *gpBuffer;
 BYTE *gpBuffer_24bit; //Fluffy
 BYTE *gpBuffer_32bit; //Fluffy
+BYTE* gpBuffer_important = 0; //Fluffy: Used for wall transparency
 #ifdef _DEBUG
 int locktbl[256];
 #endif
@@ -34,9 +35,6 @@ SDL_Surface *renderer_texture_surface = NULL;
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
 
-/** To know if surfaces have been initialized or not */
-BOOL was_window_init = false;
-
 static void dx_create_back_buffer()
 {
 	pal_surface = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 8, SDL_PIXELFORMAT_INDEX8);
@@ -45,6 +43,9 @@ static void dx_create_back_buffer()
 	}
 
 	gpBuffer = (BYTE *)pal_surface->pixels;
+	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
+		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
+	}
 
 #ifndef USE_SDL1
 	// In SDL2, `pal_surface` points to the global `palette`.
@@ -93,8 +94,8 @@ static void lock_buf_priv()
 		return;
 	}
 
-	gpBufEnd += (uintptr_t)(BYTE *)pal_surface->pixels;
 	gpBuffer = (BYTE *)pal_surface->pixels;
+	gpBufEnd += (uintptr_t)(BYTE *)pal_surface->pixels;
 	sgdwLockCount++;
 }
 
@@ -132,6 +133,9 @@ void unlock_buf(BYTE idx)
 
 void dx_cleanup()
 {
+	if (gpBuffer_important)
+		delete[] gpBuffer_important; //Fluffy
+
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
 	sgMemCrit.Enter();

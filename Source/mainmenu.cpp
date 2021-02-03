@@ -6,6 +6,7 @@
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
 #include "../DiabloUI/diabloui.h"
+#include "misc/config.h" //Fluffy: For re-reading options from config
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -19,15 +20,68 @@ int menu_music_track_id = TMUSIC_INTRO;
 void mainmenu_refresh_music()
 {
 	music_start(menu_music_track_id);
-#ifndef SPAWN
+
+	if (gbIsSpawn && !gbIsHellfire) {
+		return;
+	}
+
 	do {
 		menu_music_track_id++;
-		if (menu_music_track_id == NUM_MUSIC)
-			menu_music_track_id = TMUSIC_TOWN;
+		if (menu_music_track_id == NUM_MUSIC || (!gbIsHellfire && menu_music_track_id > TMUSIC_L4))
+			menu_music_track_id = TMUSIC_L2;
+		if (gbIsSpawn && menu_music_track_id > TMUSIC_L1)
+			menu_music_track_id = TMUSIC_L5;
 	} while (menu_music_track_id == TMUSIC_TOWN || menu_music_track_id == TMUSIC_L1);
-#endif
 }
 
+static BOOL mainmenu_init_menu(int type)
+{
+	BOOL success;
+
+	if (type == SELHERO_PREVIOUS)
+		return TRUE;
+
+	music_stop();
+
+	success = StartGame(type != SELHERO_CONTINUE, type != SELHERO_CONNECT);
+	if (success)
+		mainmenu_refresh_music();
+
+	return success;
+}
+
+static BOOL mainmenu_single_player()
+{
+	if (!SRegLoadValue("Hellfire", jogging_title, 0, &jogging_opt)) {
+		jogging_opt = TRUE;
+	}
+	if (!gbIsHellfire) {
+		jogging_opt = FALSE;
+	}
+
+	gbMaxPlayers = 1;
+
+	LoadOptionsFromConfig(); //Fluffy: In case we are changing from multiplayer to singleplayer, we re-read various options from config here
+
+	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
+}
+
+static BOOL mainmenu_multi_player()
+{
+	jogging_opt = FALSE;
+	gbMaxPlayers = MAX_PLRS;
+	return mainmenu_init_menu(SELHERO_CONNECT);
+}
+
+static void mainmenu_play_intro()
+{
+	music_stop();
+	if (gbIsHellfire)
+		play_movie("gendata\\Hellfire.smk", TRUE);
+	else
+		play_movie("gendata\\diablo1.smk", TRUE);
+	mainmenu_refresh_music();
+}
 void mainmenu_change_name(int arg1, int arg2, int arg3, int arg4, char *name_1, char *name_2)
 {
 	if (UiValidPlayerName(name_2))
@@ -96,8 +150,8 @@ void mainmenu_loop()
 	BOOL done;
 	int menu;
 
-	done = FALSE;
 	mainmenu_refresh_music();
+	done = FALSE;
 
 	do {
 		menu = 0;
@@ -113,17 +167,18 @@ void mainmenu_loop()
 			if (!mainmenu_multi_player())
 				done = TRUE;
 			break;
-		case MAINMENU_REPLAY_INTRO:
 		case MAINMENU_ATTRACT_MODE:
-#ifdef SPAWN
-			done = FALSE;
-#else
-			if (gbActive)
+		case MAINMENU_REPLAY_INTRO:
+			if (gbIsSpawn && !gbIsHellfire)
+				done = FALSE;
+			else if (gbActive)
 				mainmenu_play_intro();
-#endif
 			break;
 		case MAINMENU_SHOW_CREDITS:
 			UiCreditsDialog(16);
+			break;
+		case MAINMENU_SHOW_SUPPORT:
+			//UiSupportDialog(16);
 			break;
 		case MAINMENU_EXIT_DIABLO:
 			done = TRUE;
@@ -133,73 +188,5 @@ void mainmenu_loop()
 
 	music_stop();
 }
-
-static void LoadGameSetupVariableFromConfig(char *name, BOOL *variable)
-{
-	int temp = *variable;
-	if (SRegLoadValue("devilutionx", name, 0, &temp))
-		*variable = (BOOL) temp;
-	else
-		SRegSaveValue("devilutionx", name, 0, temp);
-}
-
-BOOL mainmenu_single_player()
-{
-	gbMaxPlayers = 1;
-
-	if (!SRegLoadValue("devilutionx", "game speed", 0, &ticks_per_sec)) {
-		SRegSaveValue("devilutionx", "game speed", 0, ticks_per_sec);
-	}
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
-
-	//Fluffy: Load speed modifiers from config, but if they don't exist, then we calculate based on the tick rate
-	if (!SRegLoadValue("devilutionx", "Game Simulation Speed Modifier", 0, &gSpeedMod)) {
-		gSpeedMod = ticks_per_sec / 20;
-	}
-	if (!SRegLoadValue("devilutionx", "Monster Speed Modifier", 0, &gMonsterSpeedMod)) {
-		gMonsterSpeedMod = ticks_per_sec / 20;
-	}
-	if (gSpeedMod < 1)
-		gSpeedMod = 1;
-	if (gMonsterSpeedMod < 1)
-		gMonsterSpeedMod = 1;
-
-	//Fluffy: Load game setup from config here when booting up singleplayer (if we fail to load it, then we save its default to the config)
-	LoadGameSetupVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
-	LoadGameSetupVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
-
-	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
-}
-
-BOOL mainmenu_init_menu(int type)
-{
-	BOOL success;
-
-	if (type == SELHERO_PREVIOUS)
-		return TRUE;
-
-	music_stop();
-
-	success = StartGame(type != SELHERO_CONTINUE, type != SELHERO_CONNECT);
-	if (success)
-		mainmenu_refresh_music();
-
-	return success;
-}
-
-BOOL mainmenu_multi_player()
-{
-	gbMaxPlayers = MAX_PLRS;
-	return mainmenu_init_menu(SELHERO_CONNECT);
-}
-
-#ifndef SPAWN
-void mainmenu_play_intro()
-{
-	music_stop();
-	play_movie("gendata\\diablo1.smk", TRUE);
-	mainmenu_refresh_music();
-}
-#endif
 
 DEVILUTION_END_NAMESPACE

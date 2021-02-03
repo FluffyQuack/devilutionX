@@ -19,6 +19,7 @@ int icursW28;
 int icursH28;
 /** Cursor images CEL */
 BYTE *pCursCels;
+BYTE *pCursCels2;
 
 /** inv_item value */
 char pcursinvitem;
@@ -65,6 +66,12 @@ const int InvItemWidth[] = {
 	2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28,
 	2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28,
 	2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	2 * 28, 2 * 28, 1 * 28, 1 * 28, 1 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28,
+	2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28,
+	2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28, 2 * 28
 	// clang-format on
 };
 
@@ -91,6 +98,12 @@ const int InvItemHeight[] = {
 	3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28,
 	3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28,
 	3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28, 1 * 28,
+	2 * 28, 2 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28,
+	3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28,
+	3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28, 3 * 28
 	// clang-format on
 };
 
@@ -98,12 +111,15 @@ void InitCursor()
 {
 	assert(!pCursCels);
 	pCursCels = LoadFileInMem("Data\\Inv\\Objcurs.CEL", NULL);
+	if (gbIsHellfire)
+		pCursCels2 = LoadFileInMem("Data\\Inv\\Objcurs2.CEL", NULL);
 	ClearCursor();
 }
 
 void FreeCursor()
 {
 	MemFreeDbg(pCursCels);
+	MemFreeDbg(pCursCels2);
 	ClearCursor();
 }
 
@@ -402,7 +418,7 @@ void CheckCursMove()
 				cursmx = mx;
 				cursmy = my;
 			}
-			if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM) {
+			if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM && !(monster[pcursmonst]._mFlags & MFLAG_BERSERK)) {
 				pcursmonst = -1;
 			}
 			if (pcursmonst != -1) {
@@ -470,7 +486,7 @@ void CheckCursMove()
 			cursmx = mx;
 			cursmy = my;
 		}
-		if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM) {
+		if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM && !(monster[pcursmonst]._mFlags & MFLAG_BERSERK)) {
 			pcursmonst = -1;
 		}
 	} else {
@@ -640,7 +656,7 @@ void CheckCursMove()
 		cursmx = mx;
 		cursmy = my;
 	}
-	if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM) {
+	if (pcursmonst != -1 && monster[pcursmonst]._mFlags & MFLAG_GOLEM && !(monster[pcursmonst]._mFlags & MFLAG_BERSERK)) {
 		pcursmonst = -1;
 	}
 }

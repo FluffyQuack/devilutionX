@@ -15,21 +15,19 @@ extern "C" {
 extern BYTE *gpBuffer;
 extern BYTE *gpBuffer_24bit; //Fluffy
 extern BYTE *gpBuffer_32bit; //Fluffy
+extern BYTE* gpBuffer_important; //Fluffy
 
 void dx_init(HWND hWnd);
 void lock_buf(BYTE idx);
 void unlock_buf(BYTE idx);
 void dx_cleanup();
 void dx_reinit();
-
 void InitPalette();
 void BltFast(SDL_Rect *src_rect, SDL_Rect *dst_rect);
 void Blit(SDL_Surface *src, SDL_Rect *src_rect, SDL_Rect *dst_rect);
 void RenderPresent();
 void PaletteGetEntries(DWORD dwNumEntries, SDL_Color *lpEntries);
-void PaletteSetEntries(DWORD dwCount, SDL_Color *lpEntries);
 
-/* data */
 #ifdef __cplusplus
 }
 #endif

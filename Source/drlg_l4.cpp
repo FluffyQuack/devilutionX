@@ -15,7 +15,6 @@ int diabquad3x;
 int diabquad3y;
 int diabquad4x;
 int diabquad4y;
-#ifndef SPAWN
 BOOL hallok[20];
 int l4holdx;
 int l4holdy;
@@ -904,8 +903,10 @@ static void DRLG_L4Subs()
 
 	for (y = 0; y < DMAXY; y++) {
 		for (x = 0; x < DMAXX; x++) {
-			if (random_(0, 3) == 0) {
-				c = L4BTYPES[dungeon[x][y]];
+			rv = random_(0, 3);
+			if (rv == 0) {
+				c = dungeon[x][y];
+				c = L4BTYPES[c];
 				if (c != 0 && dflags[x][y] == 0) {
 					rv = random_(0, 16);
 					i = -1;
@@ -925,8 +926,10 @@ static void DRLG_L4Subs()
 	}
 	for (y = 0; y < DMAXY; y++) {
 		for (x = 0; x < DMAXX; x++) {
-			if (random_(0, 10) == 0) {
-				if (L4BTYPES[dungeon[x][y]] == 6 && dflags[x][y] == 0) {
+			rv = random_(0, 10);
+			if (rv == 0) {
+				c = dungeon[x][y];
+				if (L4BTYPES[c] == 6 && dflags[x][y] == 0) {
 					dungeon[x][y] = random_(0, 3) + 95;
 				}
 			}
@@ -1083,9 +1086,9 @@ static void L4drawRoom(int x, int y, int width, int height)
 {
 	int i, j;
 
-	for (j = 0; j < height; j++) {
-		for (i = 0; i < width; i++) {
-			dung[i + x][j + y] = 1;
+	for (j = 0; j < height && j + y < 20; j++) {
+		for (i = 0; i < width && i + x < 20; i++) {
+            dung[i + x][j + y] = 1;
 		}
 	}
 }
@@ -1174,7 +1177,7 @@ static void L4firstRoom()
 	int x, y, w, h, rndx, rndy, xmin, xmax, ymin, ymax, tx, ty;
 
 	if (currlevel != 16) {
-		if (currlevel == quests[Q_WARLORD]._qlevel && quests[Q_WARLORD]._qactive) {
+		if (currlevel == quests[Q_WARLORD]._qlevel && quests[Q_WARLORD]._qactive != QUEST_NOTAVAIL) {
 			/// ASSERT: assert(gbMaxPlayers == 1);
 			w = 11;
 			h = 11;
@@ -1380,7 +1383,7 @@ static BOOL DRLG_L4PlaceMiniSet(const BYTE *miniset, int tmin, int tmax, int cx,
 		}
 	}
 
-	if (currlevel == 15) {
+	if (currlevel == 15 && quests[Q_BETRAYER]._qactive >= QUEST_ACTIVE) { /// Lazarus staff skip bug fixed
 		quests[Q_BETRAYER]._qtx = sx + 1;
 		quests[Q_BETRAYER]._qty = sy + 1;
 	}
@@ -1615,13 +1618,13 @@ static void DRLG_L4(int entry)
 			DRLG_LoadDiabQuads(TRUE);
 		}
 		if (QuestStatus(Q_WARLORD)) {
-			if (entry == 0) {
+			if (entry == ENTRY_MAIN) {
 				doneflag = DRLG_L4PlaceMiniSet(L4USTAIRS, 1, 1, -1, -1, TRUE, 0);
 				if (doneflag && currlevel == 13) {
 					doneflag = DRLG_L4PlaceMiniSet(L4TWARP, 1, 1, -1, -1, FALSE, 6);
 				}
 				ViewX++;
-			} else if (entry == 1) {
+			} else if (entry == ENTRY_PREV) {
 				doneflag = DRLG_L4PlaceMiniSet(L4USTAIRS, 1, 1, -1, -1, FALSE, 0);
 				if (doneflag && currlevel == 13) {
 					doneflag = DRLG_L4PlaceMiniSet(L4TWARP, 1, 1, -1, -1, FALSE, 6);
@@ -1636,7 +1639,7 @@ static void DRLG_L4(int entry)
 				ViewX++;
 			}
 		} else if (currlevel != 15) {
-			if (entry == 0) {
+			if (entry == ENTRY_MAIN) {
 				doneflag = DRLG_L4PlaceMiniSet(L4USTAIRS, 1, 1, -1, -1, TRUE, 0);
 				if (doneflag && currlevel != 16) {
 					doneflag = DRLG_L4PlaceMiniSet(L4DSTAIRS, 1, 1, -1, -1, FALSE, 1);
@@ -1645,7 +1648,7 @@ static void DRLG_L4(int entry)
 					doneflag = DRLG_L4PlaceMiniSet(L4TWARP, 1, 1, -1, -1, FALSE, 6);
 				}
 				ViewX++;
-			} else if (entry == 1) {
+			} else if (entry == ENTRY_PREV) {
 				doneflag = DRLG_L4PlaceMiniSet(L4USTAIRS, 1, 1, -1, -1, FALSE, 0);
 				if (doneflag && currlevel != 16) {
 					doneflag = DRLG_L4PlaceMiniSet(L4DSTAIRS, 1, 1, -1, -1, TRUE, 1);
@@ -1665,7 +1668,7 @@ static void DRLG_L4(int entry)
 				ViewX++;
 			}
 		} else {
-			if (entry == 0) {
+			if (entry == ENTRY_MAIN) {
 				doneflag = DRLG_L4PlaceMiniSet(L4USTAIRS, 1, 1, -1, -1, TRUE, 0);
 				if (doneflag) {
 					if (gbMaxPlayers == 1 && quests[Q_DIABLO]._qactive != QUEST_ACTIVE) {
@@ -1816,7 +1819,6 @@ void LoadL4Dungeon(char *sFileName, int vx, int vy)
 	InitL4Dungeon();
 	pLevelMap = LoadFileInMem(sFileName, NULL);
 
-
 	lm = pLevelMap;
 	rw = *lm;
 	lm += 2;
@@ -1878,6 +1880,5 @@ void LoadPreL4Dungeon(char *sFileName, int vx, int vy)
 	}
 	mem_free_dbg(pLevelMap);
 }
-#endif
 
 DEVILUTION_END_NAMESPACE

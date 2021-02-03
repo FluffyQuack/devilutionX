@@ -1,6 +1,6 @@
 //Fluffy: For extended information in the savegame
 
-#include "..\all.h"
+#include "../all.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 

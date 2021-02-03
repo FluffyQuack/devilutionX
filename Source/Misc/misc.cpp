@@ -1,6 +1,6 @@
 //Fluffy: For miscellanous, generic snippets of code
 
-#include "..\all.h"
+#include "../all.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
