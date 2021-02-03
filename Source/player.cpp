@@ -1362,7 +1362,10 @@ void PM_ChangeOffset(int pnum)
 	PM_ChangeLightOff(pnum);
 }
 
-void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant) //Fluffy: Rewrite of StartWalk1/2/3 since they were mostly identical
+/**
+ * @brief Start moving a player to a new tile
+ */
+void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int yadd, int mapx, int mapy, int EndDir, int sdir, int variant)
 {
 	/*
 	This code has three variants (for walking upwards, horizontally, and downwards)
@@ -1389,22 +1392,25 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	}
 
 	SetPlayerOld(pnum);
-	int px = xadd + plr[pnum]._px; //The tile we're ending up on after moving once
-	int py = yadd + plr[pnum]._py;
 
 	if (!PlrDirOK(pnum, EndDir)) {
 		return;
 	}
 
+	//The player's tile position after finishing this movement action
+	int px = xadd + plr[pnum]._px; //The tile we're ending up on after moving once
+	int py = yadd + plr[pnum]._py;
 	plr[pnum]._pfutx = px;
 	plr[pnum]._pfuty = py;
 
+	//If this is the local player then update the camera offset position
 	if (pnum == myplr) {
 		ScrollInfo._sdx = plr[pnum]._px - ViewX;
 		ScrollInfo._sdy = plr[pnum]._py - ViewY;
 	}
 
-	if (variant == DO_WALK_VARIANT_UP) { //Up, upleft, or upright movement
+	switch (variant) {
+	case PM_WALK:
 		dPlayer[px][py] = -(pnum + 1);
 		plr[pnum]._pmode = PM_WALK;
 		plr[pnum]._pxvel = xvel;
@@ -1416,7 +1422,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar6 = 0;
 		plr[pnum]._pVar7 = 0;
 		plr[pnum]._pVar3 = EndDir;
-	} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright movement
+		break;
+	case PM_WALK2:
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = -1 - pnum;
 		plr[pnum]._pVar1 = plr[pnum]._px;
 		plr[pnum]._pVar2 = plr[pnum]._py;
@@ -1435,7 +1442,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar6 = (xoff * gSpeedMod) * 256; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
 		plr[pnum]._pVar7 = (yoff * gSpeedMod) * 256;
 		plr[pnum]._pVar3 = EndDir;
-	} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
+		break;
+	case PM_WALK3:
 		int x = mapx + plr[pnum]._px;
 		int y = mapy + plr[pnum]._py;
 
@@ -1460,6 +1468,8 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pVar6 = (xoff * gSpeedMod) * 256; //Fluffy: Multiply by gSpeedMod to scale offset to match position of another tile
 		plr[pnum]._pVar7 = (yoff * gSpeedMod) * 256;
 		plr[pnum]._pVar3 = EndDir;
+		break;
+
 	}
 
 	//Fluffy: Make sure to load both walk animations
@@ -1475,6 +1485,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		animCnt = plr[pnum]._pAnimCnt;
 	}
 
+	//Start walk animation
 	if (leveltype == DTYPE_TOWN)
 		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
 	else
@@ -2218,6 +2229,7 @@ BOOL PM_DoStand(int pnum)
 
 static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 {
+	//Acquire length of walk animation length (this is 8 for every class, so the AnimLenFromClass array is redundant right now)
 	int anim_len = 8;
 	if (currlevel != 0) { //Get animation length of "combat" walk if not in town
 		anim_len = AnimLenFromClass[plr[pnum]._pClass]; //As of now, this always returns 8 as every character has the same walk animation length
@@ -2234,14 +2246,16 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 		return 0;
 }
 
-BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it's all one function
+/**
+ * @brief Continue movement towards new tile
+ */
+bool PM_DoWalk(int pnum, int variant)
 {
-	BOOL rv;
-
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("PM_DoWalk: illegal player %d", pnum);
 	}
 
+	//Play walking sound effect on certain animation frames
 	if (plr[pnum]._pAnimFrame == 3
 	    || (plr[pnum]._pWFrames == 8 && plr[pnum]._pAnimFrame == 7)
 	    || (plr[pnum]._pWFrames != 8 && plr[pnum]._pAnimFrame == 4)) {
@@ -2260,31 +2274,39 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 		}
 	}
 
+	//Check if we reached new tile
 	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
 	if (newTile) {
-		if (variant == DO_WALK_VARIANT_UP) //Up, upleft, or upright movement
-		{
+
+		//Update the player's tile position
+		switch (variant) {
+		case PM_WALK:
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 			plr[pnum]._px += plr[pnum]._pVar1;
 			plr[pnum]._py += plr[pnum]._pVar2;
 
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
-		} else if (variant == DO_WALK_VARIANT_DOWN) { //Down, downleft, or downright movement
+			break;
+		case PM_WALK2:
 			dPlayer[plr[pnum]._pVar1][plr[pnum]._pVar2] = 0;
-		} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right
+			break;
+		case PM_WALK3:
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = 0;
 			dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
 			plr[pnum]._px = plr[pnum]._pVar1;
 			plr[pnum]._py = plr[pnum]._pVar2;
 
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
+			break;
 		}
 
+		//Update the coordinates for lighting and vision entries for the player
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightXY(plr[pnum]._plid, plr[pnum]._px, plr[pnum]._py);
 			ChangeVisionXY(plr[pnum]._pvid, plr[pnum]._px, plr[pnum]._py);
 		}
 
+		//Update the "camera" tile position
 		if (pnum == myplr && ScrollInfo._sdir) {
 			ViewX = plr[pnum]._px - ScrollInfo._sdx;
 			ViewY = plr[pnum]._py - ScrollInfo._sdy;
@@ -2298,16 +2320,15 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 
 		ClearPlrPVars(pnum);
 
+		//Reset the "sub-tile" position of the player's light entry to 0
 		if (leveltype != DTYPE_TOWN) {
 			ChangeLightOff(plr[pnum]._plid, 0, 0);
 		}
-		rv = TRUE;
-	} else {
+		return true;
+	} else { //We didn't reach new tile so update player's "sub-tile" position
 		PM_ChangeOffset(pnum);
-		rv = FALSE;
+		return false;
 	}
-
-	return rv;
 }
 
 static bool WeaponDurDecay(int pnum, int ii)
@@ -3200,28 +3221,28 @@ void CheckNewPath(int pnum)
 
 			switch (plr[pnum].walkpath[0]) {
 			case WALK_N:
-				StartWalk(pnum, 0, -xvel, 0, 0, -1, -1, 0, 0, DIR_N, SDIR_N, DO_WALK_VARIANT_UP);
+				StartWalk(pnum, 0, -xvel, 0, 0, -1, -1, 0, 0, DIR_N, SDIR_N, PM_WALK);
 				break;
 			case WALK_NE:
-				StartWalk(pnum, xvel, -yvel, 0, 0, 0, -1, 0, 0, DIR_NE, SDIR_NE, DO_WALK_VARIANT_UP);
+				StartWalk(pnum, xvel, -yvel, 0, 0, 0, -1, 0, 0, DIR_NE, SDIR_NE, PM_WALK);
 				break;
 			case WALK_E:
-				StartWalk(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E, DO_WALK_VARIANT_HORIZONTAL);
+				StartWalk(pnum, xvel3, 0, -32, -16, 1, -1, 1, 0, DIR_E, SDIR_E, PM_WALK3);
 				break;
 			case WALK_SE:
-				StartWalk(pnum, xvel, yvel, -32, -16, 1, 0, 0, 0, DIR_SE, SDIR_SE, DO_WALK_VARIANT_DOWN);
+				StartWalk(pnum, xvel, yvel, -32, -16, 1, 0, 0, 0, DIR_SE, SDIR_SE, PM_WALK2);
 				break;
 			case WALK_S:
-				StartWalk(pnum, 0, xvel, 0, -32, 1, 1, 0, 0, DIR_S, SDIR_S, DO_WALK_VARIANT_DOWN);
+				StartWalk(pnum, 0, xvel, 0, -32, 1, 1, 0, 0, DIR_S, SDIR_S, PM_WALK2);
 				break;
 			case WALK_SW:
-				StartWalk(pnum, -xvel, yvel, 32, -16, 0, 1, 0, 0, DIR_SW, SDIR_SW, DO_WALK_VARIANT_DOWN);
+				StartWalk(pnum, -xvel, yvel, 32, -16, 0, 1, 0, 0, DIR_SW, SDIR_SW, PM_WALK2);
 				break;
 			case WALK_W:
-				StartWalk(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W, DO_WALK_VARIANT_HORIZONTAL);
+				StartWalk(pnum, -xvel3, 0, 32, -16, -1, 1, 0, 1, DIR_W, SDIR_W, PM_WALK3);
 				break;
 			case WALK_NW:
-				StartWalk(pnum, -xvel, -yvel, 0, 0, -1, 0, 0, 0, DIR_NW, SDIR_NW, DO_WALK_VARIANT_UP);
+				StartWalk(pnum, -xvel, -yvel, 0, 0, -1, 0, 0, 0, DIR_NW, SDIR_NW, PM_WALK);
 				break;
 			}
 
@@ -3631,13 +3652,9 @@ void ProcessPlayers()
 					tplayer = PM_DoStand(pnum);
 					break;
 				case PM_WALK:
-					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_UP);
-					break;
 				case PM_WALK2:
-					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_DOWN);
-					break;
 				case PM_WALK3:
-					tplayer = PM_DoWalk(pnum, DO_WALK_VARIANT_HORIZONTAL);
+					tplayer = PM_DoWalk(pnum, plr[pnum]._pmode);
 					break;
 				case PM_ATTACK:
 					tplayer = PM_DoAttack(pnum);

@@ -40,7 +40,7 @@ void M_StartHit(int i, int pnum, int dam);
 void M_StartKill(int i, int pnum);
 void M_SyncStartKill(int i, int x, int y, int pnum);
 BOOL M_DoStand(int i);
-BOOL M_DoWalk(int i, int variant);
+bool M_DoWalk(int i, int variant);
 BOOL M_DoAttack(int i);
 void M_Teleport(int i);
 BOOL M_DoGotHit(int i);

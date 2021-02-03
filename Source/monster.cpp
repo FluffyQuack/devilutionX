@@ -2048,40 +2048,46 @@ BOOL M_DoStand(int i)
 	return FALSE;
 }
 
-BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since they had a lot shared code
+/**
+ * @brief Continue movement towards new tile
+ */
+bool M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since they had a lot shared code
 {
-	BOOL rv = FALSE;
+	bool returnValue;
 
 	//TODO: This doesn't work right now when modifying gameplay speed
 
 	commitment((DWORD)i < MAXMONSTERS, i);
 	commitment(monster[i].MType != NULL, i);
 
+	//Check if we reached new tile
 	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames * gMonsterSpeedMod) { //Fluffy: Scale duration it takes to reach new tile using gMonsterSpeedMod
-		//Monster reached a new tile
-		if (variant == DO_WALK_VARIANT_UP) { //Upleft, up, or upright movement
+
+		switch (variant) {
+		case MM_WALK:
 			dMonster[monster[i]._mx][monster[i]._my] = 0;
 			monster[i]._mx += monster[i]._mVar1;
 			monster[i]._my += monster[i]._mVar2;
 			dMonster[monster[i]._mx][monster[i]._my] = i + 1;
-		} else if (variant == DO_WALK_VARIANT_DOWN) { //Downleft, down, or downright movement
+			break;
+		case MM_WALK2:
 			dMonster[monster[i]._mVar1][monster[i]._mVar2] = 0;
-			
-		} else if (variant == DO_WALK_VARIANT_HORIZONTAL) { //Left or right movement
+			break;
+		case MM_WALK3:
 			dMonster[monster[i]._mx][monster[i]._my] = 0;
 			monster[i]._mx = monster[i]._mVar1;
 			monster[i]._my = monster[i]._mVar2;
 			dFlags[monster[i]._mVar4][monster[i]._mVar5] &= ~BFLAG_MONSTLR;
 			dMonster[monster[i]._mx][monster[i]._my] = i + 1;
+			break;
 		}
 
 		if (monster[i].mlid != NO_LIGHT)
 			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
 		M_StartStand(i, monster[i]._mdir);
 
-		rv = TRUE;
-	} else /*if (!monster[i]._mAnimCnt)*/ { //Fluffy I don't understand the point of this mAnimCnt check as we always want to update offset when we haven't reached the tile. I've commented it out since it interfers with gMonsterSpeedMod
-		//Monster didn't reach a new tile, so update monster render offset
+		returnValue = TRUE;
+	} else { //We didn't reach new tile so update monster's "sub-tile" position
 		if (monster[i]._mVar8 == 0 && monster[i].MType->mtype == MT_FLESTHNG) //Fluffy TODO: Should we do the var8 check differently in relation to gMonsterSpeedMod?
 			PlayEffect(i, 3);
 		monster[i]._mVar8++;
@@ -2089,13 +2095,13 @@ BOOL M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 		monster[i]._mVar7 += monster[i]._myvel;
 		monster[i]._mxoff = (monster[i]._mVar6 >> 4) / gMonsterSpeedMod; //Fluffy: Divide by gMonsterSpeedMod to get the variable's real value
 		monster[i]._myoff = (monster[i]._mVar7 >> 4) / gMonsterSpeedMod;
-		rv = FALSE;
+		returnValue = FALSE;
 	}
 
 	if (monster[i].mlid != NO_LIGHT)
 		M_ChangeLightOffset(i);
 
-	return rv;
+	return returnValue;
 }
 
 void M_TryM2MHit(int i, int mid, int hper, int mind, int maxd)
@@ -4774,13 +4780,9 @@ void ProcessMonsters()
 				raflag = M_DoStand(mi);
 				break;
 			case MM_WALK:
-				raflag = M_DoWalk(mi, DO_WALK_VARIANT_UP);
-				break;
 			case MM_WALK2:
-				raflag = M_DoWalk(mi, DO_WALK_VARIANT_DOWN);
-				break;
 			case MM_WALK3:
-				raflag = M_DoWalk(mi, DO_WALK_VARIANT_HORIZONTAL);
+				raflag = M_DoWalk(mi, Monst->_mmode);
 				break;
 			case MM_ATTACK:
 				raflag = M_DoAttack(mi);

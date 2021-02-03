@@ -2424,9 +2424,9 @@ typedef enum _difficulty {
 
 typedef enum MON_MODE {
 	MM_STAND     = 0,
-	MM_WALK      = 1,
-	MM_WALK2     = 2,
-	MM_WALK3     = 3,
+	MM_WALK      = 1, //Movement towards N, NW, or NE
+	MM_WALK2     = 2, //Movement towards S, SW, or SE
+	MM_WALK3     = 3, //Movement towards W or E
 	MM_ATTACK    = 4,
 	MM_GOTHIT    = 5,
 	MM_DEATH     = 6,
@@ -2454,9 +2454,9 @@ typedef enum MON_ANIM {
 
 typedef enum PLR_MODE {
 	PM_STAND   = 0,
-	PM_WALK    = 1,
-	PM_WALK2   = 2,
-	PM_WALK3   = 3,
+	PM_WALK    = 1, //Movement towards N, NW, or NE
+	PM_WALK2   = 2, //Movement towards S, SW, or SE
+	PM_WALK3   = 3, //Movement towards W or E
 	PM_ATTACK  = 4,
 	PM_RATTACK = 5,
 	PM_BLOCK   = 6,
@@ -3439,11 +3439,5 @@ typedef enum conn_type {
 	SELCONN_UDP,
 	SELCONN_LOOPBACK,
 } conn_type;
-
-typedef enum do_walk_variants { //Fluffy
-	DO_WALK_VARIANT_UP,
-	DO_WALK_VARIANT_DOWN,
-	DO_WALK_VARIANT_HORIZONTAL,
-} do_walk_variants;
 
 DEVILUTION_END_NAMESPACE
