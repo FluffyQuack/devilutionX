@@ -7,9 +7,13 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-static BYTE sgbIsScrolling;
-static DWORD sgdwLastWalk;
-static BOOL sgbIsWalking;
+namespace {
+
+BYTE sgbIsScrolling;
+Uint32 sgdwLastWalk;
+bool sgbIsWalking;
+
+}
 
 void track_process()
 {
@@ -22,7 +26,7 @@ void track_process()
 	//Fluffy: If fastwalk is allowed, then we should allow the player to repeat walking more often when holding down left click
 	//We also scale some of these values using gSpeedMod to further change how often we're allowed to repeatedly walk
 	int moveProgress = plr[myplr]._pVar8;
-	int minWaitForRepeatWalk = 300 / gSpeedMod;
+	int minWaitForRepeatWalk = ((tick_delay_highResolution / SDL_GetPerformanceFrequency()) * 6) / gSpeedMod;
 	if (gameSetup_fastWalkInTown && currlevel == 0) {
 		moveProgress *= 2;
 		minWaitForRepeatWalk /= 2;
@@ -32,32 +36,32 @@ void track_process()
 		return;
 
 	if (cursmx != plr[myplr]._ptargx || cursmy != plr[myplr]._ptargy) {
-		DWORD tick = SDL_GetTicks();
+		Uint32 tick = SDL_GetTicks();
 		if ((int)(tick - sgdwLastWalk) >= minWaitForRepeatWalk) {
 			sgdwLastWalk = tick;
-			NetSendCmdLoc(TRUE, CMD_WALKXY, cursmx, cursmy);
+			NetSendCmdLoc(true, CMD_WALKXY, cursmx, cursmy);
 			if (!sgbIsScrolling)
-				sgbIsScrolling = TRUE;
+				sgbIsScrolling = true;
 		}
 	}
 }
 
-void track_repeat_walk(BOOL rep)
+void track_repeat_walk(bool rep)
 {
 	if (sgbIsWalking == rep)
 		return;
 
 	sgbIsWalking = rep;
 	if (rep) {
-		sgbIsScrolling = FALSE;
-		sgdwLastWalk = SDL_GetTicks() - 50;
-		NetSendCmdLoc(TRUE, CMD_WALKXY, cursmx, cursmy);
+		sgbIsScrolling = false;
+		sgdwLastWalk = SDL_GetTicks() - (tick_delay_highResolution / SDL_GetPerformanceFrequency()); //Fluffy: Use high resolution tick delay
+		NetSendCmdLoc(true, CMD_WALKXY, cursmx, cursmy);
 	} else if (sgbIsScrolling) {
-		sgbIsScrolling = FALSE;
+		sgbIsScrolling = false;
 	}
 }
 
-BOOL track_isscrolling()
+bool track_isscrolling()
 {
 	return sgbIsScrolling;
 }

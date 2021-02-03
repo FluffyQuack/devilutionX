@@ -14,7 +14,9 @@ extern "C" {
 
 extern int ObjTypeConv[];
 extern ObjDataStruct AllObjects[];
-extern char *ObjMasterLoadList[56];
+extern const char *const ObjMasterLoadList[];
+extern char *ObjCryptLoadList[];
+extern char *ObjHiveLoadList[];
 
 #ifdef __cplusplus
 }

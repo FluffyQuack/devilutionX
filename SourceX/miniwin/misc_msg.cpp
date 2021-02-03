@@ -276,12 +276,10 @@ bool BlurInventory()
 		if (!TryDropItem()) {
 			if (plr[myplr]._pClass == PC_WARRIOR) {
 				PlaySFX(PS_WARR16); // "Where would I put this?"
-#ifndef SPAWN
 			} else if (plr[myplr]._pClass == PC_ROGUE) {
 				PlaySFX(PS_ROGUE16);
 			} else if (plr[myplr]._pClass == PC_SORCERER) {
 				PlaySFX(PS_MAGE16);
-#endif
 			}
 			return false;
 		}
@@ -339,13 +337,15 @@ bool PeekMessage(LPMSG lpMsg)
 		return true;
 	}
 
-	if (ProcessControllerMotion(e)) {
-		ScaleJoysticks();
+	if (HandleControllerAddedOrRemovedEvent(e))
 		return true;
-	}
+
+	const ControllerButtonEvent ctrl_event = ToControllerButtonEvent(e);
+	if (ProcessControllerMotion(e, ctrl_event))
+		return true;
 
 	GameAction action;
-	if (GetGameAction(e, &action)) {
+	if (GetGameAction(e, ctrl_event, &action)) {
 		if (action.type != GameActionType_NONE) {
 			sgbControllerActive = true;
 
@@ -451,15 +451,6 @@ bool PeekMessage(LPMSG lpMsg)
 	}
 
 	switch (e.type) {
-#ifndef USE_SDL1
-	case SDL_CONTROLLERDEVICEADDED:
-	case SDL_CONTROLLERDEVICEREMOVED:
-		break;
-	case SDL_JOYDEVICEADDED:
-	case SDL_JOYDEVICEREMOVED:
-		InitController();
-		break;
-#endif
 	case SDL_QUIT:
 		lpMsg->message = DVL_WM_QUIT;
 		break;
@@ -710,11 +701,11 @@ SHORT GetAsyncKeyState(int vKey)
 	}
 }
 
-LRESULT DispatchMessage(const MSG *lpMsg)
+void DispatchMessage(const MSG *lpMsg)
 {
 	assert(CurrentProc);
 
-	return CurrentProc(NULL, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+	CurrentProc(NULL, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 }
 
 bool PostMessage(UINT Msg, WPARAM wParam, LPARAM lParam)

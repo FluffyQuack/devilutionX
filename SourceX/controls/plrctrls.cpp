@@ -187,7 +187,7 @@ bool CanTargetMonster(int mi)
 
 	const int mx = monst._mx;
 	const int my = monst._my;
-	if (!(dFlags[mx][my] & BFLAG_LIT)) // not visable
+	if (!(dFlags[mx][my] & BFLAG_LIT)) // not visible
 		return false;
 	if (dMonster[mx][my] == 0)
 		return false;
@@ -197,8 +197,9 @@ bool CanTargetMonster(int mi)
 
 void FindRangedTarget()
 {
-	int distance, rotations;
-	bool canTalk;
+	int rotations = 0;
+	int distance = 0;
+	bool canTalk = false;
 
 	// The first MAX_PLRS monsters are reserved for players' golems.
 	for (int mi = MAX_PLRS; mi < MAXMONSTERS; mi++) {
@@ -230,8 +231,8 @@ void FindMeleeTarget()
 {
 	bool visited[MAXDUNX][MAXDUNY] = { { 0 } };
 	int maxSteps = 25; // Max steps for FindPath is 25
-	int rotations;
-	bool canTalk;
+	int rotations = 0;
+	bool canTalk = false;
 
 	struct SearchNode {
 		int x, y;
@@ -309,7 +310,9 @@ void CheckMonstersNearby()
 
 void CheckPlayerNearby()
 {
-	int distance, newDdistance, rotations;
+	int newDdistance;
+	int rotations = 0;
+	int distance = 0;
 
 	if (pcursmonst != -1)
 		return;
@@ -365,7 +368,8 @@ int pcursquest;
 
 void FindTrigger()
 {
-	int distance, rotations;
+	int rotations;
+	int distance = 0;
 
 	if (pcursitem != -1 || pcursobj != -1)
 		return; // Prefer showing items/objects over triggers (use of cursm* conflicts)
@@ -552,7 +556,7 @@ void InvMove(MoveDirection dir)
 				x = InvRect[slot].X + RIGHT_PANEL + (INV_SLOT_SIZE_PX / 2);
 				y = InvRect[slot].Y - (INV_SLOT_SIZE_PX / 2);
 			}
-		} else if (slot > SLOTXY_BELT_FIRST && slot <= SLOTXY_BELT_LAST) {            // belt
+		} else if (slot > SLOTXY_BELT_FIRST && slot <= SLOTXY_BELT_LAST) { // belt
 			slot -= 1;
 			x = InvRect[slot].X + PANEL_LEFT + (INV_SLOT_SIZE_PX / 2);
 			y = InvRect[slot].Y + PANEL_TOP - (INV_SLOT_SIZE_PX / 2);
@@ -582,7 +586,7 @@ void InvMove(MoveDirection dir)
 				x = InvRect[slot].X + RIGHT_PANEL + (INV_SLOT_SIZE_PX / 2);
 				y = InvRect[slot].Y - (INV_SLOT_SIZE_PX / 2);
 			}
-		} else if (slot >= SLOTXY_BELT_FIRST && slot < SLOTXY_BELT_LAST) {           // belt
+		} else if (slot >= SLOTXY_BELT_FIRST && slot < SLOTXY_BELT_LAST) { // belt
 			slot += 1;
 			x = InvRect[slot].X + PANEL_LEFT + (INV_SLOT_SIZE_PX / 2);
 			y = InvRect[slot].Y + PANEL_TOP - (INV_SLOT_SIZE_PX / 2);
@@ -675,10 +679,9 @@ bool HSExists(int x, int y)
 {
 	for (int r = 0; r < speedspellcount; r++) {
 		if (x >= speedspellscoords[r].x - SPLICONLENGTH / 2
-			&& x < speedspellscoords[r].x + SPLICONLENGTH / 2
-			&& y >= speedspellscoords[r].y - SPLICONLENGTH / 2
-			&& y < speedspellscoords[r].y + SPLICONLENGTH / 2
-		) {
+		    && x < speedspellscoords[r].x + SPLICONLENGTH / 2
+		    && y >= speedspellscoords[r].y - SPLICONLENGTH / 2
+		    && y < speedspellscoords[r].y + SPLICONLENGTH / 2) {
 			return true;
 		}
 	}
@@ -701,10 +704,9 @@ void HotSpellMove(MoveDirection dir)
 	int spbslot = plr[myplr]._pRSpell;
 	for (int r = 0; r < speedspellcount; r++) {
 		if (MouseX >= speedspellscoords[r].x - SPLICONLENGTH / 2
-			&& MouseX < speedspellscoords[r].x + SPLICONLENGTH / 2
-			&& MouseY >= speedspellscoords[r].y - SPLICONLENGTH / 2
-			&& MouseY < speedspellscoords[r].y + SPLICONLENGTH / 2
-		) {
+		    && MouseX < speedspellscoords[r].x + SPLICONLENGTH / 2
+		    && MouseY >= speedspellscoords[r].y - SPLICONLENGTH / 2
+		    && MouseY < speedspellscoords[r].y + SPLICONLENGTH / 2) {
 			spbslot = r;
 			break;
 		}
@@ -757,7 +759,7 @@ void SpellBookMove(MoveDirection dir)
 		if (sbooktab > 0)
 			sbooktab--;
 	} else if (dir.x == MoveDirectionX_RIGHT) {
-		if (sbooktab < 3)
+		if ((gbIsHellfire && sbooktab < 4) || (!gbIsHellfire && sbooktab < 3))
 			sbooktab++;
 	}
 }
@@ -959,6 +961,11 @@ bool IsAutomapActive()
 	return automapflag && leveltype != DTYPE_TOWN;
 }
 
+bool IsMovingMouseCursorWithController()
+{
+	return rightStickX != 0 || rightStickY != 0;
+}
+
 void HandleRightStickMotion()
 {
 	static RightStickAccumulator acc;
@@ -1156,12 +1163,10 @@ void PerformSpellAction()
 	    || (pcursobj == -1 && spl == SPL_DISARM)) {
 		if (plr[myplr]._pClass == PC_WARRIOR) {
 			PlaySFX(PS_WARR27);
-#ifndef SPAWN
 		} else if (plr[myplr]._pClass == PC_ROGUE) {
 			PlaySFX(PS_ROGUE27);
 		} else if (plr[myplr]._pClass == PC_SORCERER) {
 			PlaySFX(PS_MAGE27);
-#endif
 		}
 		return;
 	}

@@ -118,8 +118,6 @@ BOOLEAN TransList[256];
 int dPiece[MAXDUNX][MAXDUNY];
 /** Specifies the dungeon piece information for a given coordinate and block number. */
 MICROS dpiece_defs_map_2[MAXDUNX][MAXDUNY];
-/** Specifies the dungeon piece information for a given coordinate and block number, optimized for diagonal access. */
-MICROS dpiece_defs_map_1[MAXDUNX * MAXDUNY];
 /** Specifies the transparency at each coordinate of the map. */
 char dTransVal[MAXDUNX][MAXDUNY];
 char dLight[MAXDUNX][MAXDUNY];
@@ -170,16 +168,25 @@ void FillSolidBlockTbls()
 
 	switch (leveltype) {
 	case DTYPE_TOWN:
-		pSBFile = LoadFileInMem("Levels\\TownData\\Town.SOL", &dwTiles);
+		if (gbIsHellfire)
+			pSBFile = LoadFileInMem("NLevels\\TownData\\Town.SOL", &dwTiles);
+		else
+			pSBFile = LoadFileInMem("Levels\\TownData\\Town.SOL", &dwTiles);
 		break;
 	case DTYPE_CATHEDRAL:
-		pSBFile = LoadFileInMem("Levels\\L1Data\\L1.SOL", &dwTiles);
+		if (currlevel < 17)
+			pSBFile = LoadFileInMem("Levels\\L1Data\\L1.SOL", &dwTiles);
+		else
+			pSBFile = LoadFileInMem("NLevels\\L5Data\\L5.SOL", &dwTiles);
 		break;
 	case DTYPE_CATACOMBS:
 		pSBFile = LoadFileInMem("Levels\\L2Data\\L2.SOL", &dwTiles);
 		break;
 	case DTYPE_CAVES:
-		pSBFile = LoadFileInMem("Levels\\L3Data\\L3.SOL", &dwTiles);
+		if (currlevel < 17)
+			pSBFile = LoadFileInMem("Levels\\L3Data\\L3.SOL", &dwTiles);
+		else
+			pSBFile = LoadFileInMem("NLevels\\L6Data\\L6.SOL", &dwTiles);
 		break;
 	case DTYPE_HELL:
 		pSBFile = LoadFileInMem("Levels\\L4Data\\L4.SOL", &dwTiles);
@@ -287,7 +294,6 @@ void DRLG_CopyTrans(int sx, int sy, int dx, int dy)
 	dTransVal[dx][dy] = dTransVal[sx][sy];
 }
 
-#ifndef SPAWN
 void DRLG_ListTrans(int num, BYTE *List)
 {
 	int i;
@@ -317,7 +323,6 @@ void DRLG_AreaTrans(int num, BYTE *List)
 	}
 	TransVal++;
 }
-#endif
 
 void DRLG_InitSetPC()
 {
@@ -343,7 +348,6 @@ void DRLG_SetPC()
 	}
 }
 
-#ifndef SPAWN
 void Make_SetPC(int x, int y, int w, int h)
 {
 	int i, j, dx, dy, dh, dw;
@@ -585,7 +589,6 @@ void DRLG_PlaceThemeRooms(int minSize, int maxSize, int floor, int freq, int rnd
 		}
 	}
 }
-#endif
 
 void DRLG_HoldThemeRooms()
 {

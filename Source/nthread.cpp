@@ -55,8 +55,7 @@ DWORD nthread_send_and_recv_turn(DWORD cur_turn, int turn_delta)
 		nthread_terminate_game("SNetGetTurnsInTransit");
 		return 0;
 	}
-	while (curTurnsInTransit < gdwTurnsInTransit) {
-		curTurnsInTransit++;
+	while (curTurnsInTransit++ < gdwTurnsInTransit) {
 
 		turn_tmp = turn_upper_bit | new_cur_turn & 0x7FFFFFFF;
 		turn_upper_bit = 0;
@@ -109,6 +108,35 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 		last_tick_highResolution += tick_delay_highResolution; //Fluffy
 		return TRUE;
 	}
+}
+
+unsigned int nthread_handler(void* data)
+{
+	//Fluffy: Rewrote this to use high resolution timer
+	unsigned long long delta;
+	BOOL received;
+
+	if (nthread_should_run) {
+		while (1) {
+			sgMemCrit.Enter();
+			if (!nthread_should_run)
+				break;
+			nthread_send_and_recv_turn(0, 0);
+			if (nthread_recv_turns(&received))
+				delta = last_tick_highResolution - SDL_GetPerformanceCounter();
+			else
+				delta = tick_delay_highResolution;
+
+			sgMemCrit.Leave();
+			unsigned long long milliseconds = (delta * 1000) / SDL_GetPerformanceFrequency(); //Delta as milliseconds
+			if (milliseconds - 1)
+				SDL_Delay(milliseconds - 1); //Just in case SDL_Delay isn't that precise with delaying we'll leave one millisecond as margin
+			if (!nthread_should_run)
+				return 0;
+		}
+		sgMemCrit.Leave();
+	}
+	return 0;
 }
 
 void nthread_set_turn_upper_bit()
@@ -171,35 +199,6 @@ void nthread_start(BOOL set_turn_upper_bit)
 	}
 }
 
-unsigned int nthread_handler(void *data)
-{
-	//Fluffy: Rewrote this to use high resolution timer
-	unsigned long long delta;
-	BOOL received;
-
-	if (nthread_should_run) {
-		while (1) {
-			sgMemCrit.Enter();
-			if (!nthread_should_run)
-				break;
-			nthread_send_and_recv_turn(0, 0);
-			if (nthread_recv_turns(&received))
-				delta = last_tick_highResolution - SDL_GetPerformanceCounter();
-			else
-				delta = tick_delay_highResolution;
-
-			sgMemCrit.Leave();
-			unsigned long long milliseconds = (delta * 1000) / SDL_GetPerformanceFrequency(); //Delta as milliseconds
-			if (milliseconds - 1)
-				SDL_Delay(milliseconds - 1); //Just in case SDL_Delay isn't that precise with delaying we'll leave one millisecond as margin
-			if (!nthread_should_run)
-				return 0;
-		}
-		sgMemCrit.Leave();
-	}
-	return 0;
-}
-
 void nthread_cleanup()
 {
 	nthread_should_run = FALSE;
@@ -225,6 +224,11 @@ void nthread_ignore_mutex(BOOL bStart)
 	}
 }
 
+/**
+ * @brief Checks if it's time for the logic to advance
+ * @param unused
+ * @return True if the engine should tick
+ */
 BOOL nthread_has_500ms_passed(BOOL unused)
 {
 	//Fluffy: Rewrote this to use high resolution timer
@@ -234,7 +238,7 @@ BOOL nthread_has_500ms_passed(BOOL unused)
 	if (currentTime < last_tick_highResolution)
 		return false;
 	elapsedTime = currentTime - last_tick_highResolution;
-	if (gbMaxPlayers == 1 && elapsedTime > SDL_GetPerformanceFrequency() / 2) { //Checking if elapsedTimer is over a half second, aka 500ms
+	if (gbMaxPlayers == 1 && elapsedTime > SDL_GetPerformanceFrequency() / 2) { //Checking if elapsedTimer is over a half second, aka 500ms //TODO: Calculate last part using tick_delay rather than using a hardcoded time
 		last_tick_highResolution = currentTime;
 		elapsedTime = 0;
 	}

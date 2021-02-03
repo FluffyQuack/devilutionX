@@ -35,7 +35,7 @@ BOOL(*gfnHeroInfo)
 (BOOL (*fninfofunc)(_uiheroinfo *));
 BOOL(*gfnHeroCreate)
 (_uiheroinfo *);
-BOOL(*gfnHeroStats)
+void(*gfnHeroStats)
 (unsigned int, _uidefaultstats *);
 
 namespace {
@@ -91,7 +91,11 @@ void selhero_Free()
 
 void selhero_SetStats()
 {
-	SELHERO_DIALOG_HERO_IMG->m_frame = selhero_heroInfo.heroclass;
+	int heroclass = selhero_heroInfo.heroclass;
+	if (heroclass == PC_BARBARIAN) {
+		heroclass = PC_WARRIOR; // The graphics is missing from heros.pcx
+	}
+	SELHERO_DIALOG_HERO_IMG->m_frame = heroclass;
 	snprintf(textStats[0], sizeof(textStats[0]), "%d", selhero_heroInfo.level);
 	snprintf(textStats[1], sizeof(textStats[1]), "%d", selhero_heroInfo.strength);
 	snprintf(textStats[2], sizeof(textStats[2]), "%d", selhero_heroInfo.magic);
@@ -145,7 +149,11 @@ void selhero_Init()
 	vecSelHeroDialog.push_back(new UiArtText(title, rect1, UIS_CENTER | UIS_BIG));
 
 	SDL_Rect rect2 = { PANEL_LEFT + 30, (UI_OFFSET_Y + 211), 180, 76 };
-	SELHERO_DIALOG_HERO_IMG = new UiImage(&ArtHero, UI_NUM_CLASSES, rect2);
+	if (hellfire_mpq) {
+		SELHERO_DIALOG_HERO_IMG = new UiImage(&ArtHero, 5, rect2);
+	} else {
+		SELHERO_DIALOG_HERO_IMG = new UiImage(&ArtHero, 3, rect2);
+	}
 	vecSelHeroDialog.push_back(SELHERO_DIALOG_HERO_IMG);
 
 	SDL_Rect rect3 = { PANEL_LEFT + 39, (UI_OFFSET_Y + 323), 110, 21 };
@@ -208,7 +216,7 @@ void selhero_List_Init()
 	SDL_Rect rect5 = { PANEL_LEFT + 489, (UI_OFFSET_Y + 429), 120, 35 };
 	vecSelDlgItems.push_back(new UiArtTextButton("Cancel", &UiFocusNavigationEsc, rect5, UIS_CENTER | UIS_BIG | UIS_GOLD));
 
-	UiInitList(0, selhero_SaveCount, selhero_List_Focus, selhero_List_Select, selhero_List_Esc, vecSelDlgItems, false, selhero_List_DeleteYesNo);
+	UiInitList(selhero_SaveCount + 1, selhero_List_Focus, selhero_List_Select, selhero_List_Esc, vecSelDlgItems, false, selhero_List_DeleteYesNo);
 	UiInitScrollBar(scrollBar, kMaxViewportItems, &listOffset);
 	if (selhero_isMultiPlayer) {
 		strcpy(title, "Multi Player Characters");
@@ -230,7 +238,7 @@ void selhero_List_Focus(int value)
 		return;
 	}
 
-	SELHERO_DIALOG_HERO_IMG->m_frame = UI_NUM_CLASSES;
+	SELHERO_DIALOG_HERO_IMG->m_frame = hellfire_mpq ? 5 : 3;
 	strncpy(textStats[0], "--", sizeof(textStats[0]) - 1);
 	strncpy(textStats[1], "--", sizeof(textStats[1]) - 1);
 	strncpy(textStats[2], "--", sizeof(textStats[2]) - 1);
@@ -256,10 +264,23 @@ void selhero_List_Select(int value)
 		vecSelDlgItems.push_back(new UiArtText("Choose Class", rect1, UIS_CENTER | UIS_BIG));
 
 		selhero_FreeListItems();
-		vecSelHeroDlgItems.push_back(new UiListItem("Warrior", UI_WARRIOR));
-		vecSelHeroDlgItems.push_back(new UiListItem("Rogue", UI_ROGUE));
-		vecSelHeroDlgItems.push_back(new UiListItem("Sorcerer", UI_SORCERER));
-		vecSelDlgItems.push_back(new UiList(vecSelHeroDlgItems, PANEL_LEFT + 264, (UI_OFFSET_Y + 285), 320, 33, UIS_CENTER | UIS_MED | UIS_GOLD));
+		int itemH = 33;
+		vecSelHeroDlgItems.push_back(new UiListItem("Warrior", PC_WARRIOR));
+		vecSelHeroDlgItems.push_back(new UiListItem("Rogue", PC_ROGUE));
+		vecSelHeroDlgItems.push_back(new UiListItem("Sorcerer", PC_SORCERER));
+		if (gbIsHellfire) {
+			vecSelHeroDlgItems.push_back(new UiListItem("Monk", PC_MONK));
+		}
+		if (UseBardTest) {
+			vecSelHeroDlgItems.push_back(new UiListItem("Bard", PC_BARD));
+		}
+		if (UseBarbarianTest) {
+			vecSelHeroDlgItems.push_back(new UiListItem("Barbarian", PC_BARBARIAN));
+		}
+		if (vecSelHeroDlgItems.size() > 4)
+			itemH = 26;
+		int itemY = 246 + (176 - vecSelHeroDlgItems.size() * itemH) / 2;
+		vecSelDlgItems.push_back(new UiList(vecSelHeroDlgItems, PANEL_LEFT + 264, (UI_OFFSET_Y + itemY), 320, itemH, UIS_CENTER | UIS_MED | UIS_GOLD));
 
 		SDL_Rect rect2 = { PANEL_LEFT + 279, (UI_OFFSET_Y + 429), 140, 35 };
 		vecSelDlgItems.push_back(new UiArtTextButton("OK", &UiFocusNavigationSelect, rect2, UIS_CENTER | UIS_BIG | UIS_GOLD));
@@ -267,7 +288,7 @@ void selhero_List_Select(int value)
 		SDL_Rect rect3 = { PANEL_LEFT + 429, (UI_OFFSET_Y + 429), 140, 35 };
 		vecSelDlgItems.push_back(new UiArtTextButton("Cancel", &UiFocusNavigationEsc, rect3, UIS_CENTER | UIS_BIG | UIS_GOLD));
 
-		UiInitList(0, 2, selhero_ClassSelector_Focus, selhero_ClassSelector_Select, selhero_ClassSelector_Esc, vecSelDlgItems);
+		UiInitList(vecSelHeroDlgItems.size(), selhero_ClassSelector_Focus, selhero_ClassSelector_Select, selhero_ClassSelector_Esc, vecSelDlgItems);
 		memset(&selhero_heroInfo.name, 0, sizeof(selhero_heroInfo.name));
 		strncpy(title, "New Single Player Hero", sizeof(title) - 1);
 		if (selhero_isMultiPlayer) {
@@ -293,7 +314,7 @@ void selhero_List_Select(int value)
 		SDL_Rect rect3 = { PANEL_LEFT + 429, (UI_OFFSET_Y + 427), 140, 35 };
 		vecSelDlgItems.push_back(new UiArtTextButton("Cancel", &UiFocusNavigationEsc, rect3, UIS_CENTER | UIS_VCENTER | UIS_BIG | UIS_GOLD));
 
-		UiInitList(0, 1, selhero_Load_Focus, selhero_Load_Select, selhero_List_Init, vecSelDlgItems, true);
+		UiInitList(vecSelHeroDlgItems.size(), selhero_Load_Focus, selhero_Load_Select, selhero_List_Init, vecSelDlgItems, true);
 		strncpy(title, "Single Player Characters", sizeof(title) - 1);
 		return;
 	}
@@ -315,7 +336,7 @@ void selhero_ClassSelector_Focus(int value)
 	gfnHeroStats(value, &defaults);
 
 	selhero_heroInfo.level = 1;
-	selhero_heroInfo.heroclass = value;
+	selhero_heroInfo.heroclass = vecSelHeroDlgItems[value]->m_value;
 	selhero_heroInfo.strength = defaults.strength;
 	selhero_heroInfo.magic = defaults.magic;
 	selhero_heroInfo.dexterity = defaults.dexterity;
@@ -326,7 +347,8 @@ void selhero_ClassSelector_Focus(int value)
 
 void selhero_ClassSelector_Select(int value)
 {
-	if (gbSpawned && (value == 1 || value == 2)) {
+	int hClass = vecSelHeroDlgItems[value]->m_value;
+	if (gbSpawned && (hClass == PC_ROGUE || hClass == PC_SORCERER || hClass == PC_BARD)) {
 		ArtBackground.Unload();
 		UiSelOkDialog(NULL, "The Rogue and Sorcerer are only available in the full retail version of Diablo. Visit https://www.gog.com/game/diablo to purchase.", false);
 		LoadBackgroundArt("ui_art\\selhero.pcx");
@@ -355,7 +377,7 @@ void selhero_ClassSelector_Select(int value)
 	SDL_Rect rect4 = { PANEL_LEFT + 429, (UI_OFFSET_Y + 429), 140, 35 };
 	vecSelDlgItems.push_back(new UiArtTextButton("Cancel", &UiFocusNavigationEsc, rect4, UIS_CENTER | UIS_BIG | UIS_GOLD));
 
-	UiInitList(0, 0, NULL, selhero_Name_Select, selhero_Name_Esc, vecSelDlgItems);
+	UiInitList(0, NULL, selhero_Name_Select, selhero_Name_Esc, vecSelDlgItems);
 }
 
 void selhero_ClassSelector_Esc()
@@ -405,7 +427,7 @@ void selhero_Name_Select(int value)
 #ifdef PREFILL_PLAYER_NAME
 	strncpy(selhero_heroInfo.name, selhero_GenerateName(selhero_heroInfo.heroclass), sizeof(selhero_heroInfo.name) - 1);
 #endif
-	selhero_ClassSelector_Select(selhero_heroInfo.heroclass);
+	selhero_ClassSelector_Select(0);
 }
 
 void selhero_Name_Esc()
@@ -421,7 +443,7 @@ void selhero_Load_Select(int value)
 {
 	UiInitList_clear();
 	selhero_endMenu = true;
-	if (value == 0) {
+	if (vecSelHeroDlgItems[value]->m_value == 0) {
 		selhero_result = SELHERO_CONTINUE;
 		return;
 	} else if (!selhero_isMultiPlayer) {
@@ -445,7 +467,7 @@ BOOL SelHero_GetHeroInfo(_uiheroinfo *pInfo)
 BOOL UiSelHeroDialog(
     BOOL (*fninfo)(BOOL (*fninfofunc)(_uiheroinfo *)),
     BOOL (*fncreate)(_uiheroinfo *),
-    BOOL (*fnstats)(unsigned int, _uidefaultstats *),
+    void (*fnstats)(unsigned int, _uidefaultstats *),
     BOOL (*fnremove)(_uiheroinfo *),
     int *dlgresult,
     char *name)
@@ -506,7 +528,7 @@ BOOL UiSelHeroSingDialog(
     BOOL (*fninfo)(BOOL (*fninfofunc)(_uiheroinfo *)),
     BOOL (*fncreate)(_uiheroinfo *),
     BOOL (*fnremove)(_uiheroinfo *),
-    BOOL (*fnstats)(unsigned int, _uidefaultstats *),
+    void (*fnstats)(unsigned int, _uidefaultstats *),
     int *dlgresult,
     char *name,
     int *difficulty)
@@ -521,7 +543,7 @@ BOOL UiSelHeroMultDialog(
     BOOL (*fninfo)(BOOL (*fninfofunc)(_uiheroinfo *)),
     BOOL (*fncreate)(_uiheroinfo *),
     BOOL (*fnremove)(_uiheroinfo *),
-    BOOL (*fnstats)(unsigned int, _uidefaultstats *),
+    void (*fnstats)(unsigned int, _uidefaultstats *),
     int *dlgresult,
     BOOL *hero_is_created,
     char *name)

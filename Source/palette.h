@@ -20,7 +20,7 @@ extern BYTE palette_transparency_lookup[256][256];
 void palette_update();
 void SaveGamma();
 void palette_init();
-void LoadPalette(char *pszFileName);
+void LoadPalette(const char *pszFileName);
 void LoadRndLvlPal(int l);
 void ResetPal();
 void IncreaseGamma();
@@ -32,16 +32,11 @@ void SetFadeLevel(DWORD fadeval);
 void PaletteFadeIn(int fr);
 void PaletteFadeOut(int fr);
 void palette_update_caves();
+void palette_update_crypt();
+void palette_update_hive();
 void palette_update_quest_palette(int n);
 BOOL palette_get_color_cycling();
 BOOL palette_set_color_cycling(BOOL enabled);
-
-/* rdata */
-
-/* data */
-
-extern int gamma_correction;
-extern BOOL color_cycling_enabled;
 
 #ifdef __cplusplus
 }

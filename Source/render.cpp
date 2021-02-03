@@ -192,15 +192,49 @@ static DWORD LeftFoliageMask[TILE_HEIGHT] = {
 	0xFFFFFFF0, 0xFFFFFFFC,
 };
 
-inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD mask) //Draw a horizontal line
+inline static int count_leading_zeros(DWORD mask)
 {
-	int i;
+	// Note: This function assumes that the argument is not zero,
+	// which means there is at least one bit set.
+	static_assert(
+	    sizeof(DWORD) == sizeof(uint32_t),
+	    "count_leading_zeros: DWORD must be 32bits");
+#if defined(__GNUC__) || defined(__clang__)
+	return __builtin_clz(mask);
+#else
+	// Count the number of leading zeros using binary search.
+	int n = 0;
+	if ((mask & 0xFFFF0000) == 0)
+		n += 16, mask <<= 16;
+	if ((mask & 0xFF000000) == 0)
+		n += 8, mask <<= 8;
+	if ((mask & 0xF0000000) == 0)
+		n += 4, mask <<= 4;
+	if ((mask & 0xC0000000) == 0)
+		n += 2, mask <<= 2;
+	if ((mask & 0x80000000) == 0)
+		n += 1;
+	return n;
+#endif
+}
 
+template <typename F>
+void foreach_set_bit(DWORD mask, const F &f)
+{
+	int i = 0;
+	while (mask != 0) {
+		int z = count_leading_zeros(mask);
+		i += z, mask <<= z;
+		for (; mask & 0x80000000; i++, mask <<= 1)
+			f(i);
+	}
+}
+
+inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD mask)
+{
 #ifdef NO_OVERDRAW
 	if (*dst < gpBufStart || *dst > gpBufEnd) {
-		*src += n;
-		*dst += n;
-		return;
+		goto skip;
 	}
 #endif
 
@@ -208,62 +242,79 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 		importantBuff = gpBuffer_important + ((*dst) - gpBuffer);
 
-	if (mask == 0xFFFFFFFF) { //Fully opaque
-		if (light_table_index == lightmax) {
-			memset(*dst, 0, n); //Render the full line as darkness
-			(*src) += n;
-			(*dst) += n;
-		} else if (light_table_index == 0) {
-			memcpy(*dst, *src, n); //Render the full line fully lit
-			(*src) += n;
-			(*dst) += n;
-		} else {
-			for (i = 0; i < n; i++, (*src)++, (*dst)++) {
-				(*dst)[0] = tbl[(*src)[0]]; //Draw pixels partially lit
+	if (mask == 0xFFFFFFFF) { //Opaque line
+		if (light_table_index == lightmax) { //Complete darkness
+			memset(*dst, 0, n);
+		} else if (light_table_index == 0) { //Fully lit
+			memcpy(*dst, *src, n);
+		} else { //Partially lit
+			for (int i = 0; i < n; i++) {
+				(*dst)[i] = tbl[(*src)[i]];
 			}
 		}
+
 		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 			importantBuff += n; //Fluffy
-	} else { //Draw based on mask (if options_transparency is true, then we draw proper transparency on masked pixels. By default this would be dithering)
-		if (light_table_index == lightmax) {
-			(*src) += n;
-			for (i = 0; i < n; i++, (*dst)++, mask <<= 1) {
-				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-					(*dst)[0] = palette_transparency_lookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-					(*dst)[0] = 0; //Draw completely black pixel
-				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-					(*dst)[0] = palette_transparency_lookup[0][(*dst)[0]]; //Fluffy: Transparency
+	} else {
+		// The number of iterations is anyway limited by the size of the mask.
+		// So we can limit it by ANDing the mask with another mask that only keeps
+		// iterations that are lower than n. We can now avoid testing if i < n
+		// at every loop iteration.
+		assert(n != 0 && n <= sizeof(DWORD) * CHAR_BIT);
+		mask &= DWORD(-1) << ((sizeof(DWORD) * CHAR_BIT) - n);
 
-				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-					importantBuff++;
+		if (options_transparency) { //Render transparent pixels in the mask with actual transparent, and the rest as opaque pixels
+			if (light_table_index == lightmax) { //Complete darkness
+				for (int i = 0; i < n; i++, mask <<= 1) {
+					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+						(*dst)[i] = palette_transparency_lookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+						(*dst)[i] = 0;
+					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+						(*dst)[i] = palette_transparency_lookup[0][(*dst)[i]];
+
+					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+						importantBuff++;
+				}
+			} else if (light_table_index == 0) { //Fully lit
+				for (int i = 0; i < n; i++, mask <<= 1) {
+					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+						(*dst)[i] = palette_transparency_lookup[(*src)[i]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+						(*dst)[i] = (*src)[i];
+					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+						(*dst)[i] = palette_transparency_lookup[(*dst)[i]][(*src)[i]];
+
+					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+						importantBuff++;
+				}
+			} else { //Partially lit
+				for (int i = 0; i < n; i++, mask <<= 1) {
+					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+						(*dst)[i] = palette_transparency_lookup[tbl[(*src)[i]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+						(*dst)[i] = tbl[(*src)[i]];
+					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+						(*dst)[i] = palette_transparency_lookup[(*dst)[i]][tbl[(*src)[i]]];
+
+					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+						importantBuff++;
+				}
 			}
-		} else if (light_table_index == 0) {
-			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-					(*dst)[0] = palette_transparency_lookup[(*src)[0]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-					(*dst)[0] = (*src)[0]; //Draw fully lit pixel
-				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][(*src)[0]]; //Fluffy: Transparency
-					
-				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-					importantBuff++;
-			}
-		} else {
-			for (i = 0; i < n; i++, (*src)++, (*dst)++, mask <<= 1) {
-				if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-					(*dst)[0] = palette_transparency_lookup[tbl[(*src)[0]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-				else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-					(*dst)[0] = tbl[(*src)[0]]; //Draw partially lit pixel
-				else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-					(*dst)[0] = palette_transparency_lookup[(*dst)[0]][tbl[(*src)[0]]]; //Fluffy: Transparency
-					
-				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-					importantBuff++;
+		} else { //Default Diablo 1 rendering where transparent pixels are skipped
+			if (light_table_index == lightmax) { //Complete darkness
+				foreach_set_bit(mask, [=](int i) { (*dst)[i] = 0; });
+			} else if (light_table_index == 0) { //Fully lit
+				foreach_set_bit(mask, [=](int i) { (*dst)[i] = (*src)[i]; });
+			} else { //Partially lit
+				foreach_set_bit(mask, [=](int i) { (*dst)[i] = tbl[(*src)[i]]; });
 			}
 		}
 	}
+
+skip:
+	(*src) += n;
+	(*dst) += n;
 }
 
 #if defined(__clang__) || defined(__GNUC__)
