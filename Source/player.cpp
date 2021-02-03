@@ -1398,7 +1398,7 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	}
 
 	//The player's tile position after finishing this movement action
-	int px = xadd + plr[pnum]._px; //The tile we're ending up on after moving once
+	int px = xadd + plr[pnum]._px;
 	int py = yadd + plr[pnum]._py;
 	plr[pnum]._pfutx = px;
 	plr[pnum]._pfuty = py;

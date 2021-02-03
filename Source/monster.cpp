@@ -2082,6 +2082,56 @@ bool M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 			break;
 		}
 
+	if (monster[i].mlid != NO_LIGHT)
+		M_ChangeLightOffset(i);
+
+	return rv;
+}
+
+BOOL M_DoWalk2(int i)
+{
+	BOOL rv;
+
+	commitment((DWORD)i < MAXMONSTERS, i);
+	commitment(monster[i].MType != NULL, i);
+
+	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) {
+		dMonster[monster[i]._mVar1][monster[i]._mVar2] = 0;
+		if (monster[i].mlid != NO_LIGHT)
+			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
+		M_StartStand(i, monster[i]._mdir);
+		rv = TRUE;
+	return returnValue;
+		if (monster[i]._mAnimCnt == 0) {
+			if (monster[i]._mVar8 == 0 && monster[i].MType->mtype == MT_FLESTHNG)
+				PlayEffect(i, 3);
+			monster[i]._mVar8++;
+			monster[i]._mVar6 += monster[i]._mxvel;
+			monster[i]._mVar7 += monster[i]._myvel;
+			monster[i]._mxoff = monster[i]._mVar6 >> 4;
+			monster[i]._myoff = monster[i]._mVar7 >> 4;
+		}
+		rv = FALSE;
+	}
+	if (monster[i].mlid != NO_LIGHT)
+		M_ChangeLightOffset(i);
+
+	return rv;
+}
+
+BOOL M_DoWalk3(int i)
+{
+	BOOL rv;
+
+	commitment((DWORD)i < MAXMONSTERS, i);
+	commitment(monster[i].MType != NULL, i);
+
+	if (monster[i]._mVar8 == monster[i].MType->Anims[MA_WALK].Frames) {
+		dMonster[monster[i]._mx][monster[i]._my] = 0;
+		monster[i]._mx = monster[i]._mVar1;
+		monster[i]._my = monster[i]._mVar2;
+		dFlags[monster[i]._mVar4][monster[i]._mVar5] &= ~BFLAG_MONSTLR;
+		dMonster[monster[i]._mx][monster[i]._my] = i + 1;
 		if (monster[i].mlid != NO_LIGHT)
 			ChangeLightXY(monster[i].mlid, monster[i]._mx, monster[i]._my);
 		M_StartStand(i, monster[i]._mdir);
