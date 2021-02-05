@@ -12,6 +12,7 @@
  */
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
+#include "Render/render-cel.h" //Fluffy: For truecolour rendering
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -250,6 +251,11 @@ void CelBlitSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
  */
 void CelClippedDrawSafe(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
+	if (options_32bitRendering) {
+		CelClippedDrawSafe_To32BitBuffer(sx, sy, pCelBuff, nCel, nWidth);
+		return;
+	}
+
 	BYTE *pRLEBytes;
 	int nDataSize;
 

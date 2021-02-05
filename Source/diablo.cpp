@@ -9,6 +9,7 @@
 #include "../DiabloUI/diabloui.h"
 #include <config.h>
 #include "misc/config.h" //Fluffy: For reading options from config during startup
+#include "textures/textures.h" //Fluffy: For texture init and deinit
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -56,6 +57,8 @@ char sgbMouseDown;
 int color_cycle_timer;
 int ticks_per_sec = 60;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
+unsigned int gameplayTickCount = 0; ///Fluffy: How many gameplay ticks have elapsed in total. We use for animating the new UI flasks
+unsigned int gameplayTickCount_progress = 0; //Fluffy: Progress towards the above gameplayTickCount (related to gSpeedMod)
 
 /*
   Fluffy: This value modifies the speed of the game (it's supposed to be used in tandem with ticks_per_sec so we can increase framerate while also changing game simulation speed by a corresponding value)
@@ -99,6 +102,8 @@ BOOL options_transparency = false; //Fluffy: Replaces dithering with proper tran
 BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
+BOOL options_32bitRendering = false; //Fluffy: If true, we render to a 32-bit buffer (required for certain graphical features)
+BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks
 
 /* rdata */
 
@@ -540,6 +545,7 @@ static void diablo_deinit()
 void diablo_quit(int exitStatus)
 {
 	diablo_deinit();
+	Textures_Deinit(); //Fluffy: Unload textures
 	exit(exitStatus);
 }
 
@@ -547,6 +553,7 @@ int DiabloMain(int argc, char **argv)
 {
 	diablo_parse_flags(argc, argv);
 	LoadOptionsFromConfig(); //Fluffy: Read options from config here
+	Textures_Init(); //Fluffy: Load textures
 	diablo_init();
 	diablo_splash();
 	mainmenu_loop();
@@ -1916,6 +1923,13 @@ static void game_logic()
 	pfile_update(FALSE);
 
 	plrctrls_after_game_logic();
+
+	//Fluffy: Update gameplayTickCount and its progress value
+	gameplayTickCount_progress++;
+	if (gameplayTickCount_progress >= gSpeedMod) {
+		gameplayTickCount++;
+		gameplayTickCount_progress = 0;
+	}
 }
 
 static void timeout_cursor(BOOL bTimeout)

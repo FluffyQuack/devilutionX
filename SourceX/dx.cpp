@@ -12,8 +12,8 @@ namespace dvl {
 
 int sgdwLockCount;
 BYTE *gpBuffer;
-BYTE *gpBuffer_24bit; //Fluffy
-BYTE *gpBuffer_32bit; //Fluffy
+//BYTE *gpBuffer_24bit = 0; //Fluffy (not used yet)
+BYTE *gpBuffer_32bit = 0; //Fluffy: This points to the image data of 32bit_surface
 BYTE* gpBuffer_important = 0; //Fluffy: Used for wall transparency
 #ifdef _DEBUG
 int locktbl[256];
@@ -35,6 +35,8 @@ SDL_Surface *renderer_texture_surface = NULL;
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
 
+SDL_Surface *surface_32bit = 0; //Fluffy: We blend this with pal_surface at the end of each frame
+
 static void dx_create_back_buffer()
 {
 	pal_surface = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 8, SDL_PIXELFORMAT_INDEX8);
@@ -45,6 +47,11 @@ static void dx_create_back_buffer()
 	gpBuffer = (BYTE *)pal_surface->pixels;
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
 		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
+	}
+	if (options_32bitRendering) {
+		surface_32bit = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 32, SDL_PIXELFORMAT_ABGR8888); //Fluffy: 32bit buffer
+		SDL_SetSurfaceBlendMode(surface_32bit, SDL_BLENDMODE_BLEND);                                                  //Fluffy: Set 32-bit buffer to use "blend" as blending mode
+		gpBuffer_32bit = (BYTE *)surface_32bit->pixels;
 	}
 
 #ifndef USE_SDL1
@@ -135,6 +142,9 @@ void dx_cleanup()
 {
 	if (gpBuffer_important)
 		delete[] gpBuffer_important; //Fluffy
+
+	if (surface_32bit)
+		SDL_FreeSurface(surface_32bit); //Fluffy
 
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
@@ -278,6 +288,12 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
+		if (options_32bitRendering) { //Fluffy: Blend in 32-bit buffer
+			if (SDL_BlitSurface(surface_32bit, 0, surface, 0)) {
+				ErrSdl();
+			}
+		}
+
 		if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
 			ErrSdl();
 		}

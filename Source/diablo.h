@@ -46,6 +46,7 @@ extern BOOLEAN UseMultiTest;
 extern char sgbMouseDown;
 extern int ticks_per_sec;
 extern unsigned long long tick_delay_highResolution; //Fluffy
+extern unsigned int gameplayTickCount;
 extern int gSpeedMod;
 extern int gMonsterSpeedMod;
 
@@ -56,6 +57,8 @@ extern BOOL options_transparency;
 extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
 extern BOOL options_opaqueWallsWithSilhouette;
+extern BOOL options_32bitRendering;
+extern BOOL options_animatedUIFlasks;
 
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);

@@ -4,6 +4,7 @@
  * Implementation of functionality for rendering the dungeons, monsters and calling other render routines.
  */
 #include "all.h"
+#include "Render/render.h" //Fluffy: For resetting 32-bit buffer
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -168,31 +169,33 @@ static void scrollrt_draw_cursor_item()
 		return;
 	}
 
-	sgdwCursX = mx;
-	sgdwCursWdt = sgdwCursX + cursW + 1;
-	if (sgdwCursWdt > SCREEN_WIDTH - 1) {
-		sgdwCursWdt = SCREEN_WIDTH - 1;
-	}
-	sgdwCursX &= ~3;
-	sgdwCursWdt |= 3;
-	sgdwCursWdt -= sgdwCursX;
-	sgdwCursWdt++;
+	if (!options_32bitRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+		sgdwCursX = mx;
+		sgdwCursWdt = sgdwCursX + cursW + 1;
+		if (sgdwCursWdt > SCREEN_WIDTH - 1) {
+			sgdwCursWdt = SCREEN_WIDTH - 1;
+		}
+		sgdwCursX &= ~3;
+		sgdwCursWdt |= 3;
+		sgdwCursWdt -= sgdwCursX;
+		sgdwCursWdt++;
 
-	sgdwCursY = my;
-	sgdwCursHgt = sgdwCursY + cursH + 1;
-	if (sgdwCursHgt > SCREEN_HEIGHT - 1) {
-		sgdwCursHgt = SCREEN_HEIGHT - 1;
-	}
-	sgdwCursHgt -= sgdwCursY;
-	sgdwCursHgt++;
+		sgdwCursY = my;
+		sgdwCursHgt = sgdwCursY + cursH + 1;
+		if (sgdwCursHgt > SCREEN_HEIGHT - 1) {
+			sgdwCursHgt = SCREEN_HEIGHT - 1;
+		}
+		sgdwCursHgt -= sgdwCursY;
+		sgdwCursHgt++;
 
-	assert(sgdwCursWdt * sgdwCursHgt < sizeof sgSaveBack);
-	assert(gpBuffer);
-	dst = sgSaveBack;
-	src = &gpBuffer[SCREENXY(sgdwCursX, sgdwCursY)];
+		assert(sgdwCursWdt * sgdwCursHgt < sizeof sgSaveBack);
+		assert(gpBuffer);
+		dst = sgSaveBack;
+		src = &gpBuffer[SCREENXY(sgdwCursX, sgdwCursY)];
 
-	for (i = sgdwCursHgt; i != 0; i--, dst += sgdwCursWdt, src += BUFFER_WIDTH) {
-		memcpy(dst, src, sgdwCursWdt);
+		for (i = sgdwCursHgt; i != 0; i--, dst += sgdwCursWdt, src += BUFFER_WIDTH) {
+			memcpy(dst, src, sgdwCursWdt);
+		}
 	}
 
 	mx++;
@@ -1613,9 +1616,11 @@ void scrollrt_draw_game_screen(BOOL draw_cursor)
 	DrawMain(hgt, FALSE, FALSE, FALSE, FALSE, FALSE);
 
 	if (draw_cursor) {
-		lock_buf(0);
-		scrollrt_draw_cursor_back_buffer();
-		unlock_buf(0);
+		if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+			lock_buf(0);
+			scrollrt_draw_cursor_back_buffer();
+			unlock_buf(0);
+		}
 	}
 	RenderPresent();
 }
@@ -1631,6 +1636,9 @@ void DrawAndBlit()
 	if (!gbRunGame) {
 		return;
 	}
+
+	if (options_32bitRendering) //Fluffy: Reset 32bit buffer
+		Render_Reset32BitBuffer();
 
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
 		drawhpflag = TRUE;
@@ -1677,9 +1685,11 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	lock_buf(0);
-	scrollrt_draw_cursor_back_buffer();
-	unlock_buf(0);
+	if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+		lock_buf(0);
+		scrollrt_draw_cursor_back_buffer();
+		unlock_buf(0);
+	}
 	RenderPresent();
 
 	drawhpflag = FALSE;

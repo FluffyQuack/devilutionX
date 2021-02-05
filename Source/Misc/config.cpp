@@ -42,6 +42,8 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
 	LoadBoolVariableFromConfig("Opaque Walls With Blobs", &options_opaqueWallsWithBlobs);
 	LoadBoolVariableFromConfig("Opaque Walls With Silhouttes", &options_opaqueWallsWithSilhouette);
+	LoadBoolVariableFromConfig("Truecolour Rendering", &options_32bitRendering);
+	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
 }
 
 DEVILUTION_END_NAMESPACE

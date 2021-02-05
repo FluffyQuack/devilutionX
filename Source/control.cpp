@@ -4,6 +4,8 @@
  * Implementation of the character and main control panels
  */
 #include "all.h"
+#include "Textures/textures.h" //Fluffy: For accessing flask textures
+#include "Render/render.h" //Fluffy: For rendering to 32-bit buffer
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -686,13 +688,20 @@ void DrawLifeFlask()
 		filled = 80;
 
 	filled = 80 - filled;
-	if (filled > 11)
-		filled = 11;
-	filled += 2;
 
-	DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), filled);
-	if (filled != 13)
-		DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 109, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13 + filled), 13 - filled);
+	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
+		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), 80);
+		Render_TextureTo32BitBuffer_StartAtY(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, filled, TEXTURE_HEALTHFLASK, gameplayTickCount % 48);
+	} else {
+		if (filled > 11)
+			filled = 11;
+		filled += 2;
+
+		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), filled);
+		if (filled != 13){
+			DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 109, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13 + filled), 13 - filled);
+		}
+	}
 }
 
 /**
@@ -702,6 +711,11 @@ void DrawLifeFlask()
  */
 void UpdateLifeFlask()
 {
+	if (options_animatedUIFlasks) { //Fluffy: Draw the entire flask as empty
+		SetFlaskHeight(pLifeBuff, 16, 85, 96 + PANEL_X, PANEL_Y);
+		return;
+	}
+
 	double p;
 	int filled;
 
@@ -728,13 +742,20 @@ void DrawManaFlask()
 	if (filled > 80)
 		filled = 80;
 	filled = 80 - filled;
-	if (filled > 11)
-		filled = 11;
-	filled += 2;
+	
 
-	DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), filled);
-	if (filled != 13)
-		DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 475, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13 + filled), 13 - filled);
+	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
+		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), 80);
+		Render_TextureTo32BitBuffer_StartAtY(PANEL_LEFT + 465, PANEL_TOP - 16 + filled, filled, TEXTURE_MANAFLASK, gameplayTickCount % 48);
+	} else {
+		if (filled > 11)
+			filled = 11;
+		filled += 2;
+
+		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), filled);
+		if (filled != 13)
+			DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 475, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13 + filled), 13 - filled);
+	}
 }
 
 void control_update_life_mana()
