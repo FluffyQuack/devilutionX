@@ -12,11 +12,11 @@ enum {
 
 struct texture_s {
 	bool loaded; //Whether or not texture is loaded
-	unsigned char **imgData; //Array of image datas
+	SDL_Texture **frames; //Array of SDL textures
 	int channels; //Channel count
 	int width;
 	int height;
-	int frames; //Quantity of frames (imgData is an array of this length)
+	int frameCount; //Quantity of frames (imgData is an array of this length)
 };
 
 extern texture_s textures[TEXTURE_NUM];

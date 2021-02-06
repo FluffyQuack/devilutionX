@@ -14,7 +14,8 @@ extern "C" {
 
 extern BYTE *gpBuffer;
 extern BYTE* gpBuffer_important; //Fluffy
-extern BYTE *gpBuffer_32bit; //Fluffy
+extern SDL_Renderer *renderer;
+extern SDL_Texture *texture_intermediate;
 
 void dx_init(HWND hWnd);
 void lock_buf(BYTE idx);

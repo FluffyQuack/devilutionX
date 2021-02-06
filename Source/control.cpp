@@ -691,7 +691,7 @@ void DrawLifeFlask()
 
 	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
 		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), 80);
-		Render_TextureTo32BitBuffer_StartAtY(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, filled, TEXTURE_HEALTHFLASK, gameplayTickCount % 48);
+		Render_Texture_StartAtY(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, filled, TEXTURE_HEALTHFLASK, gameplayTickCount % 48);
 	} else {
 		if (filled > 11)
 			filled = 11;
@@ -746,7 +746,7 @@ void DrawManaFlask()
 
 	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
 		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), 80);
-		Render_TextureTo32BitBuffer_StartAtY(PANEL_LEFT + 465, PANEL_TOP - 16 + filled, filled, TEXTURE_MANAFLASK, gameplayTickCount % 48);
+		Render_Texture_StartAtY(PANEL_LEFT + 465, PANEL_TOP - 16 + filled, filled, TEXTURE_MANAFLASK, gameplayTickCount % 48);
 	} else {
 		if (filled > 11)
 			filled = 11;

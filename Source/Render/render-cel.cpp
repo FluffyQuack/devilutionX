@@ -8,6 +8,7 @@ DEVILUTION_BEGIN_NAMESPACE
 
 static void CelBlitSafe_To32BitBuffer(int x, int y, BYTE *pRLEBytes, int nDataSize, int nWidth)
 {
+	/*
 	BYTE *dst = &gpBuffer_32bit[(y * BUFFER_WIDTH * 4) + (x * 4)];
 	int i, w;
 	BYTE width;
@@ -45,10 +46,12 @@ static void CelBlitSafe_To32BitBuffer(int x, int y, BYTE *pRLEBytes, int nDataSi
 			}
 		}
 	}
+	*/
 }
 
 void CelClippedDrawSafe_To32BitBuffer(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
+	/*
 	sx -= SCREEN_X;
 	sy -= SCREEN_Y;
 	BYTE *pRLEBytes;
@@ -63,6 +66,7 @@ void CelClippedDrawSafe_To32BitBuffer(int sx, int sy, BYTE *pCelBuff, int nCel, 
 	    pRLEBytes,
 	    nDataSize,
 	    nWidth);
+	*/
 }
 
 DEVILUTION_END_NAMESPACE

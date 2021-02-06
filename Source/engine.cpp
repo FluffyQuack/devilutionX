@@ -251,10 +251,10 @@ void CelBlitSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
  */
 void CelClippedDrawSafe(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
-	if (options_32bitRendering) {
+	/*if (options_32bitRendering) {
 		CelClippedDrawSafe_To32BitBuffer(sx, sy, pCelBuff, nCel, nWidth);
 		return;
-	}
+	}*/
 
 	BYTE *pRLEBytes;
 	int nDataSize;

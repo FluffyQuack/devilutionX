@@ -479,6 +479,7 @@ static void diablo_init_screen()
 static void diablo_init()
 {
 	init_create_window();
+	Textures_Init(); //Fluffy: Load textures here since SDL has finished its init
 	was_window_init = true;
 
 	SFileEnableDirectAccess(TRUE);
@@ -534,8 +535,11 @@ static void diablo_deinit()
 		UiDestroy();
 	if (was_archives_init)
 		init_cleanup();
-	if (was_window_init)
+	
+	if (was_window_init) {
+		Textures_Deinit(); //Fluffy: Unload SDL textures
 		dx_cleanup(); // Cleanup SDL surfaces stuff, so we have to do it before SDL_Quit().
+	}
 	if (was_fonts_init)
 		FontsCleanup();
 	if (SDL_WasInit(SDL_INIT_EVERYTHING & ~SDL_INIT_HAPTIC))
@@ -545,7 +549,6 @@ static void diablo_deinit()
 void diablo_quit(int exitStatus)
 {
 	diablo_deinit();
-	Textures_Deinit(); //Fluffy: Unload textures
 	exit(exitStatus);
 }
 
@@ -553,7 +556,6 @@ int DiabloMain(int argc, char **argv)
 {
 	diablo_parse_flags(argc, argv);
 	LoadOptionsFromConfig(); //Fluffy: Read options from config here
-	Textures_Init(); //Fluffy: Load textures
 	diablo_init();
 	diablo_splash();
 	mainmenu_loop();

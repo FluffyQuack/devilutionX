@@ -12,8 +12,6 @@ namespace dvl {
 
 int sgdwLockCount;
 BYTE *gpBuffer;
-//BYTE *gpBuffer_24bit = 0; //Fluffy (not used yet)
-BYTE *gpBuffer_32bit = 0; //Fluffy: This points to the image data of 32bit_surface
 BYTE* gpBuffer_important = 0; //Fluffy: Used for wall transparency
 #ifdef _DEBUG
 int locktbl[256];
@@ -35,7 +33,7 @@ SDL_Surface *renderer_texture_surface = NULL;
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
 
-SDL_Surface *surface_32bit = 0; //Fluffy: We blend this with pal_surface at the end of each frame
+SDL_Texture *texture_intermediate = 0; //Fluffy: Game renders to this texture, and then this texture gets presented to the final screen
 
 static void dx_create_back_buffer()
 {
@@ -49,9 +47,8 @@ static void dx_create_back_buffer()
 		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
 	}
 	if (options_32bitRendering) {
-		surface_32bit = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 32, SDL_PIXELFORMAT_ABGR8888); //Fluffy: 32bit buffer
-		SDL_SetSurfaceBlendMode(surface_32bit, SDL_BLENDMODE_BLEND);                                                  //Fluffy: Set 32-bit buffer to use "blend" as blending mode
-		gpBuffer_32bit = (BYTE *)surface_32bit->pixels;
+		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT); //Fluffy: Create the texture we use for rendering game graphics
+		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
 	}
 
 #ifndef USE_SDL1
@@ -143,8 +140,8 @@ void dx_cleanup()
 	if (gpBuffer_important)
 		delete[] gpBuffer_important; //Fluffy
 
-	if (surface_32bit)
-		SDL_FreeSurface(surface_32bit); //Fluffy
+	if (texture_intermediate)
+	    SDL_DestroyTexture(texture_intermediate); //Fluffy
 
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
@@ -288,12 +285,6 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
-		if (options_32bitRendering) { //Fluffy: Blend in 32-bit buffer
-			if (SDL_BlitSurface(surface_32bit, 0, surface, 0)) {
-				ErrSdl();
-			}
-		}
-
 		if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
 			ErrSdl();
 		}
@@ -310,6 +301,11 @@ void RenderPresent()
 		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
 			ErrSdl();
 		}
+
+		if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
+			ErrSdl();
+		}
+		
 		SDL_RenderPresent(renderer);
 
 		if (!vsyncEnabled) {

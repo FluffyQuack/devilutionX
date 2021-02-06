@@ -169,7 +169,7 @@ static void scrollrt_draw_cursor_item()
 		return;
 	}
 
-	if (!options_32bitRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+	/*if (!options_32bitRendering)*/ { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
 		sgdwCursX = mx;
 		sgdwCursWdt = sgdwCursX + cursW + 1;
 		if (sgdwCursWdt > SCREEN_WIDTH - 1) {
@@ -1637,8 +1637,14 @@ void DrawAndBlit()
 		return;
 	}
 
-	if (options_32bitRendering) //Fluffy: Reset 32bit buffer
-		Render_Reset32BitBuffer();
+	if (options_32bitRendering) //Fluffy: Change render target to texture
+	{
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+
+		//Clear the render target
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+		SDL_RenderClear(renderer);
+	}
 
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
 		drawhpflag = TRUE;
@@ -1685,11 +1691,17 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+	/*if (!options_32bitRendering)*/ { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 		lock_buf(0);
 		scrollrt_draw_cursor_back_buffer();
 		unlock_buf(0);
 	}
+
+	if (options_32bitRendering) //Fluffy: Reset render target
+	{
+		SDL_SetRenderTarget(renderer, NULL);
+	}
+
 	RenderPresent();
 
 	drawhpflag = FALSE;
