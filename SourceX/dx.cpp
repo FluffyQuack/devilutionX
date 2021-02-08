@@ -302,8 +302,10 @@ void RenderPresent()
 			ErrSdl();
 		}
 
-		if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
-			ErrSdl();
+		if (options_32bitRendering) {
+			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
+				ErrSdl();
+			}
 		}
 		
 		SDL_RenderPresent(renderer);
