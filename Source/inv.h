@@ -13,11 +13,13 @@ extern "C" {
 #endif
 
 extern BOOL invflag;
+extern BYTE *pInvCels; //Fluffy: Added extern of this so Diablo.cpp can make SDL texture out of this
 extern BOOL drawsbarflag;
 extern const InvXY InvRect[73];
 
 void FreeInvGFX();
 void InitInv();
+void DrawCursorItemWrapper(int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor = 0);
 void DrawInv();
 void DrawInvBelt();
 BOOL AutoPlace(int pnum, int ii, int sx, int sy, BOOL saveflag);

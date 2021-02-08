@@ -10,6 +10,7 @@
 #include <config.h>
 #include "misc/config.h" //Fluffy: For reading options from config during startup
 #include "textures/textures.h" //Fluffy: For texture init and deinit
+#include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -309,6 +310,19 @@ static void start_game(unsigned int uMsg)
 	sgnTimeoutCurs = CURSOR_NONE;
 	sgbMouseDown = CLICK_NONE;
 	track_repeat_walk(FALSE);
+
+	//Fluffy: Load various CELs as SDL textures here
+	if (options_32bitRendering) {
+		//Cursors
+		if (!textures[TEXTURE_CURSOR].loaded) {
+			Texture_ConvertCEL_MultipleFrames(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1]);
+			Texture_ConvertCEL_MultipleFrames_Outlined(pCursCels, TEXTURE_CURSOR_OUTLINE, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1]);
+		}
+		if (!textures[TEXTURE_CURSOR2].loaded && gbIsHellfire) {
+			Texture_ConvertCEL_MultipleFrames(pCursCels2, TEXTURE_CURSOR2, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180]);
+			Texture_ConvertCEL_MultipleFrames_Outlined(pCursCels2, TEXTURE_CURSOR2_OUTLINE, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180]);
+		}
+	}
 }
 
 static void free_game()
@@ -1879,6 +1893,14 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 
 	if (gbIsSpawn && setlevel && setlvlnum == SL_SKELKING && quests[Q_SKELKING]._qactive == QUEST_ACTIVE)
 		PlaySFX(USFX_SKING1);
+
+	//Fluffy: Load various CELs as SDL textures here
+	if (options_32bitRendering) { 
+		if (firstflag) {
+			//Inventory texture
+			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH);
+		}
+	}
 }
 
 // Controller support:

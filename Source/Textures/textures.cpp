@@ -2,20 +2,18 @@
 
 #include "../all.h"
 #include "textures.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include <sdl_image.h>
 
 DEVILUTION_BEGIN_NAMESPACE
 
 texture_s textures[TEXTURE_NUM];
 
-static void UnloadTexture(texture_s *texture) //Unloads all frames for one texture
+void Texture_UnloadTexture(texture_s *texture) //Unloads all frames for one texture
 {
 	if (texture->loaded == 0)
 		return;
 	for (int i = 0; i < texture->frameCount; i++) {
-		SDL_DestroyTexture(texture->frames[i]);
+		SDL_DestroyTexture(texture->frames[i].frame);
 	}
 	texture->loaded = 0;
 	delete[] texture->frames;
@@ -25,14 +23,15 @@ static void UnloadTexture(texture_s *texture) //Unloads all frames for one textu
 static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 {
 	texture_s *texture = &textures[textureNum];
-	UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(texture); //Unload if it's already loaded
 
-	//Create imgData pointer array
-	texture->frames = new SDL_Texture *[frameCount];
+	//Create textureFrame_s pointer array
+	texture->frames = new textureFrame_s[frameCount];
 
 	for (int i = 0; i < frameCount; i++) {
 		char newPath[MAX_PATH];
 		char *pathToUse;
+		textureFrame_s *textureFrame = &texture->frames[i];
 		if (frameCount == 1)
 			pathToUse = filePath;
 		else {
@@ -68,24 +67,20 @@ static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 		if (loadedSurface == NULL) { //Texture load failed
 			ErrSdl(); //TODO Quit with proper error message
 		} else { //Successful load
-			texture->loaded = 1;
-			texture->frames[i] = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-			if (texture->frames[i] == 0) {
+			textureFrame->frame = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+			if (textureFrame->frame == 0) {
 				ErrSdl(); //TODO Quit with proper error message
 			}
-			if (SDL_SetTextureBlendMode(texture->frames[i], SDL_BLENDMODE_BLEND) < 0)
+			textureFrame->width = loadedSurface->w;
+			textureFrame->height = loadedSurface->h;
+			textureFrame->channels = loadedSurface->format->BytesPerPixel;
+			if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 				ErrSdl();
-			if (i == 0) { //Set texture properties if this is first frame
-				texture->width = loadedSurface->w;
-				texture->height = loadedSurface->h;
-				texture->channels = loadedSurface->format->BytesPerPixel;
-			} else if (texture->width != loadedSurface->w || texture->height != loadedSurface->h || texture->channels != loadedSurface->format->BytesPerPixel) { //Check if properties of this frame is the same as first frame
-				ErrSdl(); //TODO Quit with proper error message
-			}
 			SDL_FreeSurface(loadedSurface);
 		}
 	}
 
+	texture->loaded = 1;
 	texture->frameCount = frameCount;
 
 	//TODO: Use file loading in Devilution (which tries to load from file system, and then from MPQ)
@@ -113,7 +108,7 @@ void Textures_Init()
 void Textures_Deinit()
 {
 	for (int i = 0; i < TEXTURE_NUM; i++) {
-		UnloadTexture(&textures[i]);
+		Texture_UnloadTexture(&textures[i]);
 	}
 }
 

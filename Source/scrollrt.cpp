@@ -4,7 +4,8 @@
  * Implementation of functionality for rendering the dungeons, monsters and calling other render routines.
  */
 #include "all.h"
-#include "Render/render.h" //Fluffy: For resetting 32-bit buffer
+#include "Textures/textures.h" //Fluffy: For rendering 32-bit textures
+#include "Render/render.h" //Fluffy: For rendering 32-bit textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -143,7 +144,7 @@ static void scrollrt_draw_cursor_back_buffer()
  */
 static void scrollrt_draw_cursor_item()
 {
-	int i, mx, my, col;
+	int i, mx, my, col = 0;
 	BYTE *src, *dst;
 
 	assert(!sgdwCursWdt);
@@ -169,7 +170,7 @@ static void scrollrt_draw_cursor_item()
 		return;
 	}
 
-	/*if (!options_32bitRendering)*/ { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+	if (!options_32bitRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
 		sgdwCursX = mx;
 		sgdwCursWdt = sgdwCursX + cursW + 1;
 		if (sgdwCursWdt > SCREEN_WIDTH - 1) {
@@ -203,31 +204,15 @@ static void scrollrt_draw_cursor_item()
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y) - cursW - 2];
 
 	if (pcurs >= CURSOR_FIRSTITEM) {
-		col = PAL16_YELLOW + 5;
+		col = ICOL_WHITE;
 		if (plr[myplr].HoldItem._iMagical != 0) {
-			col = PAL16_BLUE + 5;
+			col = ICOL_BLUE;
 		}
 		if (!plr[myplr].HoldItem._iStatFlag) {
-			col = PAL16_RED + 5;
+			col = ICOL_RED;
 		}
-		if (pcurs <= 179) {
-			CelBlitOutline(col, mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
-			if (col != PAL16_RED + 5) {
-				CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
-			} else {
-				CelDrawLightRedSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW, 1);
-			}
-		} else {
-			CelBlitOutline(col, mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW);
-			if (col != PAL16_RED + 5) {
-				CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW);
-			} else {
-				CelDrawLightRedSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW, 0);
-			}
-		}
-	} else {
-		CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
 	}
+	DrawCursorItemWrapper(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pcurs, cursW, 1, col == ICOL_RED, pcurs >= CURSOR_FIRSTITEM, col);
 }
 
 /**
@@ -1691,7 +1676,7 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	/*if (!options_32bitRendering)*/ { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+	if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 		lock_buf(0);
 		scrollrt_draw_cursor_back_buffer();
 		unlock_buf(0);
