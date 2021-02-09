@@ -29,6 +29,8 @@ static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWid
 
 static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1)
 {
+	//TODO: In order to reduce texture size, we could detect if there are rows/columbs of fully transparent pixels along the edges and then crop baed on that
+
 	//Handle offset
 	unsigned int offsetStart = (unsigned int &)celData[celDataOffsetPos];
 	celDataOffsetPos += 4;
