@@ -170,7 +170,7 @@ static void scrollrt_draw_cursor_item()
 		return;
 	}
 
-	if (!options_32bitRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+	if (!options_hwRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
 		sgdwCursX = mx;
 		sgdwCursWdt = sgdwCursX + cursW + 1;
 		if (sgdwCursWdt > SCREEN_WIDTH - 1) {
@@ -1601,7 +1601,7 @@ void scrollrt_draw_game_screen(BOOL draw_cursor)
 	DrawMain(hgt, FALSE, FALSE, FALSE, FALSE, FALSE);
 
 	if (draw_cursor) {
-		if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+		if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 			lock_buf(0);
 			scrollrt_draw_cursor_back_buffer();
 			unlock_buf(0);
@@ -1622,7 +1622,7 @@ void DrawAndBlit()
 		return;
 	}
 
-	if (options_32bitRendering) //Fluffy: Change render target to texture
+	if (options_hwRendering) //Fluffy: Change render target to texture
 	{
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 
@@ -1676,13 +1676,13 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	if (!options_32bitRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+	if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 		lock_buf(0);
 		scrollrt_draw_cursor_back_buffer();
 		unlock_buf(0);
 	}
 
-	if (options_32bitRendering) //Fluffy: Reset render target
+	if (options_hwRendering) //Fluffy: Reset render target
 	{
 		SDL_SetRenderTarget(renderer, NULL);
 	}

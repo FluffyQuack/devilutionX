@@ -103,7 +103,7 @@ BOOL options_transparency = false; //Fluffy: Replaces dithering with proper tran
 BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
-BOOL options_32bitRendering = false; //Fluffy: If true, we render to a 32-bit buffer (required for certain graphical features)
+BOOL options_hwRendering = false; //Fluffy: If true, we render to a 32-bit buffer (required for certain graphical features)
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks
 
 /* rdata */
@@ -312,7 +312,7 @@ static void start_game(unsigned int uMsg)
 	track_repeat_walk(FALSE);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_32bitRendering) {
+	if (options_hwRendering) {
 		//Cursors
 		if (!textures[TEXTURE_CURSOR].loaded) {
 			Texture_ConvertCEL_MultipleFrames(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1]);
@@ -1895,7 +1895,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		PlaySFX(USFX_SKING1);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_32bitRendering) { 
+	if (options_hwRendering) { 
 		if (firstflag) {
 			//Inventory texture
 			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH);

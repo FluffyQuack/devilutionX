@@ -7,7 +7,7 @@ DEVILUTION_BEGIN_NAMESPACE
 
 void Render_Texture(int x, int y, int textureNum, int frameNum)
 {
-	if (!options_32bitRendering)
+	if (!options_hwRendering)
 		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
@@ -24,7 +24,7 @@ void Render_Texture(int x, int y, int textureNum, int frameNum)
 
 void Render_Texture_StartAtY(int x, int y, int yStart, int textureNum, int frameNum)
 {
-	if (!options_32bitRendering)
+	if (!options_hwRendering)
 		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message

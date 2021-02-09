@@ -143,7 +143,7 @@ void InitInv()
 
 void InvDrawSlotBack(int X, int Y, int W, int H)
 {
-	if (options_32bitRendering) { //Fluffy
+	if (options_hwRendering) { //Fluffy
 		SDL_SetRenderDrawColor(renderer, 255, 125, 125, 255); //TODO: This colour is off. It should be brighter
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_MOD);
 		SDL_Rect rect;
@@ -183,7 +183,7 @@ void InvDrawSlotBack(int X, int Y, int W, int H)
 
 void DrawCursorItemWrapper(int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor) //Fluffy: A wrapper for a lot of render calls in scrollrt_draw_cursor_item() and DrawInv()
 {
-	if (options_32bitRendering) { //Fluffy: 32-bit version of cursor rendering
+	if (options_hwRendering) { //Fluffy: 32-bit version of cursor rendering
 		int textureNum = TEXTURE_CURSOR;
 		int textureNumOutline = TEXTURE_CURSOR_OUTLINE;
 		if (frame > 179) {
@@ -250,7 +250,7 @@ void DrawInv()
 	int frame, frame_width, color = 0, screen_x, screen_y, i, j, ii;
 	BYTE *pBuff;
 
-	if (options_32bitRendering) { //Fluffy: Render 32-bit version of inventory
+	if (options_hwRendering) { //Fluffy: Render 32-bit version of inventory
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_INVENTORY);
 	} else {
 		CelDraw(RIGHT_PANEL_X, 351 + SCREEN_Y, pInvCels, 1, SPANEL_WIDTH);
@@ -359,7 +359,7 @@ void DrawInv()
 				pBuff = frame_width == INV_SLOT_SIZE_PX
 				    ? &gpBuffer[SCREENXY(RIGHT_PANEL_X + 197, SCREEN_Y)]
 				    : &gpBuffer[SCREENXY(RIGHT_PANEL_X + 183, SCREEN_Y)];
-				if (options_32bitRendering) { //Fluffy
+				if (options_hwRendering) { //Fluffy
 					//TODO: Turn this into its own function or something like that
 					int textureNum = TEXTURE_CURSOR;
 					int frameNum = frame - 1;
