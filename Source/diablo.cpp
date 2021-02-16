@@ -1899,6 +1899,9 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		if (firstflag) {
 			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
 			LoadQuestDialogueTextures();
+			Texture_ConvertCEL_SingleFrame(pSTextBoxCels, TEXTURE_TEXTBOX2, 271); //Narrow version of text box 2
+			Texture_ConvertCEL_MultipleFrames(pSPentSpn2Cels, TEXTURE_SPINNINGPENTAGRAM2, 12); //Tiny spinning pentagram
+			Texture_ConvertCEL_MultipleFrames(pSTextSlidCels, TEXTURE_DYNAMICWINDOW, 12); //Textures for dynamic window creation
 		}
 	}
 }

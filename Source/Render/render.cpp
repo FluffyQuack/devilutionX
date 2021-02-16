@@ -22,24 +22,29 @@ void Render_Texture(int x, int y, int textureNum, int frameNum)
 	SDL_RenderCopy(renderer, textureFrame->frame, NULL, &dstR);
 }
 
-void Render_Texture_StartAtY(int x, int y, int yStart, int textureNum, int frameNum)
+void Render_Texture_Crop(int x, int y, int textureNum, int startX, int startY, int endX, int endY, int frameNum)
 {
 	if (!options_hwRendering)
 		return;
+	
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
 	textureFrame_s *textureFrame = &textures[textureNum].frames[frameNum];
+	if (startX == -1) startX = 0;
+	if (startY == -1) startY = 0;
+	if (endX == -1) endX = textureFrame->width;
+	if (endY == -1) endY = textureFrame->height;
 	SDL_Rect srcR, dstR;
 	dstR.x = x;
 	dstR.y = y;
-	dstR.w = textureFrame->width;
-	dstR.h = textureFrame->height - yStart;
+	dstR.w = endX - startX;
+	dstR.h = endY - startY;
 
-	srcR.x = 0;
-	srcR.y = yStart;
-	srcR.w = textureFrame->width;
-	srcR.h = textureFrame->height - yStart;
+	srcR.x = startX;
+	srcR.y = startY;
+	srcR.w = endX - startX;
+	srcR.h = endY - startY;
 	SDL_RenderCopy(renderer, textureFrame->frame, &srcR, &dstR);
 }
 

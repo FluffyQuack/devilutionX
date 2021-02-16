@@ -4,6 +4,8 @@
  * Implementation of functionality for stores and towner dialogs.
  */
 #include "all.h"
+#include "Textures/textures.h" //Fluffy
+#include "Render/render.h" //Fluffy: For SDL rendering
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -115,6 +117,19 @@ void FreeStoreMem()
 
 void DrawSTextBack()
 {
+	if (options_hwRendering) { //Fluffy: Draw text box via SDL
+		//Render the black transparent background for the panel
+		SDL_Rect rect;
+		rect.w = textures[TEXTURE_TEXTBOX2].frames[0].width;
+		rect.h = textures[TEXTURE_TEXTBOX2].frames[0].height;
+		rect.x = PANEL_LEFT + 344;
+		rect.y = 327 + UI_OFFSET_Y - rect.h + 1;
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
+		SDL_RenderFillRect(renderer, &rect);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		Render_Texture(rect.x, rect.y, TEXTURE_TEXTBOX2);
+		return;
+	}
 	CelDraw(PANEL_X + 344, 327 + SCREEN_Y + UI_OFFSET_Y, pSTextBoxCels, 1, 271);
 	trans_rect(PANEL_LEFT + 347, UI_OFFSET_Y + 28, 265, 297);
 }
@@ -148,7 +163,13 @@ void PrintSString(int x, int y, BOOL cjustflag, const char *str, char col, int v
 		sx += k;
 	}
 	if (stextsel == y) {
-		CelDraw(cjustflag ? xx + x + k - 20 : xx + x - 20, s + 45 + SCREEN_Y + UI_OFFSET_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		int frameNum = PentSpn2Spin();
+		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
+		int renderY = s + 45 + UI_OFFSET_Y;
+		if (options_hwRendering) //Fluffy: Render via SDL
+			Render_Texture(renderX - BORDER_LEFT, renderY - textures[TEXTURE_SPINNINGPENTAGRAM2].frames[0].height + 1, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+		else
+			CelDraw(renderX, renderY + SCREEN_Y, pSPentSpn2Cels, frameNum, 12);
 	}
 	for (i = 0; i < len; i++) {
 		c = fontframe[gbFontTransTbl[(BYTE)str[i]]];
@@ -171,7 +192,13 @@ void PrintSString(int x, int y, BOOL cjustflag, const char *str, char col, int v
 		}
 	}
 	if (stextsel == y) {
-		CelDraw(cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x), s + 45 + SCREEN_Y + UI_OFFSET_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		int frameNum = PentSpn2Spin();
+		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
+		int renderY = s + 45 + UI_OFFSET_Y;
+		if (options_hwRendering) //Fluffy: Render via SDL
+			Render_Texture(renderX - BORDER_LEFT, renderY - textures[TEXTURE_SPINNINGPENTAGRAM2].frames[0].height + 1, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+		else
+			CelDraw(renderX, renderY + SCREEN_Y, pSPentSpn2Cels, frameNum, 12);
 	}
 }
 
@@ -180,17 +207,29 @@ void DrawSLine(int y)
 	int xy, yy, width, line, sy;
 
 	sy = y * 12;
+
+	int x1 = PANEL_LEFT;
+	int x2;
+	int y2 = sy + 38 + UI_OFFSET_Y;
+
 	if (stextsize) {
-		xy = SCREENXY(PANEL_LEFT + 26, 25 + UI_OFFSET_Y);
-		yy = BUFFER_WIDTH * (sy + 38 + SCREEN_Y + UI_OFFSET_Y) + 26 + PANEL_X;
-		width = 586 / 4;           // BUGFIX: should be 587, not 586
-		line = BUFFER_WIDTH - 586; // BUGFIX: should be 587, not 586
+		x1 += 26;
+		x2 = 586; // BUGFIX: should be 587, not 586
 	} else {
-		xy = SCREENXY(PANEL_LEFT + 346, 25 + UI_OFFSET_Y);
-		yy = BUFFER_WIDTH * (sy + 38 + SCREEN_Y + UI_OFFSET_Y) + 346 + PANEL_X;
-		width = 266 / 4;           // BUGFIX: should be 267, not 266
-		line = BUFFER_WIDTH - 266; // BUGFIX: should be 267, not 266
+		x1 += 346;
+		x2 = 266; // BUGFIX: should be 267, not 266
 	}
+
+	if (options_hwRendering) { //Fluffy: Render via SDL
+		int texture = stextsize ? TEXTURE_TEXTBOX : TEXTURE_TEXTBOX2;
+		Render_Texture_Crop(x1, y2, texture, 2, -1, textures[texture].frames[0].width - 2, 3);
+		return;
+	}
+
+	xy = SCREENXY(x1, 25 + UI_OFFSET_Y);
+	yy = BUFFER_WIDTH * (y2 + SCREEN_Y) + x1 + SCREEN_X;
+	width = x2 / 4;
+	line = BUFFER_WIDTH - x2;
 
 	/// ASSERT: assert(gpBuffer);
 
@@ -200,28 +239,37 @@ void DrawSLine(int y)
 	src = &gpBuffer[xy];
 	dst = &gpBuffer[yy];
 
+	//Copy top part of the NPC UI text box
 	for (i = 0; i < 3; i++, src += BUFFER_WIDTH, dst += BUFFER_WIDTH)
 		memcpy(dst, src, BUFFER_WIDTH - line);
+}
+
+static void DrawSSlider_Render(int x, int y, int frameNum)
+{
+	if (options_hwRendering) //Fluffy: SDL render
+		Render_Texture(x, y - textures[TEXTURE_DYNAMICWINDOW].frames[0].height + 1, TEXTURE_DYNAMICWINDOW, frameNum - 1);
+	else
+		CelDraw(x + SCREEN_X, y + SCREEN_Y, pSTextSlidCels, frameNum, 12);
 }
 
 void DrawSSlider(int y1, int y2)
 {
 	int yd1, yd2, yd3;
 
-	yd1 = y1 * 12 + 44 + SCREEN_Y + UI_OFFSET_Y;
-	yd2 = y2 * 12 + 44 + SCREEN_Y + UI_OFFSET_Y;
+	int renderX = PANEL_LEFT + 601;
+	yd1 = y1 * 12 + 44 + UI_OFFSET_Y;
+	yd2 = y2 * 12 + 44 + UI_OFFSET_Y;
 	if (stextscrlubtn != -1)
-		CelDraw(PANEL_X + 601, yd1, pSTextSlidCels, 12, 12);
+		DrawSSlider_Render(renderX, yd1, 12);
 	else
-		CelDraw(PANEL_X + 601, yd1, pSTextSlidCels, 10, 12);
+		DrawSSlider_Render(renderX, yd1, 10);
 	if (stextscrldbtn != -1)
-		CelDraw(PANEL_X + 601, yd2, pSTextSlidCels, 11, 12);
+		DrawSSlider_Render(renderX, yd2, 11);
 	else
-		CelDraw(PANEL_X + 601, yd2, pSTextSlidCels, 9, 12);
+		DrawSSlider_Render(renderX, yd2, 9);
 	yd1 += 12;
-	for (yd3 = yd1; yd3 < yd2; yd3 += 12) {
-		CelDraw(PANEL_X + 601, yd3, pSTextSlidCels, 14, 12);
-	}
+	for (yd3 = yd1; yd3 < yd2; yd3 += 12)
+		DrawSSlider_Render(renderX, yd3, 14);
 	if (stextsel == 22)
 		yd3 = stextlhold;
 	else
@@ -230,7 +278,12 @@ void DrawSSlider(int y1, int y2)
 		yd3 = 1000 * (stextsval + ((yd3 - stextup) >> 2)) / (storenumh - 1) * (y2 * 12 - y1 * 12 - 24) / 1000;
 	else
 		yd3 = 0;
-	CelDraw(PANEL_X + 601, (y1 + 1) * 12 + 44 + SCREEN_Y + UI_OFFSET_Y + yd3, pSTextSlidCels, 13, 12);
+
+	int renderY = (y1 + 1) * 12 + 44 + UI_OFFSET_Y + yd3;
+	if (options_hwRendering) //Fluffy: SDL render
+		Render_Texture(renderX, renderY - textures[TEXTURE_DYNAMICWINDOW].frames[0].height + 1, TEXTURE_DYNAMICWINDOW, 13 - 1);
+	else
+		CelDraw(renderX + SCREEN_X, renderY + SCREEN_Y, pSTextSlidCels, 13, 12);
 }
 
 void DrawSTextHelp()

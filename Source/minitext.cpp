@@ -4,7 +4,7 @@
  * Implementation of scrolling dialog text.
  */
 #include "all.h"
-#include "textures/textures.h" //Fluffy
+#include "Textures/textures.h" //Fluffy
 #include "Render/render.h" //Fluffy: For SDL rendering
 #include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
@@ -284,6 +284,7 @@ void DrawQTextBack()
 		rect.y = 327 + UI_OFFSET_Y - rect.h + 1;
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
 		SDL_RenderFillRect(renderer, &rect);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		Render_Texture(rect.x, rect.y, TEXTURE_TEXTBOX);
 		return;
 	}
