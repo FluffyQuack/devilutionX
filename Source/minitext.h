@@ -19,6 +19,7 @@ void InitQuestText();
 void InitQTextMsg(int m);
 void DrawQTextBack();
 void DrawQText();
+void LoadQuestDialogueTextures();
 
 #ifdef __cplusplus
 }

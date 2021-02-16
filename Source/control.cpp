@@ -6,6 +6,7 @@
 #include "all.h"
 #include "Textures/textures.h" //Fluffy: For accessing flask textures
 #include "Render/render.h" //Fluffy: For rendering to 32-bit buffer
+#include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -533,6 +534,36 @@ void PrintChar(int sx, int sy, int nCel, char col)
 {
 	assert(gpBuffer);
 
+	if (options_hwRendering) { //Fluffy: Render font using SDL
+		int frame = nCel - 1;
+		SDL_Texture *tex = textures[TEXTURE_SMALLFONT].frames[frame].frame;
+		int x = sx - BORDER_LEFT;
+		int y = sy - BORDER_TOP - textures[TEXTURE_SMALLFONT].frames[0].height + 1;
+		if (col != COL_WHITE) {
+			switch (col) {
+			case COL_BLUE:
+				SDL_SetTextureColorMod(tex, 200, 210, 255); //TODO: This colour should be slightly darker
+				break;
+			case COL_RED: //Even with rendering this twice, the colour is still slightly off (the edges of the font are supposed to be a strong red), but I think it's impossible to get the same look without texture changes
+				SDL_SetTextureColorMod(tex, 255, 153, 153);
+				Render_Texture(x, y, TEXTURE_SMALLFONT, frame);
+				SDL_SetTextureColorMod(tex, 64, 8, 8);
+				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_ADD);
+				Render_Texture(x, y, TEXTURE_SMALLFONT, frame);
+				break;
+			default: //Gold colour
+				SDL_SetTextureColorMod(tex, 255, 231, 148); //TODO: This colour should be ever so slightly darker
+				break;
+			}
+		}
+		Render_Texture(x, y, TEXTURE_SMALLFONT, frame);
+		if (col != COL_WHITE) {
+			SDL_SetTextureColorMod(tex, 255, 255, 255);
+			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+		}
+		return;
+	}
+
 	int i;
 	BYTE pix;
 	BYTE tbl[256];
@@ -559,7 +590,7 @@ void PrintChar(int sx, int sy, int nCel, char col)
 			tbl[i] = pix;
 		}
 		break;
-	default:
+	default: //This is used for displaying the text "No automap available in town" which is shown in a gold colour
 		for (i = 0; i < 256; i++) {
 			pix = i;
 			if (pix >= PAL16_GRAY) {
@@ -894,6 +925,12 @@ void InitControlPan()
 	dropGoldValue = 0;
 	initialDropGoldValue = 0;
 	initialDropGoldIndex = 0;
+
+	if (options_hwRendering) { //Fluffy: Load the above CELs as SDL textures
+		//Texture_ConvertCEL_SingleFrame
+		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
+		//TODO
+	}
 }
 
 void DrawCtrlPan()

@@ -139,7 +139,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	//TODO: Should we save this as a different format? We only need alpha channel since colour is handled by game code.
 }
 
-void Texture_ConvertCEL_MultipleFrames_Outlined(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
+void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(texture); //Unload if it's already loaded
@@ -229,7 +229,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		ErrSdl();
 }
 
-void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
+void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(texture); //Unload if it's already loaded
@@ -243,7 +243,26 @@ void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int *frame
 
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
-		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, 1, frameWidths[j], frameHeights[j]);
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, 1, frameWidths[j], frameHeights ? frameHeights[j] : -1); //TODO: We need a better system for figuring out if a CEL has frame headers or not
+		celDataOffsetPos += 4;
+	}
+}
+
+void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight)
+{
+	texture_s *texture = &textures[textureNum];
+	Texture_UnloadTexture(texture); //Unload if it's already loaded
+
+	//Create textureFrame_s pointer array
+	int frameCount = (int &)*celData;
+	texture->frames = new textureFrame_s[frameCount];
+	texture->frameCount = frameCount;
+	unsigned int celDataOffsetPos = 4;
+	for (int j = 0; j < frameCount; j++) {
+
+		//Do the conversion
+		textureFrame_s *textureFrame = &texture->frames[j];
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, 0, frameWidth, frameHeight); //TODO: We need a better system for figuring out if a CEL has frame headers or not
 		celDataOffsetPos += 4;
 	}
 }

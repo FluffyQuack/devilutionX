@@ -4,6 +4,9 @@
  * Implementation of scrolling dialog text.
  */
 #include "all.h"
+#include "textures/textures.h" //Fluffy
+#include "Render/render.h" //Fluffy: For SDL rendering
+#include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -144,6 +147,19 @@ int CalcTextSpeed(int nSFX)
  */
 void PrintQTextChr(int sx, int sy, Uint8 *pCelBuff, int nCel)
 {
+	if (options_hwRendering) { //Fluffy: Use SDL rendering
+		//We use clipping to ensure text is limited to within a certain area
+		SDL_Rect rect;
+		rect.x = 0;
+		rect.y = 49 + UI_OFFSET_Y;
+		rect.w = 1280;
+		rect.h = 260;
+		SDL_RenderSetClipRect(renderer, &rect);
+		Render_Texture(sx - BORDER_LEFT, sy - BORDER_TOP - textures[TEXTURE_MEDIUMFONT].frames[0].height + 1, TEXTURE_MEDIUMFONT, nCel - 1);
+		SDL_RenderSetClipRect(renderer, NULL);
+		return;
+	}
+
 	Uint8 *pStart, *pEnd;
 
 	assert(gpBuffer);
@@ -259,6 +275,18 @@ void InitQTextMsg(int m)
  */
 void DrawQTextBack()
 {
+	if (options_hwRendering) { //Fluffy: Render text box using SDL
+		//Render the black transparent background for the panel
+		SDL_Rect rect;
+		rect.w = textures[TEXTURE_TEXTBOX].frames[0].width;
+		rect.h = textures[TEXTURE_TEXTBOX].frames[0].height;
+		rect.x = PANEL_LEFT + 24;
+		rect.y = 327 + UI_OFFSET_Y - rect.h + 1;
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
+		SDL_RenderFillRect(renderer, &rect);
+		Render_Texture(rect.x, rect.y, TEXTURE_TEXTBOX);
+		return;
+	}
 	CelDraw(PANEL_X + 24, SCREEN_Y + 327 + UI_OFFSET_Y, pTextBoxCels, 1, 591);
 	trans_rect(PANEL_LEFT + 27, UI_OFFSET_Y + 28, 585, 297);
 }
@@ -270,6 +298,12 @@ void DrawQText()
 {
 	DrawQTextBack();
 	DrawQTextContent();
+}
+
+void LoadQuestDialogueTextures()
+{
+	Texture_ConvertCEL_MultipleFrames(pMedTextCels, TEXTURE_MEDIUMFONT, 22); //Medium-sized font (for quest dialogue)
+	Texture_ConvertCEL_SingleFrame(pTextBoxCels, TEXTURE_TEXTBOX, 591); //Text box (for quest dialogue)
 }
 
 DEVILUTION_END_NAMESPACE
