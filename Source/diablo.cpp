@@ -315,12 +315,12 @@ static void start_game(unsigned int uMsg)
 	if (options_hwRendering) {
 		//Cursors
 		if (!textures[TEXTURE_CURSOR].loaded) {
-			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1]);
-			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels, TEXTURE_CURSOR_OUTLINE, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1]);
+			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
+			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels, TEXTURE_CURSOR_OUTLINE, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
 		}
 		if (!textures[TEXTURE_CURSOR2].loaded && gbIsHellfire) {
-			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels2, TEXTURE_CURSOR2, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180]);
-			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels2, TEXTURE_CURSOR2_OUTLINE, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180]);
+			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels2, TEXTURE_CURSOR2, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180], true);
+			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels2, TEXTURE_CURSOR2_OUTLINE, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180], true);
 		}
 	}
 }

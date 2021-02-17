@@ -927,9 +927,12 @@ void InitControlPan()
 	initialDropGoldIndex = 0;
 
 	if (options_hwRendering) { //Fluffy: Load the above CELs as SDL textures
-		//Texture_ConvertCEL_SingleFrame
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
-		//TODO
+		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
+
+		int charButWidths[9] = {95, 41, 41, 41, 41, 41, 41, 41, 41};
+		Texture_ConvertCEL_MultipleFrames_VariableResolution(pChrButtons, TEXTURE_STATWINDOW_BUTTONS, charButWidths);
+		//TODO: Convert more of the CELs from this function
 	}
 }
 
@@ -1476,13 +1479,25 @@ static void MY_PlrStringXY(int x, int y, int endX, const char *pszStr, char col,
 	}
 }
 
+static void RenderLevelupIconOnStatWindow(int x, int y, int frame)
+{
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture(x, y - textures[TEXTURE_STATWINDOW_BUTTONS].frames[frame - 1].height + 1, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
+	else
+		CelDraw(x + SCREEN_X, y + SCREEN_Y, pChrButtons, frame, 41);
+}
+
 void DrawChr()
 {
 	char col;
 	char chrstr[64];
 	int pc, mindam, maxdam;
 
-	CelDraw(SCREEN_X, 351 + SCREEN_Y, pChrPanel, 1, SPANEL_WIDTH);
+	if (options_hwRendering) //Fluffy: Render character stat window via SDL
+		Render_Texture(0, 0, TEXTURE_STATWINDOW);
+	else
+		CelDraw(SCREEN_X, 351 + SCREEN_Y, pChrPanel, 1, SPANEL_WIDTH);
+
 	ADD_PlrStringXY(20, 32, 151, plr[myplr]._pName, COL_WHITE);
 
 	ADD_PlrStringXY(168, 32, 299, ClassStrTblOld[plr[myplr]._pClass], COL_WHITE);
@@ -1655,14 +1670,17 @@ void DrawChr()
 		sprintf(chrstr, "%i", plr[myplr]._pStatPts);
 		ADD_PlrStringXY(95, 266, 126, chrstr, COL_RED);
 		pc = plr[myplr]._pClass;
+
+		//Fluffy: Draw the level-up icon in the character stat window
+		int xCoord = 137;
 		if (plr[myplr]._pBaseStr < MaxStats[pc][ATTRIB_STR])
-			CelDraw(137 + SCREEN_X, 159 + SCREEN_Y, pChrButtons, chrbtn[ATTRIB_STR] + 2, 41);
+			RenderLevelupIconOnStatWindow(xCoord, 159, chrbtn[ATTRIB_STR] + 2);
 		if (plr[myplr]._pBaseMag < MaxStats[pc][ATTRIB_MAG])
-			CelDraw(137 + SCREEN_X, 187 + SCREEN_Y, pChrButtons, chrbtn[ATTRIB_MAG] + 4, 41);
+			RenderLevelupIconOnStatWindow(xCoord, 187, chrbtn[ATTRIB_MAG] + 4);
 		if (plr[myplr]._pBaseDex < MaxStats[pc][ATTRIB_DEX])
-			CelDraw(137 + SCREEN_X, 216 + SCREEN_Y, pChrButtons, chrbtn[ATTRIB_DEX] + 6, 41);
+			RenderLevelupIconOnStatWindow(xCoord, 216, chrbtn[ATTRIB_DEX] + 6);
 		if (plr[myplr]._pBaseVit < MaxStats[pc][ATTRIB_VIT])
-			CelDraw(137 + SCREEN_X, 244 + SCREEN_Y, pChrButtons, chrbtn[ATTRIB_VIT] + 8, 41);
+			RenderLevelupIconOnStatWindow(xCoord, 244, chrbtn[ATTRIB_VIT] + 8);
 	}
 
 	if (plr[myplr]._pMaxHP > plr[myplr]._pMaxHPBase)
@@ -1708,7 +1726,11 @@ void DrawLevelUpIcon()
 	if (stextflag == STORE_NONE) {
 		nCel = lvlbtndown ? 3 : 2;
 		ADD_PlrStringXY(PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
-		CelDraw(40 + PANEL_X, -17 + PANEL_Y, pChrButtons, nCel, 41);
+
+		if (options_hwRendering) //Fluffy: Render via SDL
+			Render_Texture(40 + PANEL_LEFT, -17 + PANEL_TOP - textures[TEXTURE_STATWINDOW_BUTTONS].frames[nCel - 1].height + 1, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
+		else
+			CelDraw(40 + PANEL_X, -17 + PANEL_Y, pChrButtons, nCel, 41);
 	}
 }
 

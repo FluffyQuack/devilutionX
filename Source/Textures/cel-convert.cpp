@@ -139,7 +139,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	//TODO: Should we save this as a different format? We only need alpha channel since colour is handled by game code.
 }
 
-void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
+void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(texture); //Unload if it's already loaded
@@ -153,7 +153,7 @@ void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData
 
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
-		ConvertCELtoSDL_Outline(textureFrame, celData, celDataOffsetPos, 1, frameWidths[j], frameHeights[j]);
+		ConvertCELtoSDL_Outline(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidths[j], frameHeights[j]);
 		celDataOffsetPos += 4;
 	}
 }
@@ -229,7 +229,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		ErrSdl();
 }
 
-void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights)
+void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(texture); //Unload if it's already loaded
@@ -243,12 +243,12 @@ void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int tex
 
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
-		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, 1, frameWidths[j], frameHeights ? frameHeights[j] : -1); //TODO: We need a better system for figuring out if a CEL has frame headers or not
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidths[j], frameHeights ? frameHeights[j] : -1);
 		celDataOffsetPos += 4;
 	}
 }
 
-void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight)
+void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(texture); //Unload if it's already loaded
@@ -262,7 +262,7 @@ void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameW
 
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
-		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, 0, frameWidth, frameHeight); //TODO: We need a better system for figuring out if a CEL has frame headers or not
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidth, frameHeight);
 		celDataOffsetPos += 4;
 	}
 }
