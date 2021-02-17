@@ -242,7 +242,11 @@ int SpellPages[6][7] = {
  */
 void DrawSpellCel(int xp, int yp, BYTE *Trans, int nCel, int w)
 {
-	CelDrawLight(xp, yp, Trans, nCel, w, SplTransTbl);
+	//TODO: We need to fix colouring when rendering via SDL
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture(xp - BORDER_LEFT, yp - BORDER_TOP - textures[TEXTURE_SPELLICONS].frames[nCel - 1].height + 1, TEXTURE_SPELLICONS, nCel - 1);
+	else
+		CelDrawLight(xp, yp, Trans, nCel, w, SplTransTbl);
 }
 
 void SetSpellTrans(char t)
@@ -723,6 +727,12 @@ void DrawLifeFlask()
 	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
 		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), 80);
 		Render_Texture_Crop(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, TEXTURE_HEALTHFLASK, -1, filled, -1, -1, gameplayTickCount % 48);
+		if (gameplayTickCount_progress != 0) {
+			int frameNum = (gameplayTickCount + 1) % 48;
+			SDL_SetTextureAlphaMod(textures[TEXTURE_HEALTHFLASK].frames[frameNum].frame, (gameplayTickCount_progress * 255) / (gSpeedMod));
+			Render_Texture_Crop(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, TEXTURE_HEALTHFLASK, -1, filled, -1, -1, frameNum);
+			SDL_SetTextureAlphaMod(textures[TEXTURE_HEALTHFLASK].frames[frameNum].frame, 255);
+		}
 	} else {
 		if (filled > 11)
 			filled = 11;
@@ -778,6 +788,12 @@ void DrawManaFlask()
 	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
 		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), 80);
 		Render_Texture_Crop(PANEL_LEFT + 464, PANEL_TOP - 16 + filled, TEXTURE_MANAFLASK, -1, filled, -1, -1, gameplayTickCount % 48);
+		if (gameplayTickCount_progress != 0) {
+			int frameNum = (gameplayTickCount + 1) % 48;
+			SDL_SetTextureAlphaMod(textures[TEXTURE_MANAFLASK].frames[frameNum].frame, (gameplayTickCount_progress * 255) / (gSpeedMod));
+			Render_Texture_Crop(PANEL_LEFT + 464, PANEL_TOP - 16 + filled, TEXTURE_MANAFLASK, -1, filled, -1, -1, frameNum);
+			SDL_SetTextureAlphaMod(textures[TEXTURE_MANAFLASK].frames[frameNum].frame, 255);
+		}
 	} else {
 		if (filled > 11)
 			filled = 11;
@@ -929,9 +945,9 @@ void InitControlPan()
 	if (options_hwRendering) { //Fluffy: Load the above CELs as SDL textures
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
 		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
-
 		int charButWidths[9] = {95, 41, 41, 41, 41, 41, 41, 41, 41};
 		Texture_ConvertCEL_MultipleFrames_VariableResolution(pChrButtons, TEXTURE_STATWINDOW_BUTTONS, charButWidths);
+		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS, SPLICONLENGTH);
 		//TODO: Convert more of the CELs from this function
 	}
 }

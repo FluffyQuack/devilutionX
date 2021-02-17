@@ -2,7 +2,7 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-//List of textures
+//List of textures (many of these correspond to CEL files from the original game)
 enum {
 	//CELs as textures
 	TEXTURE_CURSOR,          //Mouse cursors and inventory items (data\inv\objcurs.cel)
@@ -16,7 +16,7 @@ enum {
 	//HUD panel (ctrlpan\panel8.cel)
 	//Buttons pressed down on HUD panel (ctrlpan\panel8bu.cel)
 	TEXTURE_SMALLFONT, //Small font (ctrlpan\smaltext.cel)
-	//All spell icons (ctrlpan\spelicon.cel)
+	TEXTURE_SPELLICONS, //All spell icons (ctrlpan\spelicon.cel or data\SpelIcon.CEL, depending on it being Diablo or Hellfire)
 	//Mute and voice buttons on control panel (ctrlpan\talkbutt.cel)
 	//Control panel with voice buttons (ctrlpan\talkpanl.cel)
 	//Big font, golden colour (data\bigtgold.cel)
@@ -30,14 +30,13 @@ enum {
 	//Spinning pentagram (data\PentSpin.cel)
 	TEXTURE_SPINNINGPENTAGRAM2, //Tiny spinning pentagram (data\PentSpn2.cel)
 	//Quest window (data\quest.cel)
-	//Spell icons (data\SpelIcon.CEL)
 	//Spellbook window (data\spellbk.CEL)
 	//Spellbook window buttons pressed down (data\spellbkb.CEL)
 	//Small spell icons (data\spelli2.cel)
 	//Debug tile selection (data\square.cel)
 	TEXTURE_TEXTBOX, //NPC dialogue box (data\textbox.cel)
 	TEXTURE_TEXTBOX2, //More narrow version of textbox (data\textbox2.cel)
-	TEXTURE_DYNAMICWINDOW, //Window of any size. Used for error screen and scroll bars (data\textslid.cel)
+	TEXTURE_DYNAMICWINDOW, //Window of any size. Used for error message and scroll bars (data\textslid.cel)
 	//Catacombs loading screen (gendata\cut2.cel)
 	//Caves loading screen (gendata\cut3.cel)
 	//Hell loading screen (gendata\cut4.cel)
@@ -57,11 +56,24 @@ enum {
 	TEXTURE_NUM
 };
 
-struct textureFrame_s {
-	SDL_Texture *frame;
+/*
+struct textureAtlas_s {
+	SDL_Texture *tex;
 	int width;
 	int height;
 	int channels;
+	bool loaded;
+};
+*/
+
+struct textureFrame_s {
+	SDL_Texture *frame;
+	//int textureAtlas; //Corresponds to an entry in textureAtlases array
+	int width;
+	int height;
+	int channels;
+	//int offsetX; //Offset for texture in the SDL_Texture (this is used for texture atlases)
+	//int offsetY;
 };
 
 struct texture_s {
@@ -70,6 +82,7 @@ struct texture_s {
 	int frameCount; //Quantity of frames (imgData is an array of this length)
 };
 
+//extern textureAtlas_s *textureAtlases;
 extern texture_s textures[TEXTURE_NUM];
 
 void Texture_UnloadTexture(texture_s *texture);

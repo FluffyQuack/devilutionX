@@ -6,6 +6,7 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+//textureAtlas_s *textureAtlases;
 texture_s textures[TEXTURE_NUM];
 
 void Texture_UnloadTexture(texture_s *texture) //Unloads all frames for one texture

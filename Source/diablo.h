@@ -47,6 +47,7 @@ extern char sgbMouseDown;
 extern int ticks_per_sec;
 extern unsigned long long tick_delay_highResolution; //Fluffy
 extern unsigned int gameplayTickCount;
+extern unsigned int gameplayTickCount_progress;
 extern int gSpeedMod;
 extern int gMonsterSpeedMod;
 
