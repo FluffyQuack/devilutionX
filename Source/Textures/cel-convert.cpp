@@ -6,6 +6,8 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+BYTE *celConvert_TranslationTable = 0;
+
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
 	unsigned char width;
@@ -198,9 +200,15 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 					int srcPos = 0;
 					int dstPos = 0;
 					while (srcPos < width) {
-						dst[dstPos + 3] = orig_palette[src[srcPos]].r;
-						dst[dstPos + 2] = orig_palette[src[srcPos]].g;
-						dst[dstPos + 1] = orig_palette[src[srcPos]].b;
+						if (celConvert_TranslationTable) {
+							dst[dstPos + 3] = orig_palette[celConvert_TranslationTable[src[srcPos]]].r;
+							dst[dstPos + 2] = orig_palette[celConvert_TranslationTable[src[srcPos]]].g;
+							dst[dstPos + 1] = orig_palette[celConvert_TranslationTable[src[srcPos]]].b;
+						} else {
+							dst[dstPos + 3] = orig_palette[src[srcPos]].r;
+							dst[dstPos + 2] = orig_palette[src[srcPos]].g;
+							dst[dstPos + 1] = orig_palette[src[srcPos]].b;
+						}
 						dst[dstPos + 0] = 255;
 						srcPos++;
 						dstPos += 4;

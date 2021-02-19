@@ -229,6 +229,7 @@ int SpellPages[6][7] = {
 };
 
 #define SPLICONLENGTH 56
+#define SPLSMALLICONSIZE 37
 #define SPLROWICONLS 10
 #define SPLICONLAST (gbIsHellfire ? 52 : 43)
 
@@ -240,13 +241,29 @@ int SpellPages[6][7] = {
  * @param nCel Index of the cel frame to draw. 0 based.
  * @param w Width of the frame.
  */
-void DrawSpellCel(int xp, int yp, BYTE *Trans, int nCel, int w)
+void DrawSpellCel(int xp, int yp, int nCel, int type, bool spellBook) //Fluffy: Updated this so it can render via SDL too
 {
-	//TODO: We need to fix colouring when rendering via SDL
-	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture(xp - BORDER_LEFT, yp - BORDER_TOP - textures[TEXTURE_SPELLICONS].frames[nCel - 1].height + 1, TEXTURE_SPELLICONS, nCel - 1);
-	else
-		CelDrawLight(xp, yp, Trans, nCel, w, SplTransTbl);
+	int width = SPLICONLENGTH;
+	if (spellBook)
+		width = SPLSMALLICONSIZE;
+
+	if (options_hwRendering) {
+		int textureNum = TEXTURE_SPELLICONS;
+		if (spellBook)
+			textureNum = TEXTURE_SMALLSPELLICONS;
+		textureNum += type;
+		/*if (spellBook) //This takes the big spell icon and scales it down to the same size of spell book icons. I like this dynamic solution, but the icons end up looking a bit different (the small icons in the CEL are a bit different than the normal spell icons, as they have a different border)
+			Render_Texture_ScaleAndCrop(xp - BORDER_LEFT, yp - BORDER_TOP - width + 1, textureNum, width, width, 5, 4, textures[textureNum].frames[nCel - 1].width - 3, textures[textureNum].frames[nCel - 1].height - 4, nCel - 1);
+		else*/
+			Render_Texture(xp - BORDER_LEFT, yp - BORDER_TOP - textures[textureNum].frames[nCel - 1].height + 1, textureNum, nCel - 1);
+		return;
+	}
+
+	BYTE *celData = pSpellCels;
+	if (spellBook)
+		celData = pSBkIconCels;
+
+	CelDrawLight(xp, yp, celData, nCel, width, SplTransTbl);
 }
 
 void SetSpellTrans(char t)
@@ -334,9 +351,9 @@ void DrawSpell()
 		st = RSPLTYPE_INVALID;
 	SetSpellTrans(st);
 	if (spl != SPL_INVALID)
-		DrawSpellCel(PANEL_X + 565, PANEL_Y + 119, pSpellCels, SpellITbl[spl], SPLICONLENGTH);
+		DrawSpellCel(PANEL_X + 565, PANEL_Y + 119, SpellITbl[spl], st, false);
 	else
-		DrawSpellCel(PANEL_X + 565, PANEL_Y + 119, pSpellCels, 27, SPLICONLENGTH);
+		DrawSpellCel(PANEL_X + 565, PANEL_Y + 119, 27, st, false);
 }
 
 void DrawSpellList()
@@ -377,6 +394,7 @@ void DrawSpellList()
 		for (spl = 1, j = 1; j < maxSpells; spl <<= 1, j++) {
 			if (!(mask & spl))
 				continue;
+			trans = i;
 			if (i == RSPLTYPE_SPELL) {
 				s = plr[myplr]._pISplLvlAdd + plr[myplr]._pSplLvl[j];
 				if (s < 0)
@@ -389,10 +407,12 @@ void DrawSpellList()
 			}
 
 			//Fluffy: Grey out spells in spell selection if we can't cast in town
-			if (currlevel == 0 && !spelldata[j].sTownSpell && gameSetup_allowAttacksInTown == false)
-				SetSpellTrans(RSPLTYPE_INVALID);
+			if (currlevel == 0 && !spelldata[j].sTownSpell && gameSetup_allowAttacksInTown == false) {
+				trans = RSPLTYPE_INVALID;
+				SetSpellTrans(trans);
+			}
 
-			DrawSpellCel(x, y, pSpellCels, SpellITbl[j], SPLICONLENGTH);
+			DrawSpellCel(x, y, SpellITbl[j], trans, false);
 			lx = x - BORDER_LEFT;
 			ly = y - BORDER_TOP - SPLICONLENGTH;
 			if (MouseX >= lx && MouseX < lx + SPLICONLENGTH && MouseY >= ly && MouseY < ly + SPLICONLENGTH) {
@@ -400,7 +420,7 @@ void DrawSpellList()
 				pSplType = i;
 				if (plr[myplr]._pClass == PC_MONK && j == SPL_SEARCH)
 					pSplType = RSPLTYPE_SKILL;
-				DrawSpellCel(x, y, pSpellCels, c, SPLICONLENGTH);
+				DrawSpellCel(x, y, c, trans, false);
 				switch (pSplType) {
 				case RSPLTYPE_SKILL:
 					sprintf(infostr, "%s Skill", spelldata[pSpell].sSkillText);
@@ -451,7 +471,7 @@ void DrawSpellList()
 				}
 				for (t = 0; t < 4; t++) {
 					if (plr[myplr]._pSplHotKey[t] == pSpell && plr[myplr]._pSplTHotKey[t] == pSplType) {
-						DrawSpellCel(x, y, pSpellCels, t + SPLICONLAST + 5, SPLICONLENGTH);
+						DrawSpellCel(x, y, t + SPLICONLAST + 5, trans, false);
 						sprintf(tempstr, "Spell Hot Key #F%i", t + 5);
 						AddPanelString(tempstr, TRUE);
 					}
@@ -948,6 +968,21 @@ void InitControlPan()
 		int charButWidths[9] = {95, 41, 41, 41, 41, 41, 41, 41, 41};
 		Texture_ConvertCEL_MultipleFrames_VariableResolution(pChrButtons, TEXTURE_STATWINDOW_BUTTONS, charButWidths);
 		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS, SPLICONLENGTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS, SPLSMALLICONSIZE);
+		celConvert_TranslationTable = SplTransTbl;
+		SetSpellTrans(RSPLTYPE_SPELL);
+		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_SPELL, SPLICONLENGTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_SPELL, SPLSMALLICONSIZE);
+		SetSpellTrans(RSPLTYPE_SCROLL);
+		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_SCROLL, SPLICONLENGTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_SCROLL, SPLSMALLICONSIZE);
+		SetSpellTrans(RSPLTYPE_CHARGES);
+		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_CHARGES, SPLICONLENGTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_CHARGES, SPLSMALLICONSIZE);
+		SetSpellTrans(RSPLTYPE_INVALID);
+		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_INVALID, SPLICONLENGTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_INVALID, SPLSMALLICONSIZE);
+		celConvert_TranslationTable = 0;
 		//TODO: Convert more of the CELs from this function
 	}
 }
@@ -2007,10 +2042,10 @@ void DrawSpellBook()
 		if (sn != -1 && spl & SPELLBIT(sn)) {
 			st = GetSBookTrans(sn, TRUE);
 			SetSpellTrans(st);
-			DrawSpellCel(RIGHT_PANEL_X + 11, yp, pSBkIconCels, SpellITbl[sn], 37);
+			DrawSpellCel(RIGHT_PANEL_X + 11, yp, SpellITbl[sn], st, true);
 			if (sn == plr[myplr]._pRSpell && st == plr[myplr]._pRSplType) {
 				SetSpellTrans(RSPLTYPE_SKILL);
-				DrawSpellCel(RIGHT_PANEL_X + 11, yp, pSBkIconCels, SPLICONLAST, 37);
+				DrawSpellCel(RIGHT_PANEL_X + 11, yp, SPLICONLAST, RSPLTYPE_SKILL, true);
 			}
 			PrintSBookStr(10, yp - 23, FALSE, spelldata[sn].sNameText, COL_WHITE);
 			switch (GetSBookTrans(sn, FALSE)) {

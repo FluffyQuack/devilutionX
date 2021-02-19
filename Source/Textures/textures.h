@@ -17,6 +17,15 @@ enum {
 	//Buttons pressed down on HUD panel (ctrlpan\panel8bu.cel)
 	TEXTURE_SMALLFONT, //Small font (ctrlpan\smaltext.cel)
 	TEXTURE_SPELLICONS, //All spell icons (ctrlpan\spelicon.cel or data\SpelIcon.CEL, depending on it being Diablo or Hellfire)
+	TEXTURE_SPELLICONS_SPELL, //This as the following are TEXTURE_SPELLICONS with colours pre-modified
+	TEXTURE_SPELLICONS_SCROLL,
+	TEXTURE_SPELLICONS_CHARGES,
+	TEXTURE_SPELLICONS_INVALID,
+	TEXTURE_SMALLSPELLICONS, //Small spell icons (data\spelli2.cel)
+	TEXTURE_SMALLSPELLICONS_SPELL, 
+	TEXTURE_SMALLSPELLICONS_SCROLL,
+	TEXTURE_SMALLSPELLICONS_CHARGES,
+	TEXTURE_SMALLSPELLICONS_INVALID,
 	//Mute and voice buttons on control panel (ctrlpan\talkbutt.cel)
 	//Control panel with voice buttons (ctrlpan\talkpanl.cel)
 	//Big font, golden colour (data\bigtgold.cel)
@@ -32,7 +41,7 @@ enum {
 	//Quest window (data\quest.cel)
 	//Spellbook window (data\spellbk.CEL)
 	//Spellbook window buttons pressed down (data\spellbkb.CEL)
-	//Small spell icons (data\spelli2.cel)
+	
 	//Debug tile selection (data\square.cel)
 	TEXTURE_TEXTBOX, //NPC dialogue box (data\textbox.cel)
 	TEXTURE_TEXTBOX2, //More narrow version of textbox (data\textbox2.cel)
