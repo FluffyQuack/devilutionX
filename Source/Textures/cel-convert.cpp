@@ -6,7 +6,7 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-BYTE *celConvert_TranslationTable = 0;
+BYTE *celConvert_TranslationTable = 0; //This is assumed to point to an array with 256 entries
 
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
