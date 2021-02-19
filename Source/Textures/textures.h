@@ -17,7 +17,7 @@ enum {
 	//Buttons pressed down on HUD panel (ctrlpan\panel8bu.cel)
 	TEXTURE_SMALLFONT, //Small font (ctrlpan\smaltext.cel)
 	TEXTURE_SPELLICONS, //All spell icons (ctrlpan\spelicon.cel or data\SpelIcon.CEL, depending on it being Diablo or Hellfire)
-	TEXTURE_SPELLICONS_SPELL, //This as the following are TEXTURE_SPELLICONS with colours pre-modified
+	TEXTURE_SPELLICONS_SPELL, //This and the following are TEXTURE_SPELLICONS with colours pre-modified
 	TEXTURE_SPELLICONS_SCROLL,
 	TEXTURE_SPELLICONS_CHARGES,
 	TEXTURE_SPELLICONS_INVALID,
