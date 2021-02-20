@@ -255,7 +255,7 @@ void DrawSpellCel(int xp, int yp, int nCel, int type, bool spellBook) //Fluffy: 
 		/*if (spellBook) //This takes the big spell icon and scales it down to the same size of spell book icons. I like this dynamic solution, but the icons end up looking a bit different (the small icons in the CEL are a bit different than the normal spell icons, as they have a different border)
 			Render_Texture_ScaleAndCrop(xp - BORDER_LEFT, yp - BORDER_TOP - width + 1, textureNum, width, width, 5, 4, textures[textureNum].frames[nCel - 1].width - 3, textures[textureNum].frames[nCel - 1].height - 4, nCel - 1);
 		else*/
-			Render_Texture(xp - BORDER_LEFT, yp - BORDER_TOP - textures[textureNum].frames[nCel - 1].height + 1, textureNum, nCel - 1);
+		Render_Texture_FromBottomLeft(xp - BORDER_LEFT, yp - BORDER_TOP, textureNum, nCel - 1);
 		return;
 	}
 
@@ -1536,7 +1536,7 @@ static void MY_PlrStringXY(int x, int y, int endX, const char *pszStr, char col,
 static void RenderLevelupIconOnStatWindow(int x, int y, int frame)
 {
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture(x, y - textures[TEXTURE_STATWINDOW_BUTTONS].frames[frame - 1].height + 1, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
+		Render_Texture_FromBottomLeft(x, y, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
 	else
 		CelDraw(x + SCREEN_X, y + SCREEN_Y, pChrButtons, frame, 41);
 }
@@ -1782,7 +1782,7 @@ void DrawLevelUpIcon()
 		ADD_PlrStringXY(PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
 
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture(40 + PANEL_LEFT, -17 + PANEL_TOP - textures[TEXTURE_STATWINDOW_BUTTONS].frames[nCel - 1].height + 1, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
+			Render_Texture_FromBottomLeft(40 + PANEL_LEFT, -17 + PANEL_TOP, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
 		else
 			CelDraw(40 + PANEL_X, -17 + PANEL_Y, pChrButtons, nCel, 41);
 	}
@@ -2024,11 +2024,11 @@ void DrawSpellBook()
 	unsigned __int64 spl;
 
 	if (options_hwRendering) { //Fluffy: Render spellbook window and buttons via SDL
-		Render_Texture(RIGHT_PANEL, 351 - textures[TEXTURE_SPELLBOOK].frames[0].height + 1, TEXTURE_SPELLBOOK);
+		Render_Texture(RIGHT_PANEL, 0, TEXTURE_SPELLBOOK);
 		if (gbIsHellfire && sbooktab < 5)
-			Render_Texture(RIGHT_PANEL + 61 * sbooktab + 7, 348 - textures[TEXTURE_SPELLBOOK_BUTTONS].frames[0].height + 1, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
+			Render_Texture_FromBottomLeft(RIGHT_PANEL + 61 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
 		else if (gbIsHellfire && sbooktab < 4)
-			Render_Texture(RIGHT_PANEL + 76 * sbooktab + 7, 348 - textures[TEXTURE_SPELLBOOK_BUTTONS].frames[0].height + 1, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
+			Render_Texture_FromBottomLeft(RIGHT_PANEL + 76 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
 	} else {
 		CelDraw(RIGHT_PANEL_X, 351 + SCREEN_Y, pSpellBkCel, 1, SPANEL_WIDTH);
 		if (gbIsHellfire && sbooktab < 5)
@@ -2138,7 +2138,7 @@ void DrawGoldSplit(int amount)
 
 	screen_x = 0;
 	if (options_hwRendering) //Fluffy: Draw via SDL rendering
-		Render_Texture(351, 178 - textures[TEXTURE_GOLDDROPSELECTION].frames[0].height + 1, TEXTURE_GOLDDROPSELECTION);
+		Render_Texture_FromBottomLeft(351, 178, TEXTURE_GOLDDROPSELECTION);
 	else
 		CelDraw(351 + SCREEN_X, 178 + SCREEN_Y, pGBoxBuff, 1, 261);
 	sprintf(tempstr, "You have %u gold", initialDropGoldValue);

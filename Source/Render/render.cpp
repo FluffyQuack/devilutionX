@@ -78,6 +78,24 @@ void Render_Texture_Crop(int x, int y, int textureNum, int startX, int startY, i
 	SDL_RenderCopy(renderer, textureFrame->frame, &srcR, &dstR);
 }
 
+//Same as Render_Texture() but anchor point is bottomleft rather than topright (this is how most stuff is rendered in original Diablo code)
+void Render_Texture_FromBottomLeft(int x, int y, int textureNum, int frameNum)
+{
+	if (!options_hwRendering)
+		return;
+	if (textures[textureNum].frameCount <= frameNum) {
+		ErrSdl(); //TODO Quit with proper error message
+	}
+	textureFrame_s *textureFrame = &textures[textureNum].frames[frameNum];
+	SDL_Rect dstR;
+	dstR.x = x;
+	dstR.y = y - textureFrame->height + 1;
+	dstR.w = textureFrame->width;
+	dstR.h = textureFrame->height;
+
+	SDL_RenderCopy(renderer, textureFrame->frame, NULL, &dstR);
+}
+
 void Render_Texture(int x, int y, int textureNum, int frameNum)
 {
 	if (!options_hwRendering)
