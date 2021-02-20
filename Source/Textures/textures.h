@@ -10,7 +10,7 @@ enum {
 	TEXTURE_CURSOR2,         //Mouse cursors and inventory items (Hellfire) (data\inv\objcurs2.cel)
 	TEXTURE_CURSOR2_OUTLINE, //Same as above, but outlined versions
 	TEXTURE_INVENTORY,       //Inventory screen (data\inv\inv.cel, data\inv\inv_rog.cel, or data\inv\inv_sor.cel)
-	//Window for gold selection? (ctrlpan\golddrop.cel)
+	TEXTURE_GOLDDROPSELECTION, //Window for gold selection? (ctrlpan\golddrop.cel)
 	//Empty HUD flasks (ctrlpan\p8bulbs.cel)
 	//Multiplayer buttons on HUD (ctrlpan\P8But2.cel)
 	//HUD panel (ctrlpan\panel8.cel)
@@ -39,9 +39,8 @@ enum {
 	//Spinning pentagram (data\PentSpin.cel)
 	TEXTURE_SPINNINGPENTAGRAM2, //Tiny spinning pentagram (data\PentSpn2.cel)
 	//Quest window (data\quest.cel)
-	//Spellbook window (data\spellbk.CEL)
-	//Spellbook window buttons pressed down (data\spellbkb.CEL)
-	
+	TEXTURE_SPELLBOOK, //Spellbook window (data\spellbk.CEL)
+	TEXTURE_SPELLBOOK_BUTTONS, //Spellbook window buttons pressed down (data\spellbkb.CEL)
 	//Debug tile selection (data\square.cel)
 	TEXTURE_TEXTBOX, //NPC dialogue box (data\textbox.cel)
 	TEXTURE_TEXTBOX2, //More narrow version of textbox (data\textbox2.cel)

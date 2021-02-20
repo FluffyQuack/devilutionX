@@ -983,6 +983,9 @@ void InitControlPan()
 		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_INVALID, SPLICONLENGTH);
 		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_INVALID, SPLSMALLICONSIZE);
 		celConvert_TranslationTable = 0;
+		Texture_ConvertCEL_SingleFrame(pSpellBkCel, TEXTURE_SPELLBOOK, SPANEL_WIDTH);
+		Texture_ConvertCEL_MultipleFrames(pSBkBtnCel, TEXTURE_SPELLBOOK_BUTTONS, 61); //TODO: There's one reference to this being width 76. What is the context of that?
+		Texture_ConvertCEL_SingleFrame(pGBoxBuff, TEXTURE_GOLDDROPSELECTION, 261);
 		//TODO: Convert more of the CELs from this function
 	}
 }
@@ -2020,19 +2023,27 @@ void DrawSpellBook()
 	char st;
 	unsigned __int64 spl;
 
-	CelDraw(RIGHT_PANEL_X, 351 + SCREEN_Y, pSpellBkCel, 1, SPANEL_WIDTH);
-	if (gbIsHellfire && sbooktab < 5)
-		CelDraw(RIGHT_PANEL_X + 61 * sbooktab + 7, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 61);
-	else if (gbIsHellfire && sbooktab < 4)
-		// BUGFIX: rendering of page 3 and page 4 buttons are both off-by-one pixel.
-		// The fix would look as follows:
-		//
-		//    int sx = RIGHT_PANEL_X + 76 * sbooktab + 7;
-		//    if (sbooktab == 2 || sbooktab == 3) {
-		//       sx++;
-		//    }
-		//    CelDraw(sx, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 76);
-		CelDraw(RIGHT_PANEL_X + 76 * sbooktab + 7, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 76);
+	if (options_hwRendering) { //Fluffy: Render spellbook window and buttons via SDL
+		Render_Texture(RIGHT_PANEL, 351 - textures[TEXTURE_SPELLBOOK].frames[0].height + 1, TEXTURE_SPELLBOOK);
+		if (gbIsHellfire && sbooktab < 5)
+			Render_Texture(RIGHT_PANEL + 61 * sbooktab + 7, 348 - textures[TEXTURE_SPELLBOOK_BUTTONS].frames[0].height + 1, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
+		else if (gbIsHellfire && sbooktab < 4)
+			Render_Texture(RIGHT_PANEL + 76 * sbooktab + 7, 348 - textures[TEXTURE_SPELLBOOK_BUTTONS].frames[0].height + 1, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
+	} else {
+		CelDraw(RIGHT_PANEL_X, 351 + SCREEN_Y, pSpellBkCel, 1, SPANEL_WIDTH);
+		if (gbIsHellfire && sbooktab < 5)
+			CelDraw(RIGHT_PANEL_X + 61 * sbooktab + 7, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 61);
+		else if (gbIsHellfire && sbooktab < 4)
+			// BUGFIX: rendering of page 3 and page 4 buttons are both off-by-one pixel.
+			// The fix would look as follows:
+			//
+			//    int sx = RIGHT_PANEL_X + 76 * sbooktab + 7;
+			//    if (sbooktab == 2 || sbooktab == 3) {
+			//       sx++;
+			//    }
+			//    CelDraw(sx, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 76);
+			CelDraw(RIGHT_PANEL_X + 76 * sbooktab + 7, 348 + SCREEN_Y, pSBkBtnCel, sbooktab + 1, 76);
+	}
 
 	spl = plr[myplr]._pMemSpells | plr[myplr]._pISpells | plr[myplr]._pAblSpells;
 
@@ -2126,7 +2137,10 @@ void DrawGoldSplit(int amount)
 	int screen_x, i;
 
 	screen_x = 0;
-	CelDraw(351 + SCREEN_X, 178 + SCREEN_Y, pGBoxBuff, 1, 261);
+	if (options_hwRendering) //Fluffy: Draw via SDL rendering
+		Render_Texture(351, 178 - textures[TEXTURE_GOLDDROPSELECTION].frames[0].height + 1, TEXTURE_GOLDDROPSELECTION);
+	else
+		CelDraw(351 + SCREEN_X, 178 + SCREEN_Y, pGBoxBuff, 1, 261);
 	sprintf(tempstr, "You have %u gold", initialDropGoldValue);
 	ADD_PlrStringXY(366, 87, 600, tempstr, COL_GOLD);
 	sprintf(tempstr, "%s.  How many do", get_pieces_str(initialDropGoldValue));
