@@ -39,7 +39,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	unsigned int offsetEnd = (unsigned int &)celData[celDataOffsetPos];
 	unsigned char *src = &celData[offsetStart];
 
-	//Handle frame header (frame header exist in CELs with multiple frames)
+	//Handle frame header
 	if (frameHeader) {
 		unsigned short skip = (unsigned short &)*src;
 		src += skip;
@@ -62,7 +62,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	while (src != &celData[offsetEnd]) {
 		for (int i = frameWidth; i;) {
 			width = *src++;
-			if (!(width & 0x80)) { //Run-length encoding. Positive signed byte means it defines quantity of bytes with image data
+			if (!(width & 0x80)) { //Run-length encoding. Positive signed byte means it's defining quantity of bytes with image data
 				for (int j = 0; j < width; j++) { //We have to go pixel by pixel here because we want to skip shadow pixels
 					if (*src != 0)
 						*bufferPtr = 1;
@@ -116,7 +116,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	}
 	delete[] buffer;
 
-	//Create SDL texture with converted image data
+	//Create SDL texture utilizing converted image data
 	textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
 		ErrSdl();
@@ -158,7 +158,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	unsigned int offsetEnd = (unsigned int &)celData[celDataOffsetPos];
 	unsigned char *src = &celData[offsetStart];
 
-	//Handle frame header (frame header exist in CELs with multiple frames)
+	//Handle frame header
 	if (frameHeader) {
 		unsigned short skip = (unsigned short &)*src;
 		src += skip;
@@ -216,7 +216,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		dst -= textureFrame->width * textureFrame->channels * 2;
 	}
 
-	//Create SDL texture with converted image data
+	//Create SDL texture utilizing converted image data
 	textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
 		ErrSdl();
