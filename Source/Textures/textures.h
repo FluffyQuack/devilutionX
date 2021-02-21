@@ -11,10 +11,10 @@ enum {
 	TEXTURE_CURSOR2_OUTLINE, //Same as above, but outlined versions
 	TEXTURE_INVENTORY,       //Inventory screen (data\inv\inv.cel, data\inv\inv_rog.cel, or data\inv\inv_sor.cel)
 	TEXTURE_GOLDDROPSELECTION, //Window for gold selection? (ctrlpan\golddrop.cel)
-	//Empty HUD flasks (ctrlpan\p8bulbs.cel)
-	//Multiplayer buttons on HUD (ctrlpan\P8But2.cel)
-	//HUD panel (ctrlpan\panel8.cel)
-	//Buttons pressed down on HUD panel (ctrlpan\panel8bu.cel)
+	TEXTURE_HUDPANEL_EMPTYFLASKS, //Empty HUD flasks (ctrlpan\p8bulbs.cel)
+	TEXTURE_HUDPANEL_MPBUTTONS,//Multiplayer buttons on HUD (ctrlpan\P8But2.cel)
+	TEXTURE_HUDPANEL, //HUD panel (ctrlpan\panel8.cel)
+	TEXTURE_HUDPANEL_BUTTONS, //Buttons pressed down on HUD panel (ctrlpan\panel8bu.cel)
 	TEXTURE_SMALLFONT, //Small font (ctrlpan\smaltext.cel)
 	TEXTURE_SPELLICONS, //All spell icons (ctrlpan\spelicon.cel or data\SpelIcon.CEL, depending on it being Diablo or Hellfire)
 	TEXTURE_SPELLICONS_SPELL, //This and the following are TEXTURE_SPELLICONS with colours pre-modified
@@ -26,8 +26,8 @@ enum {
 	TEXTURE_SMALLSPELLICONS_SCROLL,
 	TEXTURE_SMALLSPELLICONS_CHARGES,
 	TEXTURE_SMALLSPELLICONS_INVALID,
-	//Mute and voice buttons on control panel (ctrlpan\talkbutt.cel)
-	//Control panel with voice buttons (ctrlpan\talkpanl.cel)
+	TEXTURE_HUDPANEL_TALKBUTTONS, //Mute and voice buttons on control panel (ctrlpan\talkbutt.cel)
+	TEXTURE_HUDPANEL_VOICE, //Control panel with voice buttons (ctrlpan\talkpanl.cel)
 	//Big font, golden colour (data\bigtgold.cel)
 	TEXTURE_STATWINDOW, //Character stat screen (data\char.cel)
 	TEXTURE_STATWINDOW_BUTTONS, //Level up icon and quest log pressed down (data\charbut.cel)
@@ -38,7 +38,7 @@ enum {
 	//Skulls next to menu button (data\option.cel)
 	//Spinning pentagram (data\PentSpin.cel)
 	TEXTURE_SPINNINGPENTAGRAM2, //Tiny spinning pentagram (data\PentSpn2.cel)
-	//Quest window (data\quest.cel)
+	TEXTURE_QUESTLOG, //Quest window (data\quest.cel)
 	TEXTURE_SPELLBOOK, //Spellbook window (data\spellbk.CEL)
 	TEXTURE_SPELLBOOK_BUTTONS, //Spellbook window buttons pressed down (data\spellbkb.CEL)
 	//Debug tile selection (data\square.cel)
@@ -56,6 +56,7 @@ enum {
 	//Church loading screen (gendata\cuttt.cel)
 	//Crypt loading screen (nlevels\cutl5.cel)
 	//Hive loading screen (nlevels\cutl6.cel)
+	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
 
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,

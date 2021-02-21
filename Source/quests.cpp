@@ -4,6 +4,8 @@
  * Implementation of functionality for handling quests.
  */
 #include "all.h"
+#include "Textures/textures.h" //Fluffy: For accessing SDL textures
+#include "Render/render.h" //Fluffy: For rendering via SDL
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -822,7 +824,10 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 		sx += k;
 	}
 	if (qline == y) {
-		CelDraw(cjustflag ? x + k + 12 + SCREEN_X : x + 12 + SCREEN_X, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		if (options_hwRendering)
+			Render_Texture_FromBottomLeft(cjustflag ? x + k + 12 : x + 12, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		else
+			CelDraw(cjustflag ? x + k + 12 + SCREEN_X : x + 12 + SCREEN_X, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}
 	for (i = 0; i < len; i++) {
 		c = fontframe[gbFontTransTbl[(BYTE)str[i]]];
@@ -833,7 +838,10 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 		sx += fontkern[c] + 1;
 	}
 	if (qline == y) {
-		CelDraw(cjustflag ? x + k + 36 + SCREEN_X : 276 + SCREEN_X - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		if (options_hwRendering)
+			Render_Texture_FromBottomLeft(cjustflag ? x + k + 36 : 276 - x, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		else
+			CelDraw(cjustflag ? x + k + 36 + SCREEN_X : 276 + SCREEN_X - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}
 }
 
@@ -842,7 +850,10 @@ void DrawQuestLog()
 	int y, i;
 
 	PrintQLString(0, 2, TRUE, "Quest Log", 3);
-	CelDraw(SCREEN_X, SCREEN_Y + 351, pQLogCel, 1, SPANEL_WIDTH);
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture(0, 0, TEXTURE_QUESTLOG);
+	else
+		CelDraw(SCREEN_X, SCREEN_Y + 351, pQLogCel, 1, SPANEL_WIDTH);
 	y = qtopline;
 	for (i = 0; i < numqlines; i++) {
 		PrintQLString(0, y, TRUE, questlist[qlist[i]]._qlstr, 0);

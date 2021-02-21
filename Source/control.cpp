@@ -4,8 +4,8 @@
  * Implementation of the character and main control panels
  */
 #include "all.h"
-#include "Textures/textures.h" //Fluffy: For accessing flask textures
-#include "Render/render.h" //Fluffy: For rendering to 32-bit buffer
+#include "Textures/textures.h" //Fluffy: For accessing SDL textures
+#include "Render/render.h" //Fluffy: For rendering via SDL
 #include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
@@ -647,6 +647,19 @@ void ClearPanel()
 
 void DrawPanelBox(int x, int y, int w, int h, int sx, int sy)
 {
+	if (options_hwRendering) { //Fluffy: Render HUD panel via SDL (we reference two different textures for this)
+		//x, y = from
+		//sx, sy = to
+		//w, h = crop
+		int texture = TEXTURE_HUDPANEL;
+		if (y > 144) { //Original Diablo code stores two HUD panel images as one but they're referenced as 2 different textures when loaded via SDL
+			texture = TEXTURE_HUDPANEL_VOICE;
+			y -= 144;
+		}
+		Render_Texture_Crop(sx - BORDER_LEFT, sy - BORDER_TOP, texture, x, y, x + w, y + h);
+		return;
+	}
+
 	int nSrcOff, nDstOff;
 
 	assert(gpBuffer);
@@ -729,6 +742,9 @@ void DrawFlask(BYTE *pCelBuff, int w, int nSrcOff, BYTE *pBuff, int nDstOff, int
  */
 void DrawLifeFlask()
 {
+	if (options_hwRendering) //Fluffy: If true, we'll be handling everything to do with life flask rendering in UpdateLifeFlask()
+		return;
+
 	double p;
 	int filled;
 
@@ -744,25 +760,29 @@ void DrawLifeFlask()
 
 	filled = 80 - filled;
 
-	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
-		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), 80);
-		Render_Texture_Crop(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, TEXTURE_HEALTHFLASK, -1, filled, -1, -1, gameplayTickCount % 48);
+	if (filled > 11)
+		filled = 11;
+	filled += 2;
+
+	DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), filled);
+	if (filled != 13){
+		DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 109, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13 + filled), 13 - filled);
+	}
+}
+
+static void DrawFlask_SDL(int x, int startY, int texture)
+{
+	int y = PANEL_TOP - 16 + startY;
+	if (options_animatedUIFlasks) {
+		Render_Texture_Crop(PANEL_LEFT + x, y, texture, -1, startY, -1, -1, gameplayTickCount % 48);
 		if (gameplayTickCount_progress != 0) {
 			int frameNum = (gameplayTickCount + 1) % 48;
-			SDL_SetTextureAlphaMod(textures[TEXTURE_HEALTHFLASK].frames[frameNum].frame, (gameplayTickCount_progress * 255) / (gSpeedMod));
-			Render_Texture_Crop(PANEL_LEFT + 96, PANEL_TOP - 16 + filled, TEXTURE_HEALTHFLASK, -1, filled, -1, -1, frameNum);
-			SDL_SetTextureAlphaMod(textures[TEXTURE_HEALTHFLASK].frames[frameNum].frame, 255);
+			SDL_SetTextureAlphaMod(textures[texture].frames[frameNum].frame, (gameplayTickCount_progress * 255) / (gSpeedMod));
+			Render_Texture_Crop(PANEL_LEFT + x, y, texture, -1, startY, -1, -1, frameNum);
+			SDL_SetTextureAlphaMod(textures[texture].frames[frameNum].frame, 255);
 		}
-	} else {
-		if (filled > 11)
-			filled = 11;
-		filled += 2;
-
-		DrawFlask(pLifeBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13), filled);
-		if (filled != 13){
-			DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 109, gpBuffer, SCREENXY(PANEL_LEFT + 109, PANEL_TOP - 13 + filled), 13 - filled);
-		}
-	}
+	} else
+		Render_Texture_Crop(PANEL_LEFT + x, y, texture, 96, startY, 96 + 88, 88);
 }
 
 /**
@@ -772,6 +792,25 @@ void DrawLifeFlask()
  */
 void UpdateLifeFlask()
 {
+	if (options_hwRendering) { //Fluffy: Render via SDL
+		//First, draw empty life flask
+		Render_Texture(PANEL_LEFT + 96, PANEL_TOP - 16, TEXTURE_HUDPANEL_EMPTYFLASKS, 0);
+
+		//Then, draw the full life flask depending on quantity of health
+		int texture = TEXTURE_HUDPANEL;
+		if (talkflag)
+			texture = TEXTURE_HUDPANEL_VOICE;
+		int startY = 3; //We skip the first 3 pixels as they're not part of the flask
+		int filled = 0;
+		if (plr[myplr]._pMaxHP > 0) {
+			filled = (double)plr[myplr]._pHitPoints / (double)plr[myplr]._pMaxHP * (88 - startY);
+		}
+		startY += (88 - startY) - (int)filled;
+		if (startY < 88)
+			DrawFlask_SDL(96, startY, options_animatedUIFlasks ? TEXTURE_HEALTHFLASK : texture);
+		return;
+	}
+
 	if (options_animatedUIFlasks) { //Fluffy: Draw the entire flask as empty
 		SetFlaskHeight(pLifeBuff, 16, 85, 96 + PANEL_X, PANEL_Y);
 		return;
@@ -799,30 +838,22 @@ void UpdateLifeFlask()
 
 void DrawManaFlask()
 {
+	if (options_hwRendering) //Fluffy: If true, we'll be handling everything to do with mana flask rendering in UpdateManaFlask()
+		return;
+
 	int filled = plr[myplr]._pManaPer;
 	if (filled > 80)
 		filled = 80;
 	filled = 80 - filled;
 	
 
-	if (options_animatedUIFlasks) { //Fluffy: Draw top of empty flask and then fancy schmancy flask
-		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), 80);
-		Render_Texture_Crop(PANEL_LEFT + 464, PANEL_TOP - 16 + filled, TEXTURE_MANAFLASK, -1, filled, -1, -1, gameplayTickCount % 48);
-		if (gameplayTickCount_progress != 0) {
-			int frameNum = (gameplayTickCount + 1) % 48;
-			SDL_SetTextureAlphaMod(textures[TEXTURE_MANAFLASK].frames[frameNum].frame, (gameplayTickCount_progress * 255) / (gSpeedMod));
-			Render_Texture_Crop(PANEL_LEFT + 464, PANEL_TOP - 16 + filled, TEXTURE_MANAFLASK, -1, filled, -1, -1, frameNum);
-			SDL_SetTextureAlphaMod(textures[TEXTURE_MANAFLASK].frames[frameNum].frame, 255);
-		}
-	} else {
-		if (filled > 11)
-			filled = 11;
-		filled += 2;
+	if (filled > 11)
+		filled = 11;
+	filled += 2;
 
-		DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), filled);
-		if (filled != 13)
-			DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 475, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13 + filled), 13 - filled);
-	}
+	DrawFlask(pManaBuff, 88, 88 * 3 + 13, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13), filled);
+	if (filled != 13)
+		DrawFlask(pBtmBuff, PANEL_WIDTH, PANEL_WIDTH * (filled + 3) + 475, gpBuffer, SCREENXY(PANEL_LEFT + 475, PANEL_TOP - 13 + filled), 13 - filled);
 }
 
 void control_update_life_mana()
@@ -848,13 +879,33 @@ void control_update_life_mana()
  */
 void UpdateManaFlask()
 {
-	int filled;
 	int maxMana = plr[myplr]._pMaxMana;
 	int mana = plr[myplr]._pMana;
 	if (maxMana < 0)
 		maxMana = 0;
 	if (mana < 0)
 		mana = 0;
+
+	if (options_hwRendering) { //Fluffy: Render via SDL
+		//First, draw empty mana flask
+		Render_Texture(PANEL_LEFT + 464, PANEL_TOP - 16, TEXTURE_HUDPANEL_EMPTYFLASKS, 1);
+
+		//Then, draw the full mana flask depending on quantity of mana
+		int texture = TEXTURE_HUDPANEL;
+		if (talkflag)
+			texture = TEXTURE_HUDPANEL_VOICE;
+		int startY = 3; //We skip the first 3 pixels as they're not part of the flask
+		int filled = 0;
+		if (maxMana > 0) {
+			filled = (double)mana / (double)maxMana * (88 - startY);
+		}
+		startY += (88 - startY) - (int)filled;
+		if (startY < 88)
+			DrawFlask_SDL(464, startY, options_animatedUIFlasks ? TEXTURE_MANAFLASK : texture);
+		goto spellrender;
+	}
+
+	int filled;
 
 	if (maxMana == 0)
 		filled = 0;
@@ -870,6 +921,7 @@ void UpdateManaFlask()
 	if (filled != 0)
 		DrawPanelBox(464, 85 - filled, 88, filled, PANEL_X + 464, PANEL_Y + 69 - filled);
 
+	spellrender:
 	DrawSpell();
 }
 
@@ -895,18 +947,15 @@ void InitControlPan()
 	else
 		pSpellCels = LoadFileInMem("Data\\SpelIcon.CEL", NULL);
 	SetSpellTrans(RSPLTYPE_SKILL);
-	pStatusPanel = LoadFileInMem("CtrlPan\\Panel8.CEL", NULL);
-	CelBlitWidth(pBtmBuff, 0, (PANEL_HEIGHT + 16) - 1, PANEL_WIDTH, pStatusPanel, 1, PANEL_WIDTH);
-	MemFreeDbg(pStatusPanel);
+	BYTE *panel8 = LoadFileInMem("CtrlPan\\Panel8.CEL", NULL);
+	CelBlitWidth(pBtmBuff, 0, (PANEL_HEIGHT + 16) - 1, PANEL_WIDTH, panel8, 1, PANEL_WIDTH);
 	pStatusPanel = LoadFileInMem("CtrlPan\\P8Bulbs.CEL", NULL);
 	CelBlitWidth(pLifeBuff, 0, 87, 88, pStatusPanel, 1, 88);
 	CelBlitWidth(pManaBuff, 0, 87, 88, pStatusPanel, 2, 88);
-	MemFreeDbg(pStatusPanel);
 	talkflag = FALSE;
 	if (gbMaxPlayers != 1) {
 		pTalkPanel = LoadFileInMem("CtrlPan\\TalkPanl.CEL", NULL);
 		CelBlitWidth(pBtmBuff, 0, (PANEL_HEIGHT + 16) * 2 - 1, PANEL_WIDTH, pTalkPanel, 1, PANEL_WIDTH);
-		MemFreeDbg(pTalkPanel);
 		pMultiBtns = LoadFileInMem("CtrlPan\\P8But2.CEL", NULL);
 		pTalkBtns = LoadFileInMem("CtrlPan\\TalkButt.CEL", NULL);
 		sgbPlrTalkTbl = 0;
@@ -965,8 +1014,10 @@ void InitControlPan()
 	if (options_hwRendering) { //Fluffy: Load the above CELs as SDL textures
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
 		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
-		int charButWidths[9] = {95, 41, 41, 41, 41, 41, 41, 41, 41};
+		int charButWidths[9] = { 95, 41, 41, 41, 41, 41, 41, 41, 41 };
 		Texture_ConvertCEL_MultipleFrames_VariableResolution(pChrButtons, TEXTURE_STATWINDOW_BUTTONS, charButWidths);
+
+		//Spell icons
 		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS, SPLICONLENGTH);
 		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS, SPLSMALLICONSIZE);
 		celConvert_TranslationTable = SplTransTbl;
@@ -983,17 +1034,43 @@ void InitControlPan()
 		Texture_ConvertCEL_MultipleFrames(pSpellCels, TEXTURE_SPELLICONS_INVALID, SPLICONLENGTH);
 		Texture_ConvertCEL_MultipleFrames(pSBkIconCels, TEXTURE_SMALLSPELLICONS_INVALID, SPLSMALLICONSIZE);
 		celConvert_TranslationTable = 0;
+
 		Texture_ConvertCEL_SingleFrame(pSpellBkCel, TEXTURE_SPELLBOOK, SPANEL_WIDTH);
 		Texture_ConvertCEL_MultipleFrames(pSBkBtnCel, TEXTURE_SPELLBOOK_BUTTONS, 61); //TODO: There's one reference to this being width 76. What is the context of that?
+		Texture_ConvertCEL_SingleFrame(pQLogCel, TEXTURE_QUESTLOG, SPANEL_WIDTH);
 		Texture_ConvertCEL_SingleFrame(pGBoxBuff, TEXTURE_GOLDDROPSELECTION, 261);
-		//TODO: Convert more of the CELs from this function
+		Texture_ConvertCEL_MultipleFrames(pDurIcons, TEXTURE_DURABILITYWARNING, 32);
+
+		//Panel textures
+		Texture_ConvertCEL_SingleFrame(panel8, TEXTURE_HUDPANEL, PANEL_WIDTH);
+		Texture_ConvertCEL_MultipleFrames(pStatusPanel, TEXTURE_HUDPANEL_EMPTYFLASKS, 88);
+		Texture_ConvertCEL_MultipleFrames(pPanelButtons, TEXTURE_HUDPANEL_BUTTONS, 71);
+		if (gbMaxPlayers != 1) {
+			Texture_ConvertCEL_MultipleFrames(pMultiBtns, TEXTURE_HUDPANEL_MPBUTTONS, 33);
+			Texture_ConvertCEL_MultipleFrames(pTalkBtns, TEXTURE_HUDPANEL_TALKBUTTONS, 61);
+			Texture_ConvertCEL_SingleFrame(pTalkPanel, TEXTURE_HUDPANEL_VOICE, PANEL_WIDTH);
+		}
 	}
+
+	//Free up loaded CEL data we won't be referencing anymore
+	MemFreeDbg(panel8);
+	MemFreeDbg(pStatusPanel);
+	if (gbMaxPlayers != 1)
+		MemFreeDbg(pTalkPanel);
 }
 
 void DrawCtrlPan()
 {
 	DrawPanelBox(0, sgbPlrTalkTbl + 16, PANEL_WIDTH, PANEL_HEIGHT, PANEL_X, PANEL_Y);
 	DrawInfoBox();
+}
+
+static void DrawCtrlButton(int x, int y, BYTE *celData, int width, int frame, int texture)
+{
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture_FromBottomLeft(x + PANEL_LEFT, y + PANEL_TOP, texture, frame - 1);
+	else
+		CelDraw(x + PANEL_X, y + PANEL_Y, celData, frame, width);
 }
 
 /**
@@ -1008,14 +1085,11 @@ void DrawCtrlBtns()
 		if (!panbtn[i])
 			DrawPanelBox(PanBtnPos[i][0], PanBtnPos[i][1] + 16, 71, 20, PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y);
 		else
-			CelDraw(PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y + 18, pPanelButtons, i + 1, 71);
+			DrawCtrlButton(PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS);
 	}
 	if (numpanbtns == 8) {
-		CelDraw(87 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[6] + 1, 33);
-		if (FriendlyMode)
-			CelDraw(527 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[7] + 3, 33);
-		else
-			CelDraw(527 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[7] + 5, 33);
+		DrawCtrlButton(87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);
+		DrawCtrlButton(527, 122, pMultiBtns, 33, FriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS);
 	}
 }
 
@@ -1894,7 +1968,10 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 	}
 	if (pItem->_iDurability > 2)
 		c += 8;
-	CelDraw(x, -17 + PANEL_Y, pDurIcons, c, 32);
+	if (options_hwRendering) //Fluffy: Render via SDL rendering
+		Render_Texture_FromBottomLeft(x - BORDER_LEFT, -17 + PANEL_TOP, TEXTURE_DURABILITYWARNING, c - 1);
+	else
+		CelDraw(x, -17 + PANEL_Y, pDurIcons, c, 32);
 	return x - 32 - 8;
 }
 
@@ -2159,7 +2236,10 @@ void DrawGoldSplit(int amount)
 	} else {
 		screen_x = 450;
 	}
-	CelDraw(screen_x, 140 + SCREEN_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture_FromBottomLeft(screen_x - BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+	else
+		CelDraw(screen_x, 140 + SCREEN_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 }
 
 void control_drop_gold(char vkey)
@@ -2270,9 +2350,9 @@ void DrawTalkPan()
 	if (!talkflag)
 		return;
 
-	DrawPanelBox(175, sgbPlrTalkTbl + 20, 294, 5, PANEL_X + 175, PANEL_Y + 4);
+	DrawPanelBox(175, sgbPlrTalkTbl + 20, 294, 5, PANEL_X + 175, PANEL_Y + 4); //Renders a thin line near top of panel
 	off = 0;
-	for (i = 293; i > 283; off++, i--) {
+	for (i = 293; i > 283; off++, i--) { //Renders behind the wing of the demon next to health flask, and similar position for the mana flask
 		DrawPanelBox((off >> 1) + 175, sgbPlrTalkTbl + off + 25, i, 1, (off >> 1) + PANEL_X + 175, off + PANEL_Y + 9);
 	}
 	DrawPanelBox(185, sgbPlrTalkTbl + 35, 274, 30, PANEL_X + 185, PANEL_Y + 19);
@@ -2290,7 +2370,10 @@ void DrawTalkPan()
 	}
 	if (msg)
 		*msg = '\0';
-	CelDraw(x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+	if (options_hwRendering) //Fluffy: Render via SDL
+		Render_Texture_FromBottomLeft(x - BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+	else
+		CelDraw(x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	talk_btn = 0;
 	for (i = 0; i < 4; i++) {
 		if (i == myplr)
@@ -2302,7 +2385,10 @@ void DrawTalkPan()
 					nCel = 4;
 				else
 					nCel = 3;
-				CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
+				if (options_hwRendering) //Fluffy: Render via SDL
+					Render_Texture_FromBottomLeft(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
+				else
+					CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
 			}
 		} else {
 			color = COL_RED;
@@ -2312,7 +2398,10 @@ void DrawTalkPan()
 				nCel = 1;
 			if (talkbtndown[talk_btn])
 				nCel += 4;
-			CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
+			if (options_hwRendering) //Fluffy: Render via SDL
+				Render_Texture_FromBottomLeft(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
+			else
+				CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
 		}
 		if (plr[i].plractive) {
 			x = 46 + PANEL_LEFT;
