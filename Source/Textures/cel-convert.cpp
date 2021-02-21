@@ -95,36 +95,24 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	bufferPtr = buffer;
 	unsigned char *bufferEnd = buffer + (frameWidth * frameHeight);
 	unsigned char *bufferOneRow = buffer + frameWidth;
-	int x = 1, y = textureFrame->height - 2;
-	//TODO: We should rewrite this so x and y values aren't necessary. Also, this isn't a precise outline. This is a bulky one
 	while (bufferPtr < bufferEnd) {
 		for (int i = frameWidth; i;) {
 			if (*bufferPtr == 1) {
-				if (x < 0 || x >= textureFrame->width || y < 0 || y >= textureFrame->height)
-					ErrSdl(); //Quit due to error
-				//unsigned char *newDst = &imgData[(textureFrame->width * y * textureFrame->channels) + (x * textureFrame->channels)];
-				(int &)imgData[(textureFrame->width * y * textureFrame->channels) + (x * textureFrame->channels)] = 0xFFFFFFFF;
 				if (bufferPtr < bufferOneRow || bufferPtr[-frameWidth] == 0)
-					(int &)imgData[(textureFrame->width * (y + 1) * textureFrame->channels) + (x * textureFrame->channels)] = 0xFFFFFFFF;
-					//(int &)dst[dstPitch] = 0xFFFFFFFF;
+					(int &)dst[dstPitch] = 0xFFFFFFFF;
 				if (i == frameWidth || bufferPtr <= buffer || bufferPtr[-1] == 0)
-					(int &)imgData[(textureFrame->width * y * textureFrame->channels) + ((x - 1) * textureFrame->channels)] = 0xFFFFFFFF;
-					//(int &)dst[-4] = 0xFFFFFFFF;
+					(int &)dst[-4] = 0xFFFFFFFF;
 				if (i == 1 || bufferPtr + 1 >= bufferEnd || bufferPtr[1] == 0)
-					(int &)imgData[(textureFrame->width * y * textureFrame->channels) + ((x + 1) * textureFrame->channels)] = 0xFFFFFFFF;
-					//(int &)dst[4] = 0xFFFFFFFF;
+					(int &)dst[4] = 0xFFFFFFFF;
 				if (bufferPtr + frameWidth >= bufferEnd || bufferPtr[frameWidth] == 0)
-					(int &)imgData[(textureFrame->width * (y - 1) * textureFrame->channels) + (x * textureFrame->channels)] = 0xFFFFFFFF;
-					//(int &)dst[-dstPitch] = 0xFFFFFFFF;
+					(int &)dst[-dstPitch] = 0xFFFFFFFF;
 			}
 			bufferPtr += 1;
 			dst += 4;
-			x += 1;
 			i--;
 		}
 		dst -= dstPitch * 2;
-		y -= 1;
-		x = 1;
+		dst += textureFrame->channels * 2;
 	}
 	delete[] buffer;
 
