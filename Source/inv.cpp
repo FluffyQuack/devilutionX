@@ -4,8 +4,8 @@
  * Implementation of player inventory.
  */
 #include "all.h"
-#include "Textures/textures.h" //Fluffy: For rendering 32-bit textures
-#include "Render/render.h" //Fluffy: For rendering 32-bit textures
+#include "textures/textures.h" //Fluffy: For rendering 32-bit textures
+#include "render/render.h" //Fluffy: For rendering 32-bit textures
 
 DEVILUTION_BEGIN_NAMESPACE
 

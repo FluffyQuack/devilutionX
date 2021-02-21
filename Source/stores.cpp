@@ -4,8 +4,8 @@
  * Implementation of functionality for stores and towner dialogs.
  */
 #include "all.h"
-#include "Textures/textures.h" //Fluffy
-#include "Render/render.h" //Fluffy: For SDL rendering
+#include "textures/textures.h" //Fluffy
+#include "render/render.h" //Fluffy: For SDL rendering
 
 DEVILUTION_BEGIN_NAMESPACE
 

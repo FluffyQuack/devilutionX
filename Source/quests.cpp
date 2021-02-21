@@ -4,8 +4,8 @@
  * Implementation of functionality for handling quests.
  */
 #include "all.h"
-#include "Textures/textures.h" //Fluffy: For accessing SDL textures
-#include "Render/render.h" //Fluffy: For rendering via SDL
+#include "textures/textures.h" //Fluffy: For accessing SDL textures
+#include "render/render.h" //Fluffy: For rendering via SDL
 
 DEVILUTION_BEGIN_NAMESPACE
 

@@ -10,7 +10,7 @@
 #include <config.h>
 #include "misc/config.h" //Fluffy: For reading options from config during startup
 #include "textures/textures.h" //Fluffy: For texture init and deinit
-#include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 

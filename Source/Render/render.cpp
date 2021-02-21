@@ -1,7 +1,7 @@
 //Fluffy: For rendering truecolour textures via SDL
 
 #include "../all.h"
-#include "../Textures/textures.h"
+#include "../textures/textures.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 

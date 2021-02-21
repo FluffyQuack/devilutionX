@@ -99,8 +99,8 @@ void Textures_Init()
 
 	//Load textures
 	if (options_animatedUIFlasks) {
-		LoadTexture(TEXTURE_HEALTHFLASK, "Data/Textures/UI/Flasks/health.png", 48);
-		LoadTexture(TEXTURE_MANAFLASK, "Data/Textures/UI/Flasks/mana.png", 48);
+		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
+		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
 	
 }

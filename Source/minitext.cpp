@@ -4,9 +4,9 @@
  * Implementation of scrolling dialog text.
  */
 #include "all.h"
-#include "Textures/textures.h" //Fluffy
-#include "Render/render.h" //Fluffy: For SDL rendering
-#include "Textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "textures/textures.h" //Fluffy
+#include "render/render.h" //Fluffy: For SDL rendering
+#include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
