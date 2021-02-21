@@ -8,6 +8,8 @@
 #include "display.h"
 #include <SDL.h>
 
+#include "../Source/textures/textures.h" //Fluffy: Basic lighting test
+
 namespace dvl {
 
 int sgdwLockCount;
@@ -300,6 +302,11 @@ void RenderPresent()
 		}
 
 		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
+			ErrSdl();
+		}
+
+		//Fluffy: Basic lighting test
+		if (SDL_RenderCopy(renderer, textures[TEXTURE_LIGHTTEST].frames[0].frame, NULL, NULL) <= -1) {
 			ErrSdl();
 		}
 

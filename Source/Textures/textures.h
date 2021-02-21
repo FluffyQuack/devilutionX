@@ -62,6 +62,8 @@ enum {
 	TEXTURE_HEALTHFLASK,
 	TEXTURE_MANAFLASK,
 
+	TEXTURE_LIGHTTEST, //Fluffy: Basic lighting test
+
 	TEXTURE_NUM
 };
 
