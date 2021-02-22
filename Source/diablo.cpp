@@ -425,6 +425,8 @@ static void run_game_loop(unsigned int uMsg)
 	PaletteFadeOut(8);
 	NewCursor(CURSOR_NONE);
 	ClearScreenBuffer();
+	if (options_hwRendering) //Fluffy: dx_face would be 255 here after a fade out, but we're not doing a fade back in, so we set it to 0 here
+		dx_fade = 0;
 	force_redraw = 255;
 	scrollrt_draw_game_screen(TRUE);
 	saveProc = SetWindowProc(saveProc);

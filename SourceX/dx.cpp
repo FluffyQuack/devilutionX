@@ -34,6 +34,7 @@ SDL_Surface *renderer_texture_surface = NULL;
 SDL_Surface *pal_surface;
 
 SDL_Texture *texture_intermediate = 0; //Fluffy: Game renders to this texture, and then this texture gets presented to the final screen
+BYTE dx_fade = 0.0f;                   //Fluffy: If above 0, we apply fading by rendering a black rectangle
 
 static void dx_create_back_buffer()
 {
@@ -306,6 +307,13 @@ void RenderPresent()
 			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
 				ErrSdl();
 			}
+		}
+
+		if (options_hwRendering && dx_fade > 0) { //Fluffy: Render a black rectangle with dx_fadeStatus as alpha value
+			if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, dx_fade) < 0)
+				ErrSdl();
+			if(SDL_RenderFillRect(renderer, NULL) < 0)
+				ErrSdl();
 		}
 		
 		SDL_RenderPresent(renderer);
