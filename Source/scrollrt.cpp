@@ -567,7 +567,8 @@ static void drawFloor(int x, int y, int sx, int sy)
 {
 	cel_transparency_active = 0;
 	light_table_index = dLight[x][y];
-	light_table_index = 0; //Fluffy: Basic lighting test
+	if (options_lightmapping) //Fluffy: Force brightness to max for lightmapping
+		light_table_index = 0;
 
 	BYTE *dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	arch_draw_type = 1; // Left
@@ -747,7 +748,8 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 	dRendered[sx][sy] = true;
 
 	light_table_index = dLight[sx][sy];
-	light_table_index = 0; //Fluffy: Basic lighting test
+	if (options_lightmapping) //Fluffy: Force brightness to max for lightmapping
+		light_table_index = 0;
 
 	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
 	bool importantObjectNearby = 0;

@@ -104,7 +104,8 @@ BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are al
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
 BOOL options_hwRendering = false; //Fluffy: If true, we render to a 32-bit buffer (required for certain graphical features)
-BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks
+BOOL options_lightmapping = false; //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
+BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (this requires options_hwRendering)
 
 /* rdata */
 

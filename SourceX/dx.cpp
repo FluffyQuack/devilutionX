@@ -8,7 +8,7 @@
 #include "display.h"
 #include <SDL.h>
 
-#include "../Source/textures/textures.h" //Fluffy: Basic lighting test
+#include "../Source/textures/textures.h" //Fluffy Debug: Temp texture for lightmap test
 
 namespace dvl {
 
@@ -305,9 +305,11 @@ void RenderPresent()
 			ErrSdl();
 		}
 
-		//Fluffy: Basic lighting test
-		if (SDL_RenderCopy(renderer, textures[TEXTURE_LIGHTTEST].frames[0].frame, NULL, NULL) <= -1) {
-			ErrSdl();
+		//Fluffy: Render lightmap
+		if (options_lightmapping) {
+			if (SDL_RenderCopy(renderer, textures[TEXTURE_LIGHTTEST].frames[0].frame, NULL, NULL) <= -1) {
+				ErrSdl();
+			}
 		}
 
 		if (options_hwRendering) {
