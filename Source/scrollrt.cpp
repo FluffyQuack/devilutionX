@@ -1343,6 +1343,15 @@ void ClearScreenBuffer()
 	SDL_FillRect(pal_surface, &SrcRect, 0);
 
 	unlock_buf(3);
+
+	if (options_hwRendering) //Fluffy: Also clear the intermediate texture
+	{
+		//I'm pretty sure this function is only called outside of ingame rendering, so it should be fine to switch to and from render-to-texture
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+		SDL_RenderClear(renderer);
+		SDL_SetRenderTarget(renderer, NULL);
+	}
 }
 
 #ifdef _DEBUG
