@@ -62,7 +62,9 @@ enum {
 	TEXTURE_HEALTHFLASK,
 	TEXTURE_MANAFLASK,
 
-	TEXTURE_LIGHTTEST, //Fluffy Debug: Temp texture for lightmap test
+	//Lights for lightmap generation
+	TEXTURE_LIGHT_SMOOTHGRADIENT,
+	TEXTURE_LIGHT_HALFGRADIENT_HALFGREY,
 
 	TEXTURE_NUM
 };

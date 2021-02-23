@@ -16,6 +16,8 @@ extern BYTE *gpBuffer;
 extern BYTE* gpBuffer_important; //Fluffy
 extern SDL_Renderer *renderer;
 extern SDL_Texture *texture_intermediate;
+extern SDL_Texture *texture_lightmap;
+extern bool dx_useLightmap;
 extern BYTE dx_fade;
 
 void dx_init(HWND hWnd);

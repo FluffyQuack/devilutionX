@@ -36,7 +36,9 @@ SDL_Surface *renderer_texture_surface = NULL;
 SDL_Surface *pal_surface;
 
 SDL_Texture *texture_intermediate = 0; //Fluffy: Game renders to this texture, and then this texture gets presented to the final screen
-BYTE dx_fade = 0.0f;                   //Fluffy: If above 0, we apply fading by rendering a black rectangle
+SDL_Texture *texture_lightmap = 0; //Fluffy: Only gets created if both options_hwRendering and options_lightmapping are true
+bool dx_useLightmap = false; //Fluffy: True if in dungeon, but false otherwise
+BYTE dx_fade = 0.0f; //Fluffy: If above 0, we apply fading by rendering a black rectangle
 
 static void dx_create_back_buffer()
 {
@@ -52,6 +54,11 @@ static void dx_create_back_buffer()
 	if (options_hwRendering) {
 		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT); //Fluffy: Create the texture we use for rendering game graphics
 		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
+
+		if (options_lightmapping) {
+			texture_lightmap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+			SDL_SetTextureBlendMode(texture_lightmap, SDL_BLENDMODE_MOD);
+		}
 	}
 
 #ifndef USE_SDL1
@@ -145,6 +152,9 @@ void dx_cleanup()
 
 	if (texture_intermediate)
 	    SDL_DestroyTexture(texture_intermediate); //Fluffy
+
+	if (texture_lightmap)
+		SDL_DestroyTexture(texture_lightmap); //Fluffy
 
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
@@ -305,14 +315,12 @@ void RenderPresent()
 			ErrSdl();
 		}
 
-		//Fluffy: Render lightmap
-		if (options_lightmapping) {
-			if (SDL_RenderCopy(renderer, textures[TEXTURE_LIGHTTEST].frames[0].frame, NULL, NULL) <= -1) {
-				ErrSdl();
-			}
-		}
-
 		if (options_hwRendering) {
+			if (options_lightmapping && dx_useLightmap) {
+				if (SDL_RenderCopy(renderer, texture_lightmap, NULL, NULL) <= -1) { //Fluffy: Render lightmap for ingame graphics
+					ErrSdl();
+				}
+			}
 			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
 				ErrSdl();
 			}

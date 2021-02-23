@@ -102,9 +102,9 @@ void Textures_Init()
 		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
 		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 
-		//Fluffy Debug: Temp texture for lightmap test
-		LoadTexture(TEXTURE_LIGHTTEST, "data/textures/light-test.png");
-		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHTTEST].frames[0].frame, SDL_BLENDMODE_MOD);
+		LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
+		LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
+		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
 }
 
