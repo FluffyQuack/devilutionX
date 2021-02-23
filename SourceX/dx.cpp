@@ -33,10 +33,15 @@ SDL_Surface *renderer_texture_surface = NULL;
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
 
+SDL_Surface *surface_walls = NULL; //Fluffy: For adjust lightmap based on wall pixels
+SDL_Texture *texture_walls = NULL; //Fluffy: Used as intermediate texture for surface_walls
+BYTE *lightmap_walls = NULL;
 SDL_Texture *texture_intermediate = 0; //Fluffy: Game renders to this texture, and then this texture gets presented to the final screen
 SDL_Texture *texture_lightmap = 0; //Fluffy: Only gets created if both options_hwRendering and options_lightmapping are true
 bool dx_useLightmap = false; //Fluffy: True if in dungeon, but false otherwise
 BYTE dx_fade = 0.0f; //Fluffy: If above 0, we apply fading by rendering a black rectangle
+SDL_Palette *surface_walls_palette = NULL; //Fluffy debug
+BYTE *lightmap_wall_buffer = NULL;
 
 static void dx_create_back_buffer()
 {
@@ -56,6 +61,32 @@ static void dx_create_back_buffer()
 		if (options_lightmapping) {
 			texture_lightmap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
 			SDL_SetTextureBlendMode(texture_lightmap, SDL_BLENDMODE_MOD);
+			//SDL_SetTextureBlendMode(texture_lightmap, SDL_BLENDMODE_NONE); //Uncomment this to render only lightmap to screen
+
+			//Fluffy: For walls affecting lightmap
+			surface_walls_palette = SDL_AllocPalette(256);
+			SDL_Color color[256];
+			for (int i = 0; i < 256; i++) {
+				color[i].r = i;
+				color[i].g = i;
+				color[i].b = i;
+				color[i].a = 255;
+			}
+			if(SDL_SetPaletteColors(surface_walls_palette, color, 0, 256) < 0)
+				ErrSdl();
+			surface_walls = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 8, SDL_PIXELFORMAT_INDEX8);
+			if (surface_walls == NULL)
+				ErrSdl();
+			if(SDL_SetSurfacePalette(surface_walls, surface_walls_palette) < 0)
+				ErrSdl();
+			lightmap_walls = (BYTE *)surface_walls->pixels;
+			memset(lightmap_walls, 255, BUFFER_WIDTH * BUFFER_HEIGHT);
+			texture_walls = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+			if (texture_walls == NULL)
+				ErrSdl();
+			if(SDL_SetTextureBlendMode(texture_walls, SDL_BLENDMODE_MOD) < 0)
+				ErrSdl();
+			lightmap_wall_buffer = new BYTE[SCREEN_WIDTH * SCREEN_HEIGHT * 4];
 		}
 	}
 
@@ -108,6 +139,8 @@ static void lock_buf_priv()
 
 	gpBuffer = (BYTE *)pal_surface->pixels;
 	gpBufEnd += (uintptr_t)(BYTE *)pal_surface->pixels;
+	if (options_hwRendering && options_lightmapping)
+		lightmap_walls = (BYTE *)surface_walls->pixels; //Fluffy debug
 	sgdwLockCount++;
 }
 
@@ -153,6 +186,15 @@ void dx_cleanup()
 
 	if (texture_lightmap)
 		SDL_DestroyTexture(texture_lightmap); //Fluffy
+
+	if (texture_walls)
+		SDL_DestroyTexture(texture_walls); //Fluffy
+	if (surface_walls_palette)
+		SDL_FreePalette(surface_walls_palette); //Fluffy
+	if (surface_walls)
+		SDL_FreeSurface(surface_walls); //Fluffy
+	if (lightmap_wall_buffer)
+		delete[] lightmap_wall_buffer; //Fluffy
 
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
@@ -315,6 +357,29 @@ void RenderPresent()
 
 		if (options_hwRendering) {
 			if (options_lightmapping && dx_useLightmap) {
+				//Fluffy: Render surface_walls onto texture_lightmap
+				{
+					for (int x = 0; x < 1280; x++)
+						for (int y = 0; y < 720; y++) {
+							unsigned int pos = 0;
+							pos += BUFFER_WIDTH * (y + BORDER_TOP);
+							pos += x + BORDER_LEFT;
+							unsigned int toPos = 0;
+							toPos += (SCREEN_WIDTH * 4) * (y);
+							toPos += x * 4;
+							//lightmap_walls[pos] = 128;
+							lightmap_wall_buffer[toPos + 3] = lightmap_walls[pos];
+							lightmap_wall_buffer[toPos + 2] = lightmap_walls[pos];
+							lightmap_wall_buffer[toPos + 1] = lightmap_walls[pos];
+							lightmap_wall_buffer[toPos + 0] = 255;
+						}
+				}
+
+				SDL_UpdateTexture(texture_walls, NULL, lightmap_wall_buffer, SCREEN_WIDTH * 4); //Update walls texture based on walls surface
+				SDL_SetRenderTarget(renderer, texture_lightmap); //Set render target to lightmap
+				SDL_RenderCopy(renderer, texture_walls, NULL, NULL); //Render walls texture to lightmap
+				SDL_SetRenderTarget(renderer, NULL); //Switch back to normal renderer
+				
 				if (SDL_RenderCopy(renderer, texture_lightmap, NULL, NULL) <= -1) { //Fluffy: Render lightmap for ingame graphics
 					ErrSdl();
 				}

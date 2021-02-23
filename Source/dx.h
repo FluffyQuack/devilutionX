@@ -14,6 +14,7 @@ extern "C" {
 
 extern BYTE *gpBuffer;
 extern BYTE* gpBuffer_important; //Fluffy
+extern BYTE *lightmap_walls; //Fluffy
 extern SDL_Renderer *renderer;
 extern SDL_Texture *texture_intermediate;
 extern SDL_Texture *texture_lightmap;

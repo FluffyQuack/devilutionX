@@ -501,7 +501,8 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		int height = width - (width / 2);
 		int lightX = ox - 23;
 		int lightY = oy - 171;
-		SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
+		//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
+		SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 180, 120);
 		Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
 		SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
 		SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
@@ -535,8 +536,20 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy);
  * @param sy Back buffer coordinate
  * @param importantObjectNaarby Whether or not a player, monster, item, etc is nearby (Fluffy)
  */
+extern BYTE *dstWall; //Fluffy debug
+extern BYTE dstWallBrightness; //Fluffy debug
+extern BYTE dstWallBrightness_cur; //Fluffy debug
+extern BYTE dstWall_side; //Fluffy debug
 static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 {
+#define IsWall(x, y) (dPiece[x][y] == 0 || nSolidTable[dPiece[x][y]] || dSpecial[x][y] != 0)
+	if (options_hwRendering && options_lightmapping) { 
+		if (IsWall(x, y)) //Fluffy debug
+			dstWall = &lightmap_walls[sx + sy * BUFFER_WIDTH];
+		else
+			dstWall = 0;
+	}
+
 	BYTE *dst;
 	MICROS *pMap;
 
@@ -558,16 +571,31 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
-			RenderTile(dst);
+
+			BYTE *dstWallBackup = dstWall; //Fluffy debug
+			dstWallBrightness = 255 - (i * 32);
+			dstWall_side = 0;
+			RenderTile(dst); //Render left side of a tile
+			dstWall = dstWallBackup; //Fluffy debug
 		}
 		level_cel_block = pMap->mt[2 * i + 1];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
-			RenderTile(dst + TILE_WIDTH / 2);
+			BYTE *dstWallBackup = dstWall; //Fluffy debug
+			if (dstWall)                   //Fluffy debug
+				dstWall += TILE_WIDTH / 2;
+			dstWallBrightness = 255 - (i * 32);
+			dstWall_side = 1;
+			RenderTile(dst + TILE_WIDTH / 2); //Render right side of a tile
+			dstWall = dstWallBackup; //Fluffy debug
 		}
 		dst -= BUFFER_WIDTH * TILE_HEIGHT;
+		if (dstWall) //Fluffy debug
+			dstWall -= BUFFER_WIDTH * TILE_HEIGHT;
 	}
 	cel_foliage_active = false;
+
+	dstWall = 0; //Fluffy debug
 }
 
 /**
@@ -582,7 +610,7 @@ static void drawFloor(int x, int y, int sx, int sy)
 	cel_transparency_active = 0;
 	light_table_index = dLight[x][y];
 	if (options_lightmapping) //Fluffy: Force brightness value for lightmapping
-		light_table_index = 2;
+		light_table_index = 1;
 
 	BYTE *dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	arch_draw_type = 1; // Left
@@ -778,7 +806,7 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 
 	light_table_index = dLight[sx][sy];
 	if (options_lightmapping) //Fluffy: Force brightness value for lightmapping
-		light_table_index = 2;
+		light_table_index = 1;
 
 	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
 	bool importantObjectNearby = 0;
@@ -1384,6 +1412,7 @@ void ClearScreenBuffer()
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
 			SDL_RenderClear(renderer);
 			dx_useLightmap = false;
+			memset(lightmap_walls, 255, BUFFER_WIDTH * BUFFER_HEIGHT); //Also reset wall lightmap
 		}
 
 		//I'm pretty sure this function is only called outside of ingame rendering, so it should be fine to switch to and from render-to-texture
@@ -1676,6 +1705,7 @@ void DrawAndBlit()
 				dx_useLightmap = false;
 			else
 				dx_useLightmap = true;
+			memset(lightmap_walls, 255, BUFFER_WIDTH * BUFFER_HEIGHT); //Also reset wall lightmap
 		}
 
 		SDL_SetRenderTarget(renderer, texture_intermediate);
@@ -1684,6 +1714,9 @@ void DrawAndBlit()
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
 		SDL_RenderClear(renderer);
 	}
+
+	//Fluffy debug
+	memset(gpBuffer, 0, BUFFER_WIDTH * BUFFER_HEIGHT);
 
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
 		drawhpflag = TRUE;

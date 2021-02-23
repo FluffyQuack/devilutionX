@@ -7,6 +7,11 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+BYTE *dstWall = 0; //Fluffy debug
+BYTE dstWallBrightness = 255; //Fluffy debug
+BYTE dstWallBrightness_cur = 255; //Fluffy debug
+BYTE dstWall_side = 0;
+
 #define NO_OVERDRAW
 
 enum {
@@ -238,6 +243,25 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 	}
 #endif
 
+	if (dstWall) { //Fluffy debug
+		/*for (int i = 0; i < n; i++) {
+			if (dstWall_side == 0) {
+				if (dstWallBrightness_cur + i > 255)
+					dstWall[i] = 255;
+				else
+					dstWall[i] = dstWallBrightness_cur + i;
+			} else {
+				if (dstWallBrightness_cur - i < 0)
+					dstWall[i] = 0;
+				else
+					dstWall[i] = dstWallBrightness_cur - i;
+			}
+		}
+		*/
+		memset(dstWall, dstWallBrightness_cur, n);
+		//memset(dstWall, 220, n);
+	}
+
 	BYTE *importantBuff; //Fluffy: For wall transparency. (Only used if certain toggles are on)
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 		importantBuff = gpBuffer_important + ((*dst) - gpBuffer);
@@ -315,6 +339,8 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 skip:
 	(*src) += n;
 	(*dst) += n;
+	if (dstWall)
+		dstWall += n; //Fluffy debug
 }
 
 #if defined(__clang__) || defined(__GNUC__)
@@ -382,15 +408,18 @@ void RenderTile(BYTE *pBuff)
 		mask = &SolidMask[TILE_HEIGHT - 1];
 	}
 #endif
-
 	switch (tile) {
 	case RT_SQUARE: //Draws a 32x32 square. This is used for walls
 		for (i = TILE_HEIGHT; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness_cur = dstWallBrightness - (TILE_HEIGHT - i); //Fluffy debug
 			RenderLine(&dst, &src, TILE_WIDTH / 2, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	case RT_TRANSPARENT: //I've seen this be used for tiles with rubble on them (the rubble extends upwards beyond the normal boundaries of the tile). I've also seen it be used by top parts of walls, the tiles containing bottom part of torches, and pillars
 		for (i = TILE_HEIGHT; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness = 255 - (TILE_HEIGHT - i); //Fluffy debug
 			m = *mask;
 			for (j = TILE_WIDTH / 2; j != 0; j -= v, v == TILE_WIDTH / 2 ? m = 0 : m <<= v) {
 				v = *src++;
@@ -399,52 +428,94 @@ void RenderTile(BYTE *pBuff)
 				} else {
 					v = -v;
 					dst += v;
+					if (dstWall)
+						dstWall += v;
 				}
 			}
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	case RT_LTRIANGLE: //This is used for 99% of floor tiles
+		dstWallBrightness_cur = dstWallBrightness;
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Bottomleft
+			dstWallBrightness_cur--;
 			src += i & 2;
 			dst += i;
+			if (dstWall) //Fluffy debug
+				dstWall += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		for (i = 2; i != TILE_WIDTH / 2; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topleft
+			dstWallBrightness_cur--;
 			src += i & 2;
 			dst += i;
+			if (dstWall) //Fluffy debug
+				dstWall += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	case RT_RTRIANGLE: //This is used for 99% of floor tiles
+		dstWallBrightness_cur = dstWallBrightness;
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Bottomright
+			dstWallBrightness_cur--;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
-		} 
+			if (dstWall) //Fluffy debug
+				dstWall += i;
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
+		}
 		for (i = 2; i != TILE_HEIGHT; i += 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) { //Topright
+			dstWallBrightness_cur--;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
+			if (dstWall) //Fluffy debug
+				dstWall += i;
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	case RT_LTRAPEZOID: //Used for parts of walls
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness_cur = dstWallBrightness - (TILE_HEIGHT - i); //Fluffy debug
 			src += i & 2;
 			dst += i;
+			if (dstWall) //Fluffy debug
+				dstWall += i;
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		for (i = TILE_HEIGHT / 2; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness_cur = dstWallBrightness - (TILE_HEIGHT - i); //Fluffy debug
 			RenderLine(&dst, &src, TILE_WIDTH / 2, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	case RT_RTRAPEZOID: //Used for parts of walls
 		for (i = TILE_HEIGHT - 2; i >= 0; i -= 2, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness_cur = dstWallBrightness - (TILE_HEIGHT - i); //Fluffy debug
 			RenderLine(&dst, &src, TILE_WIDTH / 2 - i, tbl, *mask);
 			src += i & 2;
 			dst += i;
+			if (dstWall) //Fluffy debug
+				dstWall += i;
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		for (i = TILE_HEIGHT / 2; i != 0; i--, dst -= BUFFER_WIDTH + TILE_WIDTH / 2, mask--) {
+			dstWallBrightness_cur = dstWallBrightness - (TILE_HEIGHT - i); //Fluffy debug
 			RenderLine(&dst, &src, TILE_WIDTH / 2, tbl, *mask);
+			if (dstWall) //Fluffy debug
+				dstWall -= BUFFER_WIDTH + TILE_WIDTH / 2;
 		}
 		break;
 	}
