@@ -1533,7 +1533,6 @@ static void DrawFPS()
 			snprintf(String, 100, "ViewXY %i %i", ViewX, ViewY);
 			RenderDebugLine(&x, &y, String);
 
-			//Fluffy TODO add mouse coords
 			snprintf(String, 100, "mouseXY %i %i", MouseX, MouseY);
 			RenderDebugLine(&x, &y, String);
 		}

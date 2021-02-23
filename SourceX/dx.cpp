@@ -8,8 +8,6 @@
 #include "display.h"
 #include <SDL.h>
 
-#include "../Source/textures/textures.h" //Fluffy Debug: Temp texture for lightmap test
-
 namespace dvl {
 
 int sgdwLockCount;
