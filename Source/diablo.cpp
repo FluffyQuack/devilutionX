@@ -1905,6 +1905,8 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			Texture_ConvertCEL_MultipleFrames(pSPentSpn2Cels, TEXTURE_SPINNINGPENTAGRAM2, 12); //Tiny spinning pentagram
 			Texture_ConvertCEL_MultipleFrames(pSTextSlidCels, TEXTURE_DYNAMICWINDOW, 12); //Textures for dynamic window creation
 		}
+
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
 	}
 }
 

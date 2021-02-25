@@ -7,6 +7,14 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 BYTE *celConvert_TranslationTable = 0; //This is assumed to point to an array with 256 entries
+enum {
+	CELDATAFORMAT_TYPE0,
+	CELDATAFORMAT_TYPE1,
+	CELDATAFORMAT_TYPE2,
+	//CELDATAFORMAT_TYPE3,
+	CELDATAFORMAT_TYPE4,
+	//CELDATAFORMAT_TYPE5,
+};
 
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
@@ -17,6 +25,8 @@ static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWid
 	while (src < dataEnd) {
 		for (i = w; i;) {
 			width = *src++;
+			if (width == 0)
+				break;
 			if (!(width & 0x80)) {
 				src += width;
 			} else {
@@ -27,6 +37,29 @@ static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWid
 		height++;
 	}
 	return height;
+}
+
+static void ConvertOneLine(unsigned char *dst, unsigned char *src, int length, bool alpha)
+{
+	int srcPos = 0;
+	int dstPos = 0;
+	while (srcPos < length) {
+		if (alpha) {
+			dst[dstPos] = 255;
+			dstPos++;
+		}
+		if (celConvert_TranslationTable) {
+			dst[dstPos + 2] = orig_palette[celConvert_TranslationTable[src[srcPos]]].r;
+			dst[dstPos + 1] = orig_palette[celConvert_TranslationTable[src[srcPos]]].g;
+			dst[dstPos + 0] = orig_palette[celConvert_TranslationTable[src[srcPos]]].b;
+		} else {
+			dst[dstPos + 2] = orig_palette[src[srcPos]].r;
+			dst[dstPos + 1] = orig_palette[src[srcPos]].g;
+			dst[dstPos + 0] = orig_palette[src[srcPos]].b;
+		}
+		srcPos++;
+		dstPos += 3;
+	}
 }
 
 static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1)
@@ -62,6 +95,8 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	while (src != &celData[offsetEnd]) {
 		for (int i = frameWidth; i;) {
 			width = *src++;
+			if (width == 0) // Indicates end of data. I think this is only used in dungeon tile CELs
+				break;
 			if (!(width & 0x80)) { //Run-length encoding. Positive signed byte means it's defining quantity of bytes with image data
 				for (int j = 0; j < width; j++) { //We have to go pixel by pixel here because we want to skip shadow pixels
 					if (*src != 0)
@@ -148,7 +183,108 @@ void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData
 	}
 }
 
-static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1)
+static bool IsThisActuallyType1(unsigned char *src, unsigned char *end) //Check if it's valid to go through this as if it's a type 1 CEL frame
+{
+	int i = 32, w = 32;
+	unsigned char width;
+	int linesProcessed = 0;
+	while (1) {
+		width = *src++;
+		if (width == 0) { //End of data
+			break;
+		}
+		if (width == 0x7F)
+			break;
+		if (width == 0x80)
+			break;
+		if (width & 0x80)
+			width = -(char)width;
+		else
+			src += width;
+		i -= width;
+		if (i == 0) {
+			i = 32;
+			linesProcessed++;
+		}
+		else if (i < 0)
+			break;
+		if (src >= end)
+			break;
+	}
+	return (i == 0 && linesProcessed == 32);
+}
+
+static bool IsThisActuallyType2(unsigned char *src, bool type4, bool *right) //Check for the existance of double nulls. If they don't exist, assume this is type 1
+{
+	int i;
+
+	unsigned char *srcBack = src;
+	*right = false;
+	if (src[0] == 0 && src[1] == 0) { //Transparency is on left side
+		int size = 2;
+		for (i = 0; i < 16; i++) {
+			if (i % 2 == 0) {
+				if (src[0] != 0 || src[1] != 0)
+					goto next;
+				src += 2; //Skip double nulls
+			}
+			src += size;
+			if (i < 15)
+				size += 2;
+		}
+
+		if (type4)
+			return true;
+
+		size -= 2;
+		for (i = 0; i < 16; i++) {
+			if (i % 2 == 0) {
+				if (src[0] != 0 || src[1] != 0)
+					goto next;
+				src += 2; //Skip double nulls
+			}
+			src += size;
+			size -= 2;
+		}
+		return true;
+	}
+
+next:
+	src = srcBack;
+	*right = true;
+	if(src[2] == 0 && src[3] == 0) { //Transparency is on right side
+		int size = 2;
+		for (i = 0; i < 16; i++) {
+			src += size;
+			if (i < 15) {
+				size += 2;
+				if (i % 2 == 0) {
+					if (src[0] != 0 || src[1] != 0)
+						return false;
+					src += 2; //Skip double nulls
+				}
+			}
+		}
+
+		if (type4)
+			return true;
+
+		size -= 2;
+		for (i = 0; i < 16; i++) {
+			src += size;
+			size -= 2;
+			if (i % 2 == 0) {
+				if (src[0] != 0 || src[1] != 0)
+					return false;
+				src += 2; //Skip double nulls
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1, int format = CELDATAFORMAT_TYPE1)
 {
 	//TODO: In order to reduce texture size, we could detect if there are rows/columns of fully transparent pixels along the edges and then crop baed on that
 
@@ -176,44 +312,126 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	//Create buffer
 	unsigned char *imgData = new unsigned char[textureFrame->width * textureFrame->height * textureFrame->channels];
 
+	//Some CEL frames matching the size of a special type are actually of the ordinary type. In other words, I need to slap the person who created the CEL format
+	bool rightSidedTransparency = 0;
+	if (format == CELDATAFORMAT_TYPE2 || format == CELDATAFORMAT_TYPE4) {
+		if (!IsThisActuallyType2(src, format == CELDATAFORMAT_TYPE4, &rightSidedTransparency)) { //We also get side of transparency for types 2 to 5 here
+			format = CELDATAFORMAT_TYPE1;
+		}
+	} else if (format == CELDATAFORMAT_TYPE0) {
+		if (IsThisActuallyType1(src, &celData[offsetEnd])) {
+			format = CELDATAFORMAT_TYPE1;
+		}
+	}
+
 	//Write CEL data into buffer
 	unsigned char *dst = &imgData[textureFrame->width * (textureFrame->height - 1) * textureFrame->channels];
 	unsigned char width;
 	int w = textureFrame->width;
 	int i;
-	while (src < &celData[offsetEnd]) {
-		for (i = w; i;) {
-			width = *src++;
-			if (!(width & 0x80)) {
-				i -= width;
-				{
-					int srcPos = 0;
-					int dstPos = 0;
-					while (srcPos < width) {
-						if (celConvert_TranslationTable) {
-							dst[dstPos + 3] = orig_palette[celConvert_TranslationTable[src[srcPos]]].r;
-							dst[dstPos + 2] = orig_palette[celConvert_TranslationTable[src[srcPos]]].g;
-							dst[dstPos + 1] = orig_palette[celConvert_TranslationTable[src[srcPos]]].b;
-						} else {
-							dst[dstPos + 3] = orig_palette[src[srcPos]].r;
-							dst[dstPos + 2] = orig_palette[src[srcPos]].g;
-							dst[dstPos + 1] = orig_palette[src[srcPos]].b;
-						}
-						dst[dstPos + 0] = 255;
-						srcPos++;
-						dstPos += 4;
+	if (format == CELDATAFORMAT_TYPE0) {
+		for (int y = 0; y < frameHeight; y++) {
+			ConvertOneLine(dst, src, frameWidth, true);
+			src += frameWidth;
+			dst -= frameWidth * textureFrame->channels;
+		}
+	} else if (format == CELDATAFORMAT_TYPE1) {
+		while (src < &celData[offsetEnd]) {
+			for (i = w; i;) {
+				width = *src++;
+				if (width == 0) // Indicates end of data. I think this is only used in dungeon tile CELs
+					break;
+				if (!(width & 0x80)) { // width defines quantity of pixels to read
+					i -= width;
+					ConvertOneLine(dst, src, width, true);
+					src += width;
+					dst += width * 4;
+				} else { // -width defines quantity of pixels to skip
+					width = -(char)width;
+					memset(dst, 0, width * 4);
+					dst += width * 4;
+					i -= width;
+				}
+			}
+			dst -= frameWidth * textureFrame->channels * 2;
+		}
+	} else if (format == CELDATAFORMAT_TYPE2 || format == CELDATAFORMAT_TYPE4) { //Types 2 to 5
+		if (!rightSidedTransparency) {
+			//Process lower half (type 2 and 4)
+			int size = 2;
+			for (i = 0; i < 16; i++) {
+				if (i % 2 == 0) {
+					src += 2; //Skip double nulls
+				}
+				memset(dst, 0, (32 - size) * textureFrame->channels);
+				dst += (32 - size) * textureFrame->channels;
+				ConvertOneLine(dst, src, size, true);
+				src += size;
+				dst += size * textureFrame->channels;
+				dst -= frameWidth * textureFrame->channels * 2;
+				if (i < 15)
+					size += 2;
+			}
+
+			if (format == CELDATAFORMAT_TYPE2) { //Process upper half of type 2
+				size -= 2;
+				for (i = 0; i < 16; i++) {
+					if (i % 2 == 0) {
+						src += 2; //Skip double nulls
+					}
+					memset(dst, 0, (32 - size) * textureFrame->channels);
+					dst += (32 - size) * textureFrame->channels;
+					if (size > 0)
+						ConvertOneLine(dst, src, size, true);
+					src += size;
+					dst += size * textureFrame->channels;
+					dst -= frameWidth * textureFrame->channels * 2;
+					size -= 2;
+				}
+			}
+		} else { //Transparency is on right side
+			//Process lower half (types 3 and 5)
+			int size = 2;
+			for (i = 0; i < 16; i++) {
+				ConvertOneLine(dst, src, size, true);
+				src += size;
+				dst += size * textureFrame->channels;
+				memset(dst, 0, (32 - size) * textureFrame->channels);
+				dst += (32 - size) * textureFrame->channels;
+				dst -= frameWidth * textureFrame->channels * 2;
+				if (i < 15) {
+					size += 2;
+					if (i % 2 == 0) {
+						src += 2; //Skip double nulls
 					}
 				}
-				src += width;
-				dst += width * 4;
-			} else {
-				width = -(char)width;
-				memset(dst, 0, width * 4);
-				dst += width * 4;
-				i -= width;
+			}
+
+			if (format == CELDATAFORMAT_TYPE2) { //Process upper half of type 3
+				size -= 2;
+				for (i = 0; i < 16; i++) {
+					if (size > 0)
+						ConvertOneLine(dst, src, size, true);
+					src += size;
+					dst += size * textureFrame->channels;
+					memset(dst, 0, (32 - size) * textureFrame->channels);
+					dst += (32 - size) * textureFrame->channels;
+					dst -= frameWidth * textureFrame->channels * 2;
+					size -= 2;
+					if (i % 2 == 0) {
+						src += 2; //Skip double nulls
+					}
+				}
 			}
 		}
-		dst -= textureFrame->width * textureFrame->channels * 2;
+
+		if (format == CELDATAFORMAT_TYPE4) { //Upper half of types 4 and 5
+			for (int y = 0; y < 16; y++) {
+				ConvertOneLine(dst, src, frameWidth, true);
+				src += frameWidth;
+				dst -= frameWidth * textureFrame->channels;
+			}
+		}
 	}
 
 	//Create SDL texture utilizing converted image data
@@ -278,6 +496,42 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 	//Do the conversion
 	textureFrame_s *textureFrame = &texture->frames[0];
 	ConvertCELtoSDL(textureFrame, celData, 4, 0, frameWidth);
+}
+
+void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
+{
+	texture_s *texture = &textures[textureNum];
+	Texture_UnloadTexture(texture); //Unload if it's already loaded
+
+	//Create textureFrame_s pointer array
+	int frameCount = (int &)*celData;
+	texture->frames = new textureFrame_s[frameCount];
+	texture->frameCount = frameCount;
+	unsigned int celDataOffsetPos = 4;
+	int width = 32, height = 32; //All frames in a dungeon CELs are 32x32
+	for (int j = 0; j < frameCount; j++) {
+		//Do the conversion
+		textureFrame_s *textureFrame = &texture->frames[j];
+
+		//Figure out CEL size (specific sizes indicate unique encoding, which only happens in dungeon CEL files)
+		unsigned int offsetStart = (unsigned int &)celData[celDataOffsetPos];
+		unsigned int offsetEnd = (unsigned int &)celData[celDataOffsetPos + 4];
+		int size = offsetEnd - offsetStart;
+		int format;
+
+		if (size == 0x400) { //Type 0 (upper wall)
+			format = CELDATAFORMAT_TYPE0;
+		} else if (size == 0x220) { //Type 2 and 3 (floor; diamond shaped)
+			format = CELDATAFORMAT_TYPE2;
+		} else if (size == 0x320) { //Type 4 and 5 (wall bottom)
+			format = CELDATAFORMAT_TYPE4;
+		} else { //Type 1 (normal CEL data)
+			format = CELDATAFORMAT_TYPE1;
+		}
+
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
+		celDataOffsetPos += 4;
+	}
 }
 
 DEVILUTION_END_NAMESPACE

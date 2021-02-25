@@ -58,6 +58,8 @@ enum {
 	//Hive loading screen (nlevels\cutl6.cel)
 	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
 
+	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
+
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,
 	TEXTURE_MANAFLASK,
