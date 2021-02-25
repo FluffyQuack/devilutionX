@@ -8,6 +8,10 @@
 #include "display.h"
 #include <SDL.h>
 
+//Fluffy debug
+#include "../Source/textures/textures.h"
+#include "../Source/render/render.h"
+
 namespace dvl {
 
 int sgdwLockCount;
@@ -314,6 +318,19 @@ void RenderPresent()
 				ErrSdl();
 			if(SDL_RenderFillRect(renderer, NULL) < 0)
 				ErrSdl();
+		}
+
+		if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
+			if (SDL_RenderClear(renderer) <= -1) {
+				ErrSdl();
+			}
+			int i = 0;
+			for (int y = 0; y < 80; y++)
+				for (int x = 0; x < 60; x++) {
+					if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
+						Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
+					i++;
+				}
 		}
 		
 		SDL_RenderPresent(renderer);
