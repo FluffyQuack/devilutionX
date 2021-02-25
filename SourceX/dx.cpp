@@ -320,6 +320,7 @@ void RenderPresent()
 				ErrSdl();
 		}
 
+		//Fluffy debug
 		if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
 			if (SDL_RenderClear(renderer) <= -1) {
 				ErrSdl();
