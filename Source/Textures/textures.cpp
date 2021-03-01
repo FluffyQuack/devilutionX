@@ -97,12 +97,14 @@ void Textures_Init()
 {
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
+	if (!options_hwRendering)
+		return;
+
 	//Load textures
-	if (options_hwRendering && options_animatedUIFlasks) {
+	if (options_animatedUIFlasks) {
 		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
 		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
-	
 }
 
 //Unload all textures
