@@ -39,7 +39,7 @@ static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWid
 	return height;
 }
 
-static void ConvertOneLine(unsigned char *dst, unsigned char *src, int length, bool alpha)
+static void ConvertOneLine(unsigned char *dst, unsigned char *src, int length, bool alpha) //Convert one line of CEL image data to RGB (or RGBA)
 {
 	int srcPos = 0;
 	int dstPos = 0;
@@ -190,13 +190,9 @@ static bool IsThisActuallyType1(unsigned char *src, unsigned char *end) //Check 
 	int linesProcessed = 0;
 	while (1) {
 		width = *src++;
-		if (width == 0) { //End of data
+		if (width == 0 || width == 0x7F || width == 0x80) { //End of data, or lines longer than 127 bytes
 			break;
 		}
-		if (width == 0x7F)
-			break;
-		if (width == 0x80)
-			break;
 		if (width & 0x80)
 			width = -(char)width;
 		else
@@ -211,7 +207,7 @@ static bool IsThisActuallyType1(unsigned char *src, unsigned char *end) //Check 
 		if (src >= end)
 			break;
 	}
-	return (i == 0 && linesProcessed == 32);
+	return (/*i == 0 &&*/ linesProcessed == 32);
 }
 
 static bool IsThisActuallyType2(unsigned char *src, bool type4, bool *right) //Check for the existance of double nulls. If they don't exist, assume this is type 1
