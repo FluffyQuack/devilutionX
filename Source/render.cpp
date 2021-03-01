@@ -4,6 +4,8 @@
  * Implementation of functionality for rendering the level tiles.
  */
 #include "all.h"
+#include "textures/textures.h" //Fluffy: For SDL textures
+#include "render/render.h" //Fluffy: For rendering SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -315,6 +317,19 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 skip:
 	(*src) += n;
 	(*dst) += n;
+}
+
+void RenderTileViaSDL(int sx, int sy)
+{
+	int frame = (level_cel_block & 0xFFF) - 1;
+	int brightness = 255 - ((light_table_index * 255) / lightmax);
+	SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, brightness, brightness, brightness);
+	if (arch_draw_type == 0 && cel_transparency_active)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, 127);
+	Render_Texture_FromBottomLeft(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_DUNGEONTILES, frame);
+	SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, 255, 255, 255);
+	if (arch_draw_type == 0 && cel_transparency_active)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, 255);
 }
 
 #if defined(__clang__) || defined(__GNUC__)

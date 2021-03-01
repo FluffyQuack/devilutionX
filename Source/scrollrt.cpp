@@ -544,14 +544,21 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
-			RenderTile(dst);
+			if (options_hwRendering) //Fluffy
+				RenderTileViaSDL(sx, sy);
+			else
+				RenderTile(dst);
 		}
 		level_cel_block = pMap->mt[2 * i + 1];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
-			RenderTile(dst + TILE_WIDTH / 2);
+			if (options_hwRendering) //Fluffy
+				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+			else
+				RenderTile(dst + TILE_WIDTH / 2);
 		}
 		dst -= BUFFER_WIDTH * TILE_HEIGHT;
+		sy -= TILE_HEIGHT; //Fluffy
 	}
 	cel_foliage_active = false;
 }
@@ -572,12 +579,18 @@ static void drawFloor(int x, int y, int sx, int sy)
 	arch_draw_type = 1; // Left
 	level_cel_block = dpiece_defs_map_2[x][y].mt[0];
 	if (level_cel_block != 0) {
-		RenderTile(dst);
+		if (options_hwRendering) //Fluffy
+			RenderTileViaSDL(sx, sy);
+		else
+			RenderTile(dst);
 	}
 	arch_draw_type = 2; // Right
 	level_cel_block = dpiece_defs_map_2[x][y].mt[1];
 	if (level_cel_block != 0) {
-		RenderTile(dst + TILE_WIDTH / 2);
+		if (options_hwRendering) //Fluffy
+			RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+		else
+			RenderTile(dst + TILE_WIDTH / 2);
 	}
 }
 
@@ -1639,6 +1652,10 @@ void DrawAndBlit()
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
 		SDL_RenderClear(renderer);
 	}
+
+	//Fluffy debug: Clear gpBuffer
+	memset(gpBuffer, 0, BUFFER_WIDTH * BUFFER_HEIGHT);
+	
 
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
 		drawhpflag = TRUE;
