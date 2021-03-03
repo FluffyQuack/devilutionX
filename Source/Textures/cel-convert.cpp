@@ -167,7 +167,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -444,7 +444,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &) *celData;
@@ -463,7 +463,7 @@ void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int tex
 void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -482,7 +482,7 @@ void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameW
 void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidth)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -497,7 +497,7 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;

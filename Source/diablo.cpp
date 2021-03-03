@@ -292,6 +292,11 @@ void FreeGameMem()
 	FreeObjectGFX();
 	FreeMonsterSnd();
 	FreeTownerGFX();
+
+	//Fluffy: Also delete equivalent SDL textures
+	if (options_hwRendering) {
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
+	}
 }
 
 static void start_game(unsigned int uMsg)

@@ -9,8 +9,9 @@ DEVILUTION_BEGIN_NAMESPACE
 //textureAtlas_s *textureAtlases;
 texture_s textures[TEXTURE_NUM];
 
-void Texture_UnloadTexture(texture_s *texture) //Unloads all frames for one texture
+void Texture_UnloadTexture(int textureNum) //Unloads all frames for one texture
 {
+	texture_s *texture = &textures[textureNum];
 	if (texture->loaded == 0)
 		return;
 	for (int i = 0; i < texture->frameCount; i++) {
@@ -24,7 +25,7 @@ void Texture_UnloadTexture(texture_s *texture) //Unloads all frames for one text
 static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 {
 	texture_s *texture = &textures[textureNum];
-	Texture_UnloadTexture(texture); //Unload if it's already loaded
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Create textureFrame_s pointer array
 	texture->frames = new textureFrame_s[frameCount];
@@ -92,6 +93,27 @@ static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 	*/
 }
 
+static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
+{
+	texture_s *texture = &textures[textureNum];
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
+
+	//Create textureFrame_s pointer array
+	texture->frames = new textureFrame_s[1];
+	textureFrame_s *textureFrame = &texture->frames[0];
+
+	textureFrame->frame = SDL_CreateTexture(renderer, alpha ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, x, y);
+	if (textureFrame->frame == 0)
+		ErrSdl();
+	textureFrame->channels = alpha ? 4 : 3;
+	textureFrame->width = x;
+	textureFrame->height = y;
+	texture->frameCount = 1;
+	texture->loaded = 1;
+	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
+		ErrSdl();
+}
+
 //Load textures
 void Textures_Init()
 {
@@ -105,13 +127,27 @@ void Textures_Init()
 		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
 		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
+
+	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
+	LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
+	LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
+	LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
+	LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
+	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha) 
+	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTFOLIAGEMASK].frames[0].frame, blendMode);
+	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTFOLIAGEMASK].frames[0].frame, blendMode);
+	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK].frames[0].frame, blendMode);
+	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
+
+	//Generate tile intermediate render target
+	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
 }
 
 //Unload all textures
 void Textures_Deinit()
 {
 	for (int i = 0; i < TEXTURE_NUM; i++) {
-		Texture_UnloadTexture(&textures[i]);
+		Texture_UnloadTexture(i);
 	}
 }
 

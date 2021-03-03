@@ -121,8 +121,16 @@ enum {
 	//Crypt loading screen (nlevels\cutl5.cel)
 	//Hive loading screen (nlevels\cutl6.cel)
 	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
-
 	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
+
+	//Texture versions of various masks in render.cpp
+	TEXTURE_TILE_LEFTFOLIAGEMASK,
+	TEXTURE_TILE_RIGHTFOLIAGEMASK,
+	TEXTURE_TILE_LEFTMASK,
+	TEXTURE_TILE_RIGHTMASK,
+
+	//This is used for multiple render passes for tiles needing a different alpha mask
+	TEXTURE_TILE_INTERMEDIATE,
 
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,
@@ -169,7 +177,7 @@ struct texture_s {
 //extern textureAtlas_s *textureAtlases;
 extern texture_s textures[TEXTURE_NUM];
 
-void Texture_UnloadTexture(texture_s *texture);
+void Texture_UnloadTexture(int textureNum);
 void Textures_Init();
 void Textures_Deinit();
 
