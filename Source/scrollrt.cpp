@@ -1494,24 +1494,29 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 
 		if (myplr == 0) {
-			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff);
+			snprintf(String, 100, "playerXY: %i %i", plr[myplr]._px, plr[myplr]._py);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "x %i", plr[myplr]._px);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "y %i", plr[myplr]._py);
+			snprintf(String, 100, "playerOffsetXY: %i %i", plr[myplr]._pxoff, plr[myplr]._pyoff);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "cameraOffsetX %i", ScrollInfo._sxoff / gSpeedMod);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "cameraOffsetY %i", ScrollInfo._syoff / gSpeedMod);
+			snprintf(String, 100, "cameraXY: %i %i", ViewX, ViewY);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "ViewX %i", ViewX);
+			snprintf(String, 100, "cameraOffsetXY: %i %i", ScrollInfo._sxoff / gSpeedMod, ScrollInfo._syoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "ViewY %i", ViewY);
+
+			snprintf(String, 100, "mouseXY: %i %i", MouseX, MouseY);
+			RenderDebugLine(&x, &y, String);
+
+			if (totalTextureSize < 1 << 10)
+				snprintf(String, 100, "totalTextureUsage %u", totalTextureSize);
+			else if (totalTextureSize < 1 << 20)
+				snprintf(String, 100, "totalTextureUsage %uKB", totalTextureSize >> 10);
+			else if (totalTextureSize < 1 << 30)
+				snprintf(String, 100, "totalTextureUsage %uMB", totalTextureSize >> 20);
+			else
+				snprintf(String, 100, "totalTextureUsage %uGB", totalTextureSize >> 30);
 			RenderDebugLine(&x, &y, String);
 		}
 	}

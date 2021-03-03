@@ -217,6 +217,7 @@ struct texture_s {
 //extern celInfo_s celInfo[CEL_NUM];
 //extern textureAtlas_s *textureAtlases;
 extern texture_s textures[TEXTURE_NUM];
+extern unsigned long long totalTextureSize;
 
 void Texture_UnloadTexture(int textureNum);
 void Textures_Init();
