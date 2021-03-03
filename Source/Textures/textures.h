@@ -4,6 +4,23 @@ DEVILUTION_BEGIN_NAMESPACE
 
 //#define MAXCELPATH 260
 
+/*//Player animation types
+enum {
+	PLAYERANIM_STAND,
+	PLAYERANIM_WALK,
+	PLAYERANIM_ATTACK,
+	PLAYERANIM_SPELL_LIGHTNING,
+	PLAYERANIM_SPELL_FIRE,
+	PLAYERANIM_SPELL_GENERIC,
+	PLAYERANIM_GETHIT,
+	PLAYERANIM_DEATH,
+	PLAYERANIM_BLOCK,
+	PLAYERANIM_STAND_CASUAL,
+	PLAYERANIM_WALK_CASUAL,
+
+	PLAYERANIM_NUM
+};*/
+
 /*//List of CEL files
 enum {
 	//CEL_CURSOR, //Mouse cursors and inventory items (data\inv\objcurs.cel)
@@ -122,6 +139,30 @@ enum {
 	//Hive loading screen (nlevels\cutl6.cel)
 	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
 	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
+
+	/*//Player textures from CEL data
+	TEXTURE_PLAYERS,
+	TEXTURE_PLAYERS_LAST = TEXTURE_PLAYERS + (PLAYERANIM_NUM * MAX_PLRS),
+
+	//Animations of items on ground from CEL data
+	TEXTURE_ITEMS,
+	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,
+
+	//Missile textures from CEL data
+	TEXTURE_MISSILES,
+	TEXTURE_MISSILES_LAST = TEXTURE_MISSILES + ((16) * 108), //108 is the quantity of unique missiles in the game. 16 is the quantity of animations one missiles can have. TODO: Replace numbers with references
+
+	//Monster textures from CEL data
+	TEXTURE_MONSTERS,
+	TEXTURE_MONSTERS_LAST = TEXTURE_MONSTERS + ((MA_SPECIAL + 1) * 138), //138 is the quantity of unique monsters in the game. TODO: Replace number with a reference
+
+	//Object textures from CEL data
+	TEXTURE_OBJECTS,
+	TEXTURE_OBJECTS_LAST = TEXTURE_OBJECTS + 40, //40 is the quantity of unique objects in the game. TODO: Replace number with a reference
+
+	//Object textures from CEL data
+	TEXTURE_NPCS,
+	TEXTURE_NPCS_LAST = TEXTURE_NPCS + NUM_TOWNERS,*/
 
 	//Texture versions of various masks in render.cpp
 	TEXTURE_TILE_LEFTFOLIAGEMASK,
