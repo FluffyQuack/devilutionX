@@ -553,10 +553,9 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	}
 }
 
-static int GetCL2Height(unsigned char *src, unsigned char *dataEnd, int frameWidth)
+static int GetCL2PixelCount(unsigned char *src, unsigned char *dataEnd)
 {
 	unsigned char width;
-	int w = frameWidth;
 	unsigned int totalPixels = 0;
 	while (src < dataEnd) {
 		width = *src++;
@@ -573,10 +572,10 @@ static int GetCL2Height(unsigned char *src, unsigned char *dataEnd, int frameWid
 		}
 		totalPixels += width;
 	}
-	return totalPixels / frameWidth;
+	return totalPixels;
 }
 
-static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, unsigned int groupOffset, int frameWidth)
+static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, unsigned int groupOffset)
 {
 	//TODO: In order to reduce texture size, we could detect if there are rows/columns of fully transparent pixels along the edges and then crop baed on that
 
@@ -586,16 +585,16 @@ static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData
 	unsigned int offsetEnd = (unsigned int &)celData[celDataOffsetPos] + groupOffset;
 	unsigned char *src = &celData[offsetStart];
 
-	//Handle frame header
+	//Handle frame header and attain frame resolution
+	int frameWidth, frameHeight;
 	{
 		unsigned short skip = (unsigned short &)*src;
+		unsigned short offset1 = (unsigned short &)src[2];
+		unsigned short offset2 = (unsigned short &)src[4];
+		frameWidth = GetCL2PixelCount(&src[offset1], &src[offset2]) / 32;
 		src += skip;
+		frameHeight = GetCL2PixelCount(src, &celData[offsetEnd]) / frameWidth;
 	}
-
-	//If height is unknown, then we calculate it from CL2 data
-	int frameHeight = -1;
-	if (frameHeight == -1)
-		frameHeight = GetCL2Height(src, &celData[offsetEnd], frameWidth);
 
 	//Set texture properties
 	textureFrame->width = frameWidth;
@@ -665,7 +664,7 @@ static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData
 		ErrSdl();
 }
 
-void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int groupNum)
+void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int groupNum)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
@@ -694,7 +693,7 @@ void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int frameW
 		//Handle clip header
 		int frameCount = (unsigned int &)celData[pos];
 		for (int j = 0; j < frameCount; j++) {
-			ConvertCL2toSDL(&texture->frames[curFrameNum], celData, pos + 4 + (j * 4), pos, frameWidth); //Convert CEL
+			ConvertCL2toSDL(&texture->frames[curFrameNum], celData, pos + 4 + (j * 4), pos); //Convert CEL
 			curFrameNum++;
 		}
 	}

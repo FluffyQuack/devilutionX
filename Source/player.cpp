@@ -332,42 +332,18 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 
 		if (options_hwRendering) { //Fluffy: Load player graphics as SDL textures
 			int textureNum = TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum);
-			int width = 96;
-			if (i == PFILE_STAND) {
-				textureNum += PLAYERANIM_STAND;
-				width = p->_pNWidth;
-			} else if (i == PFILE_WALK) {
-				textureNum += PLAYERANIM_WALK;
-				width = p->_pWWidth;
-			} else if (i == PFILE_ATTACK) {
-				textureNum += PLAYERANIM_ATTACK;
-				width = p->_pAWidth;
-			} else if (i == PFILE_HIT) {
-				textureNum += PLAYERANIM_GETHIT;
-				width = p->_pHWidth;
-			} else if (i == PFILE_LIGHTNING) {
-				textureNum += PLAYERANIM_SPELL_LIGHTNING;
-				width = p->_pSWidth;
-			} else if (i == PFILE_FIRE) {
-				textureNum += PLAYERANIM_SPELL_FIRE;
-				width = p->_pSWidth;
-			} else if (i == PFILE_MAGIC) {
-				textureNum += PLAYERANIM_SPELL_GENERIC;
-				width = p->_pSWidth;
-			} else if (i == PFILE_DEATH) {
-				textureNum += PLAYERANIM_DEATH;
-				width = p->_pDWidth;
-			} else if (i == PFILE_BLOCK) {
-				textureNum += PLAYERANIM_BLOCK;
-				width = p->_pBWidth;
-			} else if (i == PFILE_STAND_CASUAL) {
-				textureNum += PLAYERANIM_STAND_CASUAL;
-				width = p->_pNWidth_c;
-			} else if (i == PFILE_WALK_CASUAL) {
-				textureNum += PLAYERANIM_WALK_CASUAL;
-				width = p->_pWWidth_c;
-			}
-			Texture_ConvertCL2_MultipleFrames(pData, textureNum, width, 8);
+			if (i == PFILE_STAND) textureNum += PLAYERANIM_STAND;
+			else if (i == PFILE_WALK) textureNum += PLAYERANIM_WALK;
+			else if (i == PFILE_ATTACK) textureNum += PLAYERANIM_ATTACK;
+			else if (i == PFILE_HIT) textureNum += PLAYERANIM_GETHIT;
+			else if (i == PFILE_LIGHTNING) textureNum += PLAYERANIM_SPELL_LIGHTNING;
+			else if (i == PFILE_FIRE) textureNum += PLAYERANIM_SPELL_FIRE;
+			else if (i == PFILE_MAGIC) textureNum += PLAYERANIM_SPELL_GENERIC;
+			else if (i == PFILE_DEATH) textureNum += PLAYERANIM_DEATH;
+			else if (i == PFILE_BLOCK) textureNum += PLAYERANIM_BLOCK;
+			else if (i == PFILE_STAND_CASUAL) textureNum += PLAYERANIM_STAND_CASUAL;
+			else if (i == PFILE_WALK_CASUAL) textureNum += PLAYERANIM_WALK_CASUAL;
+			Texture_ConvertCL2_MultipleFrames(pData, textureNum, 8);
 		}
 	}
 }
