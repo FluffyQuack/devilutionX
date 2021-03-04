@@ -151,18 +151,21 @@ enum {
 	//Missile textures from CEL data
 	TEXTURE_MISSILES,
 	TEXTURE_MISSILES_LAST = TEXTURE_MISSILES + ((16) * 108), //108 is the quantity of unique missiles in the game. 16 is the quantity of animations one missiles can have. TODO: Replace numbers with references
+	*/
 
 	//Monster textures from CEL data
 	TEXTURE_MONSTERS,
-	TEXTURE_MONSTERS_LAST = TEXTURE_MONSTERS + ((MA_SPECIAL + 1) * 138), //138 is the quantity of unique monsters in the game. TODO: Replace number with a reference
+	TEXTURE_MONSTERS_LAST = TEXTURE_MONSTERS + (MA_NUM * 138), //138 is the quantity of unique monsters in the game. TODO: Replace number with a reference
 
+	/*
 	//Object textures from CEL data
 	TEXTURE_OBJECTS,
 	TEXTURE_OBJECTS_LAST = TEXTURE_OBJECTS + 40, //40 is the quantity of unique objects in the game. TODO: Replace number with a reference
 
 	//Object textures from CEL data
 	TEXTURE_NPCS,
-	TEXTURE_NPCS_LAST = TEXTURE_NPCS + NUM_TOWNERS,*/
+	TEXTURE_NPCS_LAST = TEXTURE_NPCS + NUM_TOWNERS,
+	*/
 
 	//Texture versions of various masks in render.cpp
 	TEXTURE_TILE_LEFTFOLIAGEMASK,

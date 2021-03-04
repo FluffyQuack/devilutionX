@@ -695,6 +695,30 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 
 	px = sx + pMonster->_mxoff - pMonster->MType->width2;
 	py = sy + pMonster->_myoff;
+
+	if (options_hwRendering) { //Fluffy: Render monster via SDL
+		int brightness = 255 - ((light_table_index * 255) / lightmax);
+		int textureNum = TEXTURE_MONSTERS + (pMonster->_mMTidx * MA_NUM);
+		int facing = -1;
+		for (int i = 0; i < MA_NUM; i++) {
+			for (int j = 0; j < 8; j++)
+				if (pMonster->_mAnimData == pMonster->MType->Anims[i].Data[j]) {
+					facing = j;
+					textureNum += i;
+					goto foundAnim;
+				}
+		}
+		assert(facing != -1);
+		foundAnim:
+		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottomLeft(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		//TODO: Draw outline for selected monster
+	}
+
 	if (mi == pcursmonst) {
 		Cl2DrawOutline(233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
