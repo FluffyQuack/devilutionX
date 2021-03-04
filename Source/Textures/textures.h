@@ -4,7 +4,7 @@ DEVILUTION_BEGIN_NAMESPACE
 
 //#define MAXCELPATH 260
 
-/*//Player animation types
+//Player animation types
 enum {
 	PLAYERANIM_STAND,
 	PLAYERANIM_WALK,
@@ -19,7 +19,7 @@ enum {
 	PLAYERANIM_WALK_CASUAL,
 
 	PLAYERANIM_NUM
-};*/
+};
 
 /*//List of CEL files
 enum {
@@ -140,11 +140,11 @@ enum {
 	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
 	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
 
-	/*//Player textures from CEL data
+	//Player textures from CEL data
 	TEXTURE_PLAYERS,
 	TEXTURE_PLAYERS_LAST = TEXTURE_PLAYERS + (PLAYERANIM_NUM * MAX_PLRS),
 
-	//Animations of items on ground from CEL data
+	/*//Animations of items on ground from CEL data
 	TEXTURE_ITEMS,
 	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,
 

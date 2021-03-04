@@ -5,6 +5,8 @@
  */
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
+#include "textures/textures.h" //Fluffy: For loading SDL textures
+#include "textures/cel-convert.h" //Fluffy: For loading CEL files as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -327,6 +329,27 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 		LoadFileWithMem(pszName, pData);
 		SetPlayerGPtrs((BYTE *)pData, (BYTE **)pAnim);
 		p->_pGFXLoad |= i;
+
+		if (options_hwRendering) { //Fluffy: Load player graphics as SDL textures
+			int textureNum = TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum);
+			int width;
+			if (i == PFILE_STAND) textureNum += PLAYERANIM_STAND;
+			else if (i == PFILE_WALK) textureNum += PLAYERANIM_WALK;
+			else if (i == PFILE_ATTACK) textureNum += PLAYERANIM_ATTACK;
+			else if (i == PFILE_HIT) textureNum += PLAYERANIM_GETHIT;
+			else if (i == PFILE_LIGHTNING) textureNum += PLAYERANIM_SPELL_LIGHTNING;
+			else if (i == PFILE_FIRE) textureNum += PLAYERANIM_SPELL_FIRE;
+			else if (i == PFILE_MAGIC) textureNum += PLAYERANIM_SPELL_GENERIC;
+			else if (i == PFILE_DEATH) textureNum += PLAYERANIM_DEATH;
+			else if (i == PFILE_BLOCK) textureNum += PLAYERANIM_BLOCK;
+			else if (i == PFILE_STAND_CASUAL) textureNum += PLAYERANIM_STAND_CASUAL;
+			else if (i == PFILE_WALK_CASUAL) textureNum += PLAYERANIM_WALK_CASUAL;
+			if (i == PFILE_ATTACK || i == PFILE_DEATH) //TODO: Let's reference something here instead of hardcoding width sizes
+				width = 128;
+			else
+				width = 96;
+			Texture_ConvertCL2_MultipleFrames(pData, textureNum, width, 8);
+		}
 	}
 }
 
@@ -483,6 +506,12 @@ void FreePlayerGFX(int pnum)
 	MemFreeDbg(plr[pnum]._pNData_c); //Fluffy: Free data for casual walk/stand animations
 	MemFreeDbg(plr[pnum]._pWData_c);
 	plr[pnum]._pGFXLoad = 0;
+
+	if (options_hwRendering) { //Fluffy: Free SDL texture variants too
+		int textureNum = TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum);
+		for (int i = 0; i < PLAYERANIM_NUM; i++)
+			Texture_UnloadTexture(textureNum + i);
+	}
 }
 
 void NewPlrAnim(int pnum, BYTE *Peq, int numFrames, int Delay, int width)
