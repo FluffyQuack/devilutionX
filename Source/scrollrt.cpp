@@ -1511,9 +1511,9 @@ static void DrawFPS()
 
 			if (totalTextureSize < 1 << 10)
 				snprintf(String, 100, "totalTextureUsage %u", totalTextureSize);
-			else if (totalTextureSize < 1 << 20)
+			else if (totalTextureSize < (1 << 20) * 10)
 				snprintf(String, 100, "totalTextureUsage %uKB", totalTextureSize >> 10);
-			else if (totalTextureSize < 1 << 30)
+			else if (totalTextureSize < (1 << 30) * 10)
 				snprintf(String, 100, "totalTextureUsage %uMB", totalTextureSize >> 20);
 			else
 				snprintf(String, 100, "totalTextureUsage %uGB", totalTextureSize >> 30);
