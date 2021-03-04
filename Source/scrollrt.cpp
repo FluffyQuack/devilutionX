@@ -1542,13 +1542,13 @@ static void DrawFPS()
 			RenderDebugLine(&x, &y, String);
 
 			if (totalTextureSize < 1 << 10)
-				snprintf(String, 100, "totalTextureUsage %u", totalTextureSize);
+				snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
 			else if (totalTextureSize < (1 << 20) * 10)
-				snprintf(String, 100, "totalTextureUsage %uKB", totalTextureSize >> 10);
+				snprintf(String, 100, "loadedTextures: %uKB", totalTextureSize >> 10);
 			else if (totalTextureSize < (1 << 30) * 10)
-				snprintf(String, 100, "totalTextureUsage %uMB", totalTextureSize >> 20);
+				snprintf(String, 100, "loadedTextures: %uMB", totalTextureSize >> 20);
 			else
-				snprintf(String, 100, "totalTextureUsage %uGB", totalTextureSize >> 30);
+				snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
 			RenderDebugLine(&x, &y, String);
 		}
 	}
