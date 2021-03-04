@@ -896,7 +896,6 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 			px = dx - pDeadGuy->_deadWidth2;
 
 			if (options_hwRendering) { //Render dead enemy via SDL
-
 				//Figure out which monster in the Monsters array this body belongs to
 				int textureNum = -1;
 				int frameNum = -1;
@@ -908,6 +907,8 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 					}
 				}
 				assert(textureNum != -1);
+
+				//Render
 				int brightness = 255 - ((light_table_index * 255) / lightmax);
 				if (brightness < 255)
 					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
