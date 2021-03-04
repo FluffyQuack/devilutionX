@@ -1041,9 +1041,9 @@ void CalcPlrItemVals(int p, BOOL Loadgfx)
 	if (plr[p]._pgfxnum != g && Loadgfx) {
 		plr[p]._pgfxnum = g;
 		plr[p]._pGFXLoad = 0;
+		SetPlrAnims(p);
 		LoadPlrGFX(p, PFILE_STAND);
 		LoadPlrGFX(p, PFILE_STAND_CASUAL); //Fluffy: Load casual stand animation
-		SetPlrAnims(p);
 
 		d = plr[p]._pdir;
 
