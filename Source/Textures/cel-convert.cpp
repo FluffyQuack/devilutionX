@@ -39,6 +39,29 @@ static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWid
 	return height;
 }
 
+static void ConvertOneLine_OneColour(unsigned char *dst, unsigned char colour, int length, bool alpha) //Convert one indexed colour to RGB (or RGBA)
+{
+	int srcPos = 0;
+	int dstPos = 0;
+	while (srcPos < length) {
+		if (alpha) {
+			dst[dstPos] = 255;
+			dstPos++;
+		}
+		if (celConvert_TranslationTable) {
+			dst[dstPos + 2] = orig_palette[celConvert_TranslationTable[colour]].r;
+			dst[dstPos + 1] = orig_palette[celConvert_TranslationTable[colour]].g;
+			dst[dstPos + 0] = orig_palette[celConvert_TranslationTable[colour]].b;
+		} else {
+			dst[dstPos + 2] = orig_palette[colour].r;
+			dst[dstPos + 1] = orig_palette[colour].g;
+			dst[dstPos + 0] = orig_palette[colour].b;
+		}
+		srcPos++;
+		dstPos += 3;
+	}
+}
+
 static void ConvertOneLine(unsigned char *dst, unsigned char *src, int length, bool alpha) //Convert one line of CEL image data to RGB (or RGBA)
 {
 	int srcPos = 0;
@@ -431,7 +454,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	}
 
 	//Create SDL texture utilizing converted image data
-	textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
+	textureFrame->frame = SDL_CreateTexture(renderer, textureFrame->channels == 4 ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
 		ErrSdl();
 	if (SDL_UpdateTexture(textureFrame->frame, NULL, imgData, textureFrame->width * textureFrame->channels) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
@@ -527,6 +550,153 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
 		celDataOffsetPos += 4;
+	}
+}
+
+static int GetCL2Height(unsigned char *src, unsigned char *dataEnd, int frameWidth)
+{
+	unsigned char width;
+	int w = frameWidth;
+	unsigned int totalPixels = 0;
+	while (src < dataEnd) {
+		width = *src++;
+		if (width == 0)
+			break;
+		else if (width >= 0x01 && width <= 0x7F) {
+			width = width;
+		} else if (width >= 0x80 && width <= 0xBE) {
+			width = 191 - width;
+			src += 1;
+		} else {
+			width = 256 - width;
+			src += width;
+		}
+		totalPixels += width;
+	}
+	return totalPixels / frameWidth;
+}
+
+static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, unsigned int groupOffset, int frameWidth)
+{
+	//TODO: In order to reduce texture size, we could detect if there are rows/columns of fully transparent pixels along the edges and then crop baed on that
+
+	//Handle offset
+	unsigned int offsetStart = (unsigned int &)celData[celDataOffsetPos] + groupOffset;
+	celDataOffsetPos += 4;
+	unsigned int offsetEnd = (unsigned int &)celData[celDataOffsetPos] + groupOffset;
+	unsigned char *src = &celData[offsetStart];
+
+	//Handle frame header
+	{
+		unsigned short skip = (unsigned short &)*src;
+		src += skip;
+	}
+
+	//If height is unknown, then we calculate it from CL2 data
+	int frameHeight = -1;
+	if (frameHeight == -1)
+		frameHeight = GetCL2Height(src, &celData[offsetEnd], frameWidth);
+
+	//Set texture properties
+	textureFrame->width = frameWidth;
+	textureFrame->height = frameHeight;
+	textureFrame->channels = 4; //TODO: We could figure out if there's any transparency in the CEL, and then store it as 24-bit instead
+
+	//Create buffer
+	unsigned char *imgData = new unsigned char[textureFrame->width * textureFrame->height * textureFrame->channels];
+	memset(imgData, 0, textureFrame->width * textureFrame->height * textureFrame->channels); //Fluffy debug: Remove when CL2 conversion code is done
+
+	//Write CL2 data to buffer
+	unsigned char *dst = &imgData[textureFrame->width * (textureFrame->height - 1) * textureFrame->channels];
+	unsigned char *dataEnd = &celData[offsetEnd];
+	unsigned char width;
+	unsigned int dstWidthPos = 0, rest = 0, type;
+	while (src < dataEnd) {
+		width = *src++;
+		if (width == 0) //End of data
+			break;
+		else if (width >= 0x01 && width <= 0x7F) { //Transparent pixels (no image data)
+			type = 0;
+		} else if (width >= 0x80 && width <= 0xBE) { //Pixels of one colour (image data is one byte)
+			width = 191 - width;
+			type = 1;
+		} else { //Pixels of various colours (image data length is the same as line length)
+			width = 256 - width;
+			type = 2;
+		}
+
+		while (width) {
+			if (width + dstWidthPos > frameWidth)
+				rest = frameWidth - dstWidthPos;
+			else
+				rest = width;
+
+			if (type == 0) {
+				memset(dst, 0, rest * 4);
+			} else if (type == 1) {
+				ConvertOneLine_OneColour(dst, src[0], rest, true);
+			} else if (type == 2) {
+				ConvertOneLine(dst, src, rest, true);
+				src += rest;
+			}
+				
+			dst += rest * 4;
+			dstWidthPos += rest;
+			width -= rest;
+			if (dstWidthPos == frameWidth) {
+				dstWidthPos -= frameWidth;
+				dst -= frameWidth * textureFrame->channels * 2;
+			}
+			assert(dstWidthPos < frameWidth);
+		}
+
+		if (type == 1)
+			src++;
+	}
+
+	//Create SDL texture utilizing converted image data
+	textureFrame->frame = SDL_CreateTexture(renderer, textureFrame->channels == 4 ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
+	if (textureFrame->frame == 0)
+		ErrSdl();
+	if (SDL_UpdateTexture(textureFrame->frame, NULL, imgData, textureFrame->width * textureFrame->channels) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
+		ErrSdl();
+	delete[] imgData;
+	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
+		ErrSdl();
+}
+
+void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int groupNum)
+{
+	texture_s *texture = &textures[textureNum];
+	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
+
+	//Go through header data to attain total frame count
+	unsigned int totalFrameCount = 0;
+	unsigned int pos = 0;
+	for (int i = 0; i < groupNum; i++) {
+		if (groupNum > 1)
+			pos = (unsigned int &)celData[i * 4];
+		totalFrameCount += (unsigned int &)celData[pos];
+	}
+
+	//Create textureFrame_s pointer array
+	texture->frames = new textureFrame_s[totalFrameCount];
+	texture->frameCount = totalFrameCount;
+
+	//Parse CEL data
+	pos = 0;
+	unsigned int curFrameNum = 0;
+	for (int i = 0; i < groupNum; i++) {
+		//Go to clip header
+		if (groupNum > 1)
+			pos = (unsigned int &) celData[i * 4];
+
+		//Handle clip header
+		int frameCount = (unsigned int &)celData[pos];
+		for (int j = 0; j < frameCount; j++) {
+			ConvertCL2toSDL(&texture->frames[curFrameNum], celData, pos + 4 + (j * 4), pos, frameWidth); //Convert CEL
+			curFrameNum++;
+		}
 	}
 }
 
