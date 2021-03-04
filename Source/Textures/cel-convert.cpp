@@ -183,6 +183,7 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	delete[] imgData;
 	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
+	totalTextureSize += textureFrame->height * textureFrame->width * textureFrame->channels;
 
 	//TODO: Should we save this as a different format? We only need alpha channel since colour is handled by game code.
 }
@@ -204,6 +205,7 @@ void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData
 		ConvertCELtoSDL_Outline(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidths[j], frameHeights[j]);
 		celDataOffsetPos += 4;
 	}
+	texture->loaded = true;
 }
 
 static bool IsThisActuallyType1(unsigned char *src, unsigned char *end) //Check if it's valid to go through this as if it's a type 1 CEL frame
@@ -462,6 +464,7 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	delete[] imgData;
 	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
+	totalTextureSize += textureFrame->height * textureFrame->width * textureFrame->channels;
 }
 
 void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int textureNum, int *frameWidths, int *frameHeights, bool frameHeader)
@@ -481,6 +484,7 @@ void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int tex
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidths[j], frameHeights ? frameHeights[j] : -1);
 		celDataOffsetPos += 4;
 	}
+	texture->loaded = true;
 }
 
 void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader)
@@ -500,6 +504,7 @@ void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameW
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidth, frameHeight);
 		celDataOffsetPos += 4;
 	}
+	texture->loaded = true;
 }
 
 void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidth)
@@ -515,6 +520,7 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 	//Do the conversion
 	textureFrame_s *textureFrame = &texture->frames[0];
 	ConvertCELtoSDL(textureFrame, celData, 4, 0, frameWidth);
+	texture->loaded = true;
 }
 
 void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
@@ -551,6 +557,7 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
 		celDataOffsetPos += 4;
 	}
+	texture->loaded = true;
 }
 
 static int GetCL2PixelCount(unsigned char *src, unsigned char *dataEnd)
@@ -662,6 +669,7 @@ static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData
 	delete[] imgData;
 	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
+	totalTextureSize += textureFrame->height * textureFrame->width * textureFrame->channels;
 }
 
 void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int groupNum)
@@ -697,6 +705,7 @@ void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int groupN
 			curFrameNum++;
 		}
 	}
+	texture->loaded = true;
 }
 
 DEVILUTION_END_NAMESPACE

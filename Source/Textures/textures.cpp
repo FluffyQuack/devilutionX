@@ -13,13 +13,13 @@ unsigned long long totalTextureSize = 0; //Total size of all texture data loaded
 void Texture_UnloadTexture(int textureNum) //Unloads all frames for one texture
 {
 	texture_s *texture = &textures[textureNum];
-	if (texture->loaded == 0)
+	if (texture->loaded == false)
 		return;
 	for (int i = 0; i < texture->frameCount; i++) {
 		SDL_DestroyTexture(texture->frames[i].frame);
 		totalTextureSize -= texture->frames[i].height * texture->frames[i].width * texture->frames[i].channels;
 	}
-	texture->loaded = 0;
+	texture->loaded = false;
 	delete[] texture->frames;
 }
 
@@ -85,7 +85,7 @@ static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 		}
 	}
 
-	texture->loaded = 1;
+	texture->loaded = true;
 	texture->frameCount = frameCount;
 
 	//TODO: Use file loading in Devilution (which tries to load from file system, and then from MPQ)
@@ -112,7 +112,7 @@ static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
 	textureFrame->width = x;
 	textureFrame->height = y;
 	texture->frameCount = 1;
-	texture->loaded = 1;
+	texture->loaded = true;
 	totalTextureSize += textureFrame->height * textureFrame->width * textureFrame->channels;
 	if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
