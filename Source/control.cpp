@@ -5,7 +5,7 @@
  */
 #include "all.h"
 #include "textures/textures.h" //Fluffy: For accessing SDL textures
-#include "render/render.h" //Fluffy: For rendering via SDL
+#include "render/sdl-render.h" //Fluffy: For rendering via SDL
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE

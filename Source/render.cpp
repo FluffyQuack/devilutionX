@@ -5,7 +5,7 @@
  */
 #include "all.h"
 #include "textures/textures.h" //Fluffy: For SDL textures
-#include "render/render.h" //Fluffy: For rendering SDL textures
+#include "render/sdl-render.h" //Fluffy: For rendering SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
