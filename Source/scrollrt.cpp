@@ -731,9 +731,11 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 
 	if (options_hwRendering) { //Fluffy: Render player via SDL
 		//Figure out what animation the player is in
-		int textureNum = TEXTURE_PLAYERS + (p * PLAYERANIM_NUM);
-		int facing = 0;
-		int brightness = 255 - ((light_table_index * 255) / lightmax);
+		int textureNum = TEXTURE_PLAYERS + (p * PLAYERANIM_NUM), brightness, facing = 0;
+		if(p == myplr)
+			brightness = 255;
+		else
+			brightness = 255 - ((light_table_index * 255) / lightmax);
 		for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
 			facing = i;
 			if (pPlayer->_pAnimData == pPlayer->_pNAnim[i]) textureNum += PLAYERANIM_STAND;
