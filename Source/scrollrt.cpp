@@ -342,6 +342,56 @@ static void DrawMonster(int x, int y, int mx, int my, int m)
 	}
 }
 
+static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
+{
+	if (!(dFlags[x][y] & BFLAG_LIT || plr[myplr]._pInfraFlag || !setlevel && currlevel == 0))
+		return;
+
+	PlayerStruct *pPlayer = &plr[p];
+	//Figure out what animation the player is in
+	int textureNum = TEXTURE_PLAYERS + (p * PLAYERANIM_NUM), brightness, facing = 0;
+	if (p == myplr)
+		brightness = 255;
+	else
+		brightness = 255 - ((light_table_index * 255) / lightmax);
+	for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
+		facing = i;
+		if (pPlayer->_pAnimData == pPlayer->_pNAnim[i])
+			textureNum += PLAYERANIM_STAND;
+		else if (pPlayer->_pAnimData == pPlayer->_pWAnim[i])
+			textureNum += PLAYERANIM_WALK;
+		else if (pPlayer->_pAnimData == pPlayer->_pAAnim[i])
+			textureNum += PLAYERANIM_ATTACK;
+		else if (pPlayer->_pAnimData == pPlayer->_pLAnim[i])
+			textureNum += PLAYERANIM_SPELL_LIGHTNING;
+		else if (pPlayer->_pAnimData == pPlayer->_pFAnim[i])
+			textureNum += PLAYERANIM_SPELL_FIRE;
+		else if (pPlayer->_pAnimData == pPlayer->_pTAnim[i])
+			textureNum += PLAYERANIM_SPELL_GENERIC;
+		else if (pPlayer->_pAnimData == pPlayer->_pHAnim[i])
+			textureNum += PLAYERANIM_GETHIT;
+		else if (pPlayer->_pAnimData == pPlayer->_pDAnim[i])
+			textureNum += PLAYERANIM_DEATH;
+		else if (pPlayer->_pAnimData == pPlayer->_pBAnim[i])
+			textureNum += PLAYERANIM_BLOCK;
+		else if (pPlayer->_pAnimData == pPlayer->_pNAnim_c[i])
+			textureNum += PLAYERANIM_STAND_CASUAL;
+		else if (pPlayer->_pAnimData == pPlayer->_pWAnim_c[i])
+			textureNum += PLAYERANIM_WALK_CASUAL;
+		else
+			continue;
+		break;
+	}
+	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+	Render_Texture_FromBottomLeft(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+	//TODO: Render outline (if player is selected) and Mana Shield if it's on
+}
+
 /**
  * @brief Render a player sprite
  * @param pnum Player id
@@ -440,7 +490,10 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 			px = sx + p->_pxoff - p->_pAnimWidth2;
 			py = sy + p->_pyoff;
 
-			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
+			if (options_hwRendering)
+				DrawPlayer_SDL(i, x, y, px, py);
+			else
+				DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
 	}
 }
@@ -754,36 +807,7 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int py = sy + pPlayer->_pyoff;
 
 	if (options_hwRendering) { //Fluffy: Render player via SDL
-		//Figure out what animation the player is in
-		int textureNum = TEXTURE_PLAYERS + (p * PLAYERANIM_NUM), brightness, facing = 0;
-		if(p == myplr)
-			brightness = 255;
-		else
-			brightness = 255 - ((light_table_index * 255) / lightmax);
-		for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
-			facing = i;
-			if (pPlayer->_pAnimData == pPlayer->_pNAnim[i]) textureNum += PLAYERANIM_STAND;
-			else if (pPlayer->_pAnimData == pPlayer->_pWAnim[i]) textureNum += PLAYERANIM_WALK;
-			else if (pPlayer->_pAnimData == pPlayer->_pAAnim[i]) textureNum += PLAYERANIM_ATTACK;
-			else if (pPlayer->_pAnimData == pPlayer->_pLAnim[i]) textureNum += PLAYERANIM_SPELL_LIGHTNING;
-			else if (pPlayer->_pAnimData == pPlayer->_pFAnim[i]) textureNum += PLAYERANIM_SPELL_FIRE;
-			else if (pPlayer->_pAnimData == pPlayer->_pTAnim[i]) textureNum += PLAYERANIM_SPELL_GENERIC;
-			else if (pPlayer->_pAnimData == pPlayer->_pHAnim[i]) textureNum += PLAYERANIM_GETHIT;
-			else if (pPlayer->_pAnimData == pPlayer->_pDAnim[i]) textureNum += PLAYERANIM_DEATH;
-			else if (pPlayer->_pAnimData == pPlayer->_pBAnim[i]) textureNum += PLAYERANIM_BLOCK;
-			else if (pPlayer->_pAnimData == pPlayer->_pNAnim_c[i]) textureNum += PLAYERANIM_STAND_CASUAL;
-			else if (pPlayer->_pAnimData == pPlayer->_pWAnim_c[i]) textureNum += PLAYERANIM_WALK_CASUAL;
-			else continue;
-			break;
-		}
-		int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottomLeft(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-
-		//TODO: Render outline (if player is selected) and Mana Shield if it's on
+		DrawPlayer_SDL(p, x, y, px, py);
 		return;
 	}
 
