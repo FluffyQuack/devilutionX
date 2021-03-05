@@ -161,11 +161,22 @@ enum {
 	//Object textures from CEL data
 	TEXTURE_OBJECTS,
 	TEXTURE_OBJECTS_LAST = TEXTURE_OBJECTS + 40, //40 is the quantity of unique objects in the game. TODO: Replace number with a reference
-
-	//Object textures from CEL data
-	TEXTURE_NPCS,
-	TEXTURE_NPCS_LAST = TEXTURE_NPCS + NUM_TOWNERS,
 	*/
+
+	//Towners
+	TEXTURE_SMITH, //Towners\\Smith\\SmithN.CEL
+	TEXTURE_BAROWNER, //Towners\\TwnF\\TwnFN.CEL
+	TEXTURE_DEADGUY, //Towners\\Butch\\Deadguy.CEL
+	TEXTURE_WITCH, //Towners\\TownWmn1\\Witch.CEL
+	TEXTURE_BARMAID, //Towners\\TownWmn1\\WmnN.CEL
+	TEXTURE_BOY, //Towners\\TownBoy\\PegKid1.CEL
+	TEXTURE_HEALER, //Towners\\Healer\\Healer.CEL
+	TEXTURE_STORYTELLER, //Towners\\Strytell\\Strytell.CEL
+	TEXTURE_DRUNK, //Towners\\Drunk\\TwnDrunk.CEL
+	TEXTURE_COWS, //Towners\\Animals\\Cow.CEL
+	TEXTURE_FARMER, //Towners\\Farmer\\Farmrn2.CEL
+	TEXTURE_COWFARMER, //Towners\\Farmer\\cfrmrn2.CEL (or mfrmrn2.CEL)
+	TEXTURE_GIRL, //Towners\\Girl\\Girlw1.CEL (or Girls1.CEL)
 
 	//Texture versions of various masks in render.cpp
 	TEXTURE_TILE_LEFTFOLIAGEMASK,

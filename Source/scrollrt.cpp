@@ -714,6 +714,34 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 
 	if (leveltype == DTYPE_TOWN) {
 		px = sx - towner[mi]._tAnimWidth2;
+
+		if (options_hwRendering && towner[mi]._ttype == TOWN_COW) { //Fluffy: Render NPC via SDL
+			int textureNum = TOWN_SMITH;
+			int frameNum = towner[mi]._tAnimFrame - 1;
+			if (towner[mi]._ttype == TOWN_COW) {
+				textureNum = TEXTURE_COWS;
+				for (int j = 0; j < 8; j++) //Figure out facing for the cow
+					if (towner[mi]._tAnimData == towner[mi]._tNAnim[j]) {
+						frameNum += towner[mi]._tAnimLen * j;
+						break;
+					}
+			}
+			if (mi == pcursmonst) {
+				//TODO: Draw outline for selected NPC
+				/*SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, blendMode);
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				Render_Texture_FromBottomLeft(px - BORDER_LEFT - 1, sy - BORDER_TOP - 0, textureNum, frameNum);
+				Render_Texture_FromBottomLeft(px - BORDER_LEFT + 1, sy - BORDER_TOP + 0, textureNum, frameNum);
+				Render_Texture_FromBottomLeft(px - BORDER_LEFT - 0, sy - BORDER_TOP - 1, textureNum, frameNum);
+				Render_Texture_FromBottomLeft(px - BORDER_LEFT + 0, sy - BORDER_TOP + 1, textureNum, frameNum);
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);*/
+			}
+			Render_Texture_FromBottomLeft(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+			
+			return;
+		}
 		if (mi == pcursmonst) {
 			CelBlitOutline(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
 			if (options_opaqueWallsWithSilhouette) //Fluffy

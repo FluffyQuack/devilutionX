@@ -4,6 +4,8 @@
  * Implementation of functionality for loading and spawning towners.
  */
 #include "all.h"
+#include "textures/textures.h" //Fluffy: For loading CELs as SDL textures
+#include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -472,6 +474,17 @@ void InitGirl()
 	numtowners++;
 }
 
+static int ReturnTownerWidth(int type)
+{
+	for (int i = 0; i < NUM_TOWNERS; i++) {
+		if (towner[i]._ttype == type)
+			return towner[i]._tAnimWidth;
+	}
+
+	assert(false);
+	return 128;
+}
+
 void InitTowners()
 {
 	numtowners = 0;
@@ -497,6 +510,11 @@ void InitTowners()
 			InitGirl();
 		}
 	}
+
+	if (options_hwRendering) { //Fluffy: Load all town NPCs via SDL
+		//TODO
+		Texture_ConvertCEL_MultipleFrames(pCowCels, TEXTURE_COWS, ReturnTownerWidth(TOWN_COW), -1, true, 8);
+	}
 }
 
 void FreeTownerGFX()
@@ -512,6 +530,8 @@ void FreeTownerGFX()
 	}
 
 	MemFreeDbg(pCowCels);
+
+	//Fluffy TODO: Unload towner textures
 }
 
 void TownCtrlMsg(int i)
