@@ -566,7 +566,21 @@ void FreeTownerGFX()
 
 	MemFreeDbg(pCowCels);
 
-	//Fluffy TODO: Unload towner textures
+	//Fluffy: Unload NPC SDL textures
+	Texture_UnloadTexture(TEXTURE_SMITH);
+	Texture_UnloadTexture(TEXTURE_BAROWNER);
+	Texture_UnloadTexture(TEXTURE_DEADGUY);
+	Texture_UnloadTexture(TEXTURE_WITCH);
+	Texture_UnloadTexture(TEXTURE_BARMAID);
+	Texture_UnloadTexture(TEXTURE_BOY);
+	Texture_UnloadTexture(TEXTURE_HEALER);
+	Texture_UnloadTexture(TEXTURE_STORYTELLER);
+	Texture_UnloadTexture(TEXTURE_DRUNK);
+	Texture_UnloadTexture(TEXTURE_COWS);
+	Texture_UnloadTexture(TEXTURE_SMITH);
+	Texture_UnloadTexture(TEXTURE_FARMER);
+	Texture_UnloadTexture(TEXTURE_COWFARMER);
+	Texture_UnloadTexture(TEXTURE_GIRL);
 }
 
 void TownCtrlMsg(int i)
