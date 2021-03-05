@@ -715,11 +715,53 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 	if (leveltype == DTYPE_TOWN) {
 		px = sx - towner[mi]._tAnimWidth2;
 
-		if (options_hwRendering && towner[mi]._ttype == TOWN_COW) { //Fluffy: Render NPC via SDL
-			int textureNum = TOWN_SMITH;
+		if (options_hwRendering) { //Fluffy: Render NPC via SDL
+			int textureNum = TEXTURE_SMITH;
+			switch (towner[mi]._ttype) {
+			case TOWN_SMITH:
+				textureNum = TEXTURE_SMITH;
+				break;
+			case TOWN_HEALER:
+				textureNum = TEXTURE_HEALER;
+				break;
+			case TOWN_DEADGUY:
+				textureNum = TEXTURE_DEADGUY;
+				break;
+			case TOWN_TAVERN:
+				textureNum = TEXTURE_BAROWNER;
+				break;
+			case TOWN_WITCH:
+				textureNum = TEXTURE_WITCH;
+				break;
+			case TOWN_STORY:
+				textureNum = TEXTURE_STORYTELLER;
+				break;
+			case TOWN_DRUNK:
+				textureNum = TEXTURE_DRUNK;
+				break;
+			case TOWN_BMAID:
+				textureNum = TEXTURE_BARMAID;
+				break;
+			case TOWN_PEGBOY:
+				textureNum = TEXTURE_BOY;
+				break;
+			case TOWN_COW:
+				textureNum = TEXTURE_COWS;
+				break;
+			case TOWN_FARMER:
+				textureNum = TEXTURE_FARMER;
+				break;
+			case TOWN_GIRL:
+				textureNum = TEXTURE_GIRL;
+				break;
+			case TOWN_COWFARM:
+				textureNum = TEXTURE_COWFARMER;
+				break;
+			case TOWN_PRIEST:
+				break;
+			}
 			int frameNum = towner[mi]._tAnimFrame - 1;
 			if (towner[mi]._ttype == TOWN_COW) {
-				textureNum = TEXTURE_COWS;
 				for (int j = 0; j < 8; j++) //Figure out facing for the cow
 					if (towner[mi]._tAnimData == towner[mi]._tNAnim[j]) {
 						frameNum += towner[mi]._tAnimLen * j;
@@ -729,7 +771,6 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 			if (mi == pcursmonst)
 				Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 165, 90, 90, textureNum, frameNum);
 			Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
-			
 			return;
 		}
 		if (mi == pcursmonst) {
