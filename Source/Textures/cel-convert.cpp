@@ -121,14 +121,18 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 			if (width == 0) // Indicates end of data. I think this is only used in dungeon tile CELs
 				break;
 			if (!(width & 0x80)) { //Run-length encoding. Positive signed byte means it's defining quantity of bytes with image data
-				for (int j = 0; j < width; j++) { //We have to go pixel by pixel here because we want to skip shadow pixels
+				//TODO: For now, outline creation is only done for inventory items, and for those it's okay to include shadow pixels
+				memset(bufferPtr, 1, width);
+				src += width;
+				bufferPtr += width;
+				/*for (int j = 0; j < width; j++) { //We have to go pixel by pixel here because we want to skip shadow pixels
 					if (*src != 0)
 						*bufferPtr = 1;
 					else
 						*bufferPtr = 0;
 					src++;
 					bufferPtr += 1;
-				}
+				}*/
 			} else { //Negative signed byte means it's defining quantity of skipped pixels
 				width = -(char)width;
 				memset(bufferPtr, 0, width);
