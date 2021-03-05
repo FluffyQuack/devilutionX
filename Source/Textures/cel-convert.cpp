@@ -617,11 +617,10 @@ static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData
 	//Handle frame header and attain frame resolution
 	int frameWidth, frameHeight;
 	{
-		unsigned short skip = (unsigned short &)*src;
-		unsigned short offset1 = (unsigned short &)src[2];
-		unsigned short offset2 = (unsigned short &)src[4];
+		unsigned short offset1 = (unsigned short &)src[0];
+		unsigned short offset2 = (unsigned short &)src[2];
 		frameWidth = GetCL2PixelCount(&src[offset1], &src[offset2]) / 32;
-		src += skip;
+		src += offset1;
 		frameHeight = GetCL2PixelCount(src, &celData[offsetEnd]) / frameWidth;
 	}
 
