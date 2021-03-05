@@ -782,6 +782,8 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		assert(facing != -1);
 		foundAnim:
 		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
+		if (mi == pcursmonst)
+			Render_TextureOutline_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, 147, 30, 30, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
 		Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
