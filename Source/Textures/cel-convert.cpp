@@ -487,22 +487,40 @@ void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int tex
 	texture->loaded = true;
 }
 
-void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader)
+void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader, int groupNum)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
-	//Create textureFrame_s pointer array
-	int frameCount = (int &)*celData;
-	texture->frames = new textureFrame_s[frameCount];
-	texture->frameCount = frameCount;
-	unsigned int celDataOffsetPos = 4;
-	for (int j = 0; j < frameCount; j++) {
+	//Go through header data to attain total frame count
+	unsigned int totalFrameCount = 0;
+	unsigned int pos = 0;
+	for (int i = 0; i < groupNum; i++) {
+		if (groupNum > 1)
+			pos = (unsigned int &)celData[i * 4];
+		totalFrameCount += (unsigned int &)celData[pos];
+	}
 
-		//Do the conversion
-		textureFrame_s *textureFrame = &texture->frames[j];
-		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, frameHeader, frameWidth, frameHeight);
-		celDataOffsetPos += 4;
+	//Create textureFrame_s pointer array
+	texture->frames = new textureFrame_s[totalFrameCount];
+	texture->frameCount = totalFrameCount;
+
+	//Parse CEL data
+	pos = 0;
+	unsigned int curFrameNum = 0;
+	for (int i = 0; i < groupNum; i++) {
+		//Go to CEL
+		if (groupNum > 1)
+			pos = (unsigned int &)celData[i * 4];
+
+		//Handle CEL
+		int frameCount = (unsigned int &)celData[pos];
+		unsigned int celDataOffsetPos = 4;
+		for (int j = 0; j < frameCount; j++) {
+			ConvertCELtoSDL(&texture->frames[curFrameNum], &celData[pos], celDataOffsetPos, frameHeader, frameWidth, -1);
+			celDataOffsetPos += 4;
+			curFrameNum++;
+		}
 	}
 	texture->loaded = true;
 }
@@ -690,15 +708,15 @@ void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int groupN
 	texture->frames = new textureFrame_s[totalFrameCount];
 	texture->frameCount = totalFrameCount;
 
-	//Parse CEL data
+	//Parse CL2 data
 	pos = 0;
 	unsigned int curFrameNum = 0;
 	for (int i = 0; i < groupNum; i++) {
-		//Go to clip header
+		//Go to CL2
 		if (groupNum > 1)
 			pos = (unsigned int &) celData[i * 4];
 
-		//Handle clip header
+		//Handle CL2
 		int frameCount = (unsigned int &)celData[pos];
 		for (int j = 0; j < frameCount; j++) {
 			ConvertCL2toSDL(&texture->frames[curFrameNum], celData, pos + 4 + (j * 4), pos); //Convert CEL
