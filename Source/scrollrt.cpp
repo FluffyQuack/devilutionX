@@ -789,7 +789,6 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-		//TODO: Draw outline for selected monster
 		//TODO: Do rendering differently if trans is non-zero
 	}
 
