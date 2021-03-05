@@ -370,7 +370,7 @@ void RenderTileViaSDL(int sx, int sy)
 	}
 
 	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
-	Render_Texture_FromBottomLeft(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
+	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
 	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
 	if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
 		SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);

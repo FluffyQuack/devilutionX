@@ -185,7 +185,8 @@ enum {
 	TEXTURE_TILE_RIGHTMASK,
 
 	//This is used for multiple render passes for tiles needing a different alpha mask
-	TEXTURE_TILE_INTERMEDIATE,
+	TEXTURE_TILE_INTERMEDIATE, //32x32
+	TEXTURE_TILE_INTERMEDIATE_BIG, //SCREEN_WIDTH * SCREEN_HEIGHT
 
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,

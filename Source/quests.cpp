@@ -825,7 +825,7 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 	}
 	if (qline == y) {
 		if (options_hwRendering)
-			Render_Texture_FromBottomLeft(cjustflag ? x + k + 12 : x + 12, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+			Render_Texture_FromBottom(cjustflag ? x + k + 12 : x + 12, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
 			CelDraw(cjustflag ? x + k + 12 + SCREEN_X : x + 12 + SCREEN_X, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}
@@ -839,7 +839,7 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 	}
 	if (qline == y) {
 		if (options_hwRendering)
-			Render_Texture_FromBottomLeft(cjustflag ? x + k + 36 : 276 - x, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+			Render_Texture_FromBottom(cjustflag ? x + k + 36 : 276 - x, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
 			CelDraw(cjustflag ? x + k + 36 + SCREEN_X : 276 + SCREEN_X - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}

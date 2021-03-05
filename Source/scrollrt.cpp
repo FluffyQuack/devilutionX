@@ -385,7 +385,7 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
 	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-	Render_Texture_FromBottomLeft(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+	Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 
@@ -726,19 +726,9 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 						break;
 					}
 			}
-			if (mi == pcursmonst) {
-				//TODO: Draw outline for selected NPC
-				/*SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
-				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, blendMode);
-				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-				Render_Texture_FromBottomLeft(px - BORDER_LEFT - 1, sy - BORDER_TOP - 0, textureNum, frameNum);
-				Render_Texture_FromBottomLeft(px - BORDER_LEFT + 1, sy - BORDER_TOP + 0, textureNum, frameNum);
-				Render_Texture_FromBottomLeft(px - BORDER_LEFT - 0, sy - BORDER_TOP - 1, textureNum, frameNum);
-				Render_Texture_FromBottomLeft(px - BORDER_LEFT + 0, sy - BORDER_TOP + 1, textureNum, frameNum);
-				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);*/
-			}
-			Render_Texture_FromBottomLeft(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+			if (mi == pcursmonst)
+				Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 165, 90, 90, textureNum, frameNum);
+			Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
 			
 			return;
 		}
@@ -794,7 +784,7 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottomLeft(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+		Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		//TODO: Draw outline for selected monster
@@ -940,7 +930,7 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				int brightness = 255 - ((light_table_index * 255) / lightmax);
 				if (brightness < 255)
 					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-				Render_Texture_FromBottomLeft(px - BORDER_LEFT, dy - BORDER_TOP, textureNum, frameNum);
+				Render_Texture_FromBottom(px - BORDER_LEFT, dy - BORDER_TOP, textureNum, frameNum);
 				if (brightness < 255)
 					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 				//TODO: Do rendering differently if pDeadGuy->_deadtrans is non-zero

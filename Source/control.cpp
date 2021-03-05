@@ -255,7 +255,7 @@ void DrawSpellCel(int xp, int yp, int nCel, int type, bool spellBook) //Fluffy: 
 		/*if (spellBook) //This takes the big spell icon and scales it down to the same size of spell book icons. I like this dynamic solution, but the icons end up looking a bit different (the small icons in the CEL are a bit different than the normal spell icons, as they have a different border)
 			Render_Texture_ScaleAndCrop(xp - BORDER_LEFT, yp - BORDER_TOP - width + 1, textureNum, width, width, 5, 4, textures[textureNum].frames[nCel - 1].width - 3, textures[textureNum].frames[nCel - 1].height - 4, nCel - 1);
 		else*/
-		Render_Texture_FromBottomLeft(xp - BORDER_LEFT, yp - BORDER_TOP, textureNum, nCel - 1);
+		Render_Texture_FromBottom(xp - BORDER_LEFT, yp - BORDER_TOP, textureNum, nCel - 1);
 		return;
 	}
 
@@ -1068,7 +1068,7 @@ void DrawCtrlPan()
 static void DrawCtrlButton(int x, int y, BYTE *celData, int width, int frame, int texture)
 {
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottomLeft(x + PANEL_LEFT, y + PANEL_TOP, texture, frame - 1);
+		Render_Texture_FromBottom(x + PANEL_LEFT, y + PANEL_TOP, texture, frame - 1);
 	else
 		CelDraw(x + PANEL_X, y + PANEL_Y, celData, frame, width);
 }
@@ -1610,7 +1610,7 @@ static void MY_PlrStringXY(int x, int y, int endX, const char *pszStr, char col,
 static void RenderLevelupIconOnStatWindow(int x, int y, int frame)
 {
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottomLeft(x, y, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
+		Render_Texture_FromBottom(x, y, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
 	else
 		CelDraw(x + SCREEN_X, y + SCREEN_Y, pChrButtons, frame, 41);
 }
@@ -1856,7 +1856,7 @@ void DrawLevelUpIcon()
 		ADD_PlrStringXY(PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
 
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottomLeft(40 + PANEL_LEFT, -17 + PANEL_TOP, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
+			Render_Texture_FromBottom(40 + PANEL_LEFT, -17 + PANEL_TOP, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
 		else
 			CelDraw(40 + PANEL_X, -17 + PANEL_Y, pChrButtons, nCel, 41);
 	}
@@ -1969,7 +1969,7 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 	if (pItem->_iDurability > 2)
 		c += 8;
 	if (options_hwRendering) //Fluffy: Render via SDL rendering
-		Render_Texture_FromBottomLeft(x - BORDER_LEFT, -17 + PANEL_TOP, TEXTURE_DURABILITYWARNING, c - 1);
+		Render_Texture_FromBottom(x - BORDER_LEFT, -17 + PANEL_TOP, TEXTURE_DURABILITYWARNING, c - 1);
 	else
 		CelDraw(x, -17 + PANEL_Y, pDurIcons, c, 32);
 	return x - 32 - 8;
@@ -2103,9 +2103,9 @@ void DrawSpellBook()
 	if (options_hwRendering) { //Fluffy: Render spellbook window and buttons via SDL
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_SPELLBOOK);
 		if (gbIsHellfire && sbooktab < 5)
-			Render_Texture_FromBottomLeft(RIGHT_PANEL + 61 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
+			Render_Texture_FromBottom(RIGHT_PANEL + 61 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
 		else if (gbIsHellfire && sbooktab < 4)
-			Render_Texture_FromBottomLeft(RIGHT_PANEL + 76 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
+			Render_Texture_FromBottom(RIGHT_PANEL + 76 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
 	} else {
 		CelDraw(RIGHT_PANEL_X, 351 + SCREEN_Y, pSpellBkCel, 1, SPANEL_WIDTH);
 		if (gbIsHellfire && sbooktab < 5)
@@ -2215,7 +2215,7 @@ void DrawGoldSplit(int amount)
 
 	screen_x = 0;
 	if (options_hwRendering) //Fluffy: Draw via SDL rendering
-		Render_Texture_FromBottomLeft(351, 178, TEXTURE_GOLDDROPSELECTION);
+		Render_Texture_FromBottom(351, 178, TEXTURE_GOLDDROPSELECTION);
 	else
 		CelDraw(351 + SCREEN_X, 178 + SCREEN_Y, pGBoxBuff, 1, 261);
 	sprintf(tempstr, "You have %u gold", initialDropGoldValue);
@@ -2237,7 +2237,7 @@ void DrawGoldSplit(int amount)
 		screen_x = 450;
 	}
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottomLeft(screen_x - BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(screen_x - BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDraw(screen_x, 140 + SCREEN_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 }
@@ -2371,7 +2371,7 @@ void DrawTalkPan()
 	if (msg)
 		*msg = '\0';
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottomLeft(x - BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(x - BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDraw(x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	talk_btn = 0;
@@ -2386,7 +2386,7 @@ void DrawTalkPan()
 				else
 					nCel = 3;
 				if (options_hwRendering) //Fluffy: Render via SDL
-					Render_Texture_FromBottomLeft(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
+					Render_Texture_FromBottom(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
 				else
 					CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
 			}
@@ -2399,7 +2399,7 @@ void DrawTalkPan()
 			if (talkbtndown[talk_btn])
 				nCel += 4;
 			if (options_hwRendering) //Fluffy: Render via SDL
-				Render_Texture_FromBottomLeft(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
+				Render_Texture_FromBottom(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
 			else
 				CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
 		}

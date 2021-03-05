@@ -155,7 +155,7 @@ void PrintQTextChr(int sx, int sy, Uint8 *pCelBuff, int nCel)
 		rect.w = 1280;
 		rect.h = 260;
 		SDL_RenderSetClipRect(renderer, &rect);
-		Render_Texture_FromBottomLeft(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_MEDIUMFONT, nCel - 1);
+		Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_MEDIUMFONT, nCel - 1);
 		SDL_RenderSetClipRect(renderer, NULL);
 		return;
 	}

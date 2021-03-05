@@ -2,8 +2,81 @@
 
 #include "../all.h"
 #include "../textures/textures.h"
+#include "sdl-render.h"
 
 DEVILUTION_BEGIN_NAMESPACE
+
+//Render texture as a solid colour
+void Render_Texture_SolidColor(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
+{
+	if (!options_hwRendering)
+		return;
+	if (textures[textureNum].frameCount <= frameNum) {
+		ErrSdl(); //TODO Quit with proper error message
+	}
+
+	//Switch to a intermediate render target and render a solid colour to it
+	SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
+	SDL_SetRenderDrawColor(renderer, r, g, b, 0);
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = textures[textureNum].frames[frameNum].width;
+	rect.h = textures[textureNum].frames[frameNum].height;
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	SDL_RenderFillRect(renderer, &rect);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+	//Create alpha
+	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, blendMode);
+	Render_Texture(0, 0, textureNum, frameNum);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
+
+	//Switch render target back to intermediate texture and render generated texture
+	SDL_SetRenderTarget(renderer, texture_intermediate);
+	Render_Texture_Crop(x, y, TEXTURE_TILE_INTERMEDIATE_BIG, 0, 0, rect.w, rect.h);
+}
+
+void Render_TextureOutline_FromBottom(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
+{
+	Render_TextureOutline(x, y - textures[textureNum].frames[frameNum].height + 1, r, g, b, textureNum, frameNum);
+}
+
+//Render texture as an outline (this assumes the normal version of the texture is rendered afterwards)
+void Render_TextureOutline(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
+{
+	if (!options_hwRendering)
+		return;
+	if (textures[textureNum].frameCount <= frameNum) {
+		ErrSdl(); //TODO Quit with proper error message
+	}
+
+	//Switch to a intermediate render target and render a solid colour to it
+	SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
+	SDL_SetRenderDrawColor(renderer, r, g, b, 0);
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = textures[textureNum].frames[frameNum].width + 2;
+	rect.h = textures[textureNum].frames[frameNum].height + 2;
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	SDL_RenderFillRect(renderer, &rect);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+	//Create thicc alpha by rendering frame 4 times in different directions
+	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, blendMode);
+	Render_Texture(1, 0, textureNum, frameNum);
+	Render_Texture(0, 1, textureNum, frameNum);
+	Render_Texture(2, 1, textureNum, frameNum);
+	Render_Texture(1, 2, textureNum, frameNum);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
+
+	//Switch render target back to intermediate texture and render the outline we created
+	SDL_SetRenderTarget(renderer, texture_intermediate);
+	Render_Texture_Crop(x - 1, y - 1, TEXTURE_TILE_INTERMEDIATE_BIG, 0, 0, rect.w, rect.h);
+}
 
 void Render_Texture_ScaleAndCrop(int x, int y, int textureNum, int width, int height, int startX, int startY, int endX, int endY, int frameNum)
 {
@@ -79,21 +152,9 @@ void Render_Texture_Crop(int x, int y, int textureNum, int startX, int startY, i
 }
 
 //Same as Render_Texture() but anchor point is bottomleft rather than topright (this is how most stuff is rendered in original Diablo code)
-void Render_Texture_FromBottomLeft(int x, int y, int textureNum, int frameNum)
+void Render_Texture_FromBottom(int x, int y, int textureNum, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
-	if (textures[textureNum].frameCount <= frameNum) {
-		ErrSdl(); //TODO Quit with proper error message
-	}
-	textureFrame_s *textureFrame = &textures[textureNum].frames[frameNum];
-	SDL_Rect dstR;
-	dstR.x = x;
-	dstR.y = y - textureFrame->height + 1;
-	dstR.w = textureFrame->width;
-	dstR.h = textureFrame->height;
-
-	SDL_RenderCopy(renderer, textureFrame->frame, NULL, &dstR);
+	Render_Texture(x, y - textures[textureNum].frames[frameNum].height + 1, textureNum, frameNum);
 }
 
 void Render_Texture(int x, int y, int textureNum, int frameNum)

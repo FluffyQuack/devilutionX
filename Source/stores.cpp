@@ -167,7 +167,7 @@ void PrintSString(int x, int y, BOOL cjustflag, const char *str, char col, int v
 		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottomLeft(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDraw(renderX, renderY + SCREEN_Y, pSPentSpn2Cels, frameNum, 12);
 	}
@@ -196,7 +196,7 @@ void PrintSString(int x, int y, BOOL cjustflag, const char *str, char col, int v
 		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottomLeft(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDraw(renderX, renderY + SCREEN_Y, pSPentSpn2Cels, frameNum, 12);
 	}
@@ -247,7 +247,7 @@ void DrawSLine(int y)
 static void DrawSSlider_Render(int x, int y, int frameNum)
 {
 	if (options_hwRendering) //Fluffy: SDL render
-		Render_Texture_FromBottomLeft(x, y, TEXTURE_DYNAMICWINDOW, frameNum - 1);
+		Render_Texture_FromBottom(x, y, TEXTURE_DYNAMICWINDOW, frameNum - 1);
 	else
 		CelDraw(x + SCREEN_X, y + SCREEN_Y, pSTextSlidCels, frameNum, 12);
 }
@@ -281,7 +281,7 @@ void DrawSSlider(int y1, int y2)
 
 	int renderY = (y1 + 1) * 12 + 44 + UI_OFFSET_Y + yd3;
 	if (options_hwRendering) //Fluffy: SDL render
-		Render_Texture_FromBottomLeft(renderX, renderY, TEXTURE_DYNAMICWINDOW, 13 - 1);
+		Render_Texture_FromBottom(renderX, renderY, TEXTURE_DYNAMICWINDOW, 13 - 1);
 	else
 		CelDraw(renderX + SCREEN_X, renderY + SCREEN_Y, pSTextSlidCels, 13, 12);
 }
