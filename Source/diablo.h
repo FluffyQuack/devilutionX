@@ -58,6 +58,7 @@ extern BOOL options_transparency;
 extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
 extern BOOL options_opaqueWallsWithSilhouette;
+extern BOOL options_initHwRendering;
 extern BOOL options_hwRendering;
 extern BOOL options_animatedUIFlasks;
 

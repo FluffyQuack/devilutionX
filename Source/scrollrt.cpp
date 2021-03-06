@@ -1726,15 +1726,23 @@ static void DrawFPS()
 			snprintf(String, 100, "mouseXY: %i %i", MouseX, MouseY);
 			RenderDebugLine(&x, &y, String);
 
-			if (totalTextureSize < 1 << 10)
-				snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
-			else if (totalTextureSize < (1 << 20) * 10)
-				snprintf(String, 100, "loadedTextures: %uKB", totalTextureSize >> 10);
-			else if (totalTextureSize < (1 << 30) * 10)
-				snprintf(String, 100, "loadedTextures: %uMB", totalTextureSize >> 20);
-			else
-				snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
-			RenderDebugLine(&x, &y, String);
+			if (options_initHwRendering) {
+				if (totalTextureSize < 1 << 10)
+					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
+				else if (totalTextureSize < (1 << 20) * 10)
+					snprintf(String, 100, "loadedTextures: %uKB", totalTextureSize >> 10);
+				else if (totalTextureSize < (1 << 30) * 10)
+					snprintf(String, 100, "loadedTextures: %uMB", totalTextureSize >> 20);
+				else
+					snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
+				RenderDebugLine(&x, &y, String);
+			
+				if (options_hwRendering)
+					snprintf(String, 100, "hwRendering: ON");
+				else
+					snprintf(String, 100, "hwRendering: OFF");
+				RenderDebugLine(&x, &y, String);
+			}
 		}
 	}
 }

@@ -103,8 +103,9 @@ BOOL options_transparency = false; //Fluffy: Replaces dithering with proper tran
 BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
-BOOL options_hwRendering = false; //Fluffy: If true, we render to a 32-bit buffer (required for certain graphical features)
-BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks
+BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
+BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
+BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 
 /* rdata */
 
@@ -294,7 +295,7 @@ void FreeGameMem()
 	FreeTownerGFX();
 
 	//Fluffy: Also delete equivalent SDL textures
-	if (options_hwRendering) {
+	if (options_initHwRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
 	}
 }
@@ -317,7 +318,7 @@ static void start_game(unsigned int uMsg)
 	track_repeat_walk(FALSE);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_hwRendering) {
+	if (options_initHwRendering) {
 		//Cursors
 		if (!textures[TEXTURE_CURSOR].loaded) {
 			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
@@ -1381,6 +1382,10 @@ static void PressChar(WPARAM vkey)
 			GiveGoldCheat();
 		}
 		return;
+	case 'h': //Fluffy: Toggle between normal and SDL rendering
+		if (options_initHwRendering)
+			options_hwRendering = !options_hwRendering;
+		return;
 #endif
 	}
 }
@@ -1902,7 +1907,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		PlaySFX(USFX_SKING1);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_hwRendering) { 
+	if (options_initHwRendering) { 
 		if (firstflag) {
 			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
 			LoadQuestDialogueTextures();

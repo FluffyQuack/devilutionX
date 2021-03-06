@@ -1011,7 +1011,7 @@ void InitControlPan()
 	initialDropGoldValue = 0;
 	initialDropGoldIndex = 0;
 
-	if (options_hwRendering) { //Fluffy: Load the above CELs as SDL textures
+	if (options_initHwRendering) { //Fluffy: Load the above CELs as SDL textures
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
 		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
 		int charButWidths[9] = { 95, 41, 41, 41, 41, 41, 41, 41, 41 };

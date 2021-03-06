@@ -252,7 +252,7 @@ void InitSmith()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_SW], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Griswold the Blacksmith");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_SMITH, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -273,7 +273,7 @@ void InitBarOwner()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_SW], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Ogden the Tavern owner");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_BAROWNER, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -293,7 +293,7 @@ void InitTownDead()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_N], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Wounded Townsman");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_DEADGUY, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -313,7 +313,7 @@ void InitWitch()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Adria the Witch");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_WITCH, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -333,7 +333,7 @@ void InitBarmaid()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Gillian the Barmaid");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_BARMAID, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -354,7 +354,7 @@ void InitBoy()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Wirt the Peg-legged boy");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_BOY, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -374,7 +374,7 @@ void InitHealer()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_SE], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Pepin the Healer");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_HEALER, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -394,7 +394,7 @@ void InitTeller()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Cain the Elder");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_STORYTELLER, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -414,7 +414,7 @@ void InitDrunk()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Farnham the Drunk");
 
-	if (options_hwRendering) //Fluffy: Load CEL as SDL textures
+	if (options_initHwRendering) //Fluffy: Load CEL as SDL textures
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_DRUNK, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -453,7 +453,7 @@ void InitCows()
 		numtowners++;
 	}
 
-	if (options_hwRendering) //Fluffy: Load town NPC via SDL
+	if (options_initHwRendering) //Fluffy: Load town NPC via SDL
 		Texture_ConvertCEL_MultipleFrames(pCowCels, TEXTURE_COWS, towner[numtowners - 1]._tAnimWidth, -1, true, 8);
 }
 
@@ -471,7 +471,7 @@ void InitFarmer()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Lester the farmer");
 
-	if (options_hwRendering) //Fluffy: Load town NPC via SDL
+	if (options_initHwRendering) //Fluffy: Load town NPC via SDL
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_FARMER, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -495,7 +495,7 @@ void InitCowFarmer()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_SW], towner[numtowners]._tNFrames, 3);
 	strcpy(towner[numtowners]._tName, "Complete Nut");
 
-	if (options_hwRendering) //Fluffy: Load town NPC via SDL
+	if (options_initHwRendering) //Fluffy: Load town NPC via SDL
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_COWFARMER, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;
@@ -519,7 +519,7 @@ void InitGirl()
 	NewTownerAnim(numtowners, towner[numtowners]._tNAnim[DIR_S], towner[numtowners]._tNFrames, 6);
 	strcpy(towner[numtowners]._tName, "Celia");
 
-	if (options_hwRendering) //Fluffy: Load town NPC via SDL
+	if (options_initHwRendering) //Fluffy: Load town NPC via SDL
 		Texture_ConvertCEL_MultipleFrames(towner[numtowners]._tNData, TEXTURE_GIRL, towner[numtowners]._tAnimWidth, -1, true);
 
 	numtowners++;

@@ -123,7 +123,7 @@ void Textures_Init()
 {
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
-	if (!options_hwRendering)
+	if (!options_initHwRendering)
 		return;
 
 	//Load textures

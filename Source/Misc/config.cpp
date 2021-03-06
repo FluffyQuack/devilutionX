@@ -42,7 +42,8 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
 	LoadBoolVariableFromConfig("Opaque Walls With Blobs", &options_opaqueWallsWithBlobs);
 	LoadBoolVariableFromConfig("Opaque Walls With Silhouttes", &options_opaqueWallsWithSilhouette);
-	LoadBoolVariableFromConfig("Hardware Rendering", &options_hwRendering);
+	LoadBoolVariableFromConfig("Hardware Rendering", &options_initHwRendering);
+	options_hwRendering = options_initHwRendering;
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
 }
 

@@ -330,7 +330,7 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 		SetPlayerGPtrs((BYTE *)pData, (BYTE **)pAnim);
 		p->_pGFXLoad |= i;
 
-		if (options_hwRendering) { //Fluffy: Load player graphics as SDL textures
+		if (options_initHwRendering) { //Fluffy: Load player graphics as SDL textures
 			int textureNum = TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum);
 			if (i == PFILE_STAND) textureNum += PLAYERANIM_STAND;
 			else if (i == PFILE_WALK) textureNum += PLAYERANIM_WALK;
@@ -502,7 +502,7 @@ void FreePlayerGFX(int pnum)
 	MemFreeDbg(plr[pnum]._pWData_c);
 	plr[pnum]._pGFXLoad = 0;
 
-	if (options_hwRendering) { //Fluffy: Free SDL texture variants too
+	if (options_initHwRendering) { //Fluffy: Free SDL texture variants too
 		int textureNum = TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum);
 		for (int i = 0; i < PLAYERANIM_NUM; i++)
 			Texture_UnloadTexture(textureNum + i);

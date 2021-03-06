@@ -332,7 +332,7 @@ void InitMonsterGFX(int monst)
 			celBuf = LoadFileInMem(strBuff, NULL);
 			Monsters[monst].Anims[anim].CMem = celBuf;
 
-			if (options_hwRendering) { //Fluffy: Load monster CL2 as SDL textures
+			if (options_initHwRendering) { //Fluffy: Load monster CL2 as SDL textures
 				int groupNum = 8;
 				if (Monsters[monst].mtype == MT_GOLEM && (animletter[anim] == 's' || animletter[anim] == 'd')) //Some monster CL2 files have only one group
 					groupNum = 1;
@@ -4889,7 +4889,7 @@ void FreeMonsters()
 				MemFreeDbg(Monsters[i].Anims[j].CMem);
 			}
 
-			if (options_hwRendering) { //Fluffy: Free SDL texture variants
+			if (options_initHwRendering) { //Fluffy: Free SDL texture variants
 				Texture_UnloadTexture(TEXTURE_MONSTERS + (MA_NUM * i) + j);
 			}
 		}
