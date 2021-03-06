@@ -811,11 +811,6 @@ void UpdateLifeFlask()
 		return;
 	}
 
-	if (options_animatedUIFlasks) { //Fluffy: Draw the entire flask as empty
-		SetFlaskHeight(pLifeBuff, 16, 85, 96 + PANEL_X, PANEL_Y);
-		return;
-	}
-
 	double p;
 	int filled;
 
