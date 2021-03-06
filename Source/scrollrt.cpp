@@ -735,6 +735,21 @@ static void DrawItem(int x, int y, int sx, int sy, BOOL pre)
 		return;
 	}
 	int px = sx - pItem->_iAnimWidth2;
+
+	if (options_hwRendering) { //Fluffy: Render item via SDL
+		int textureNum = TEXTURE_ITEMS + ItemCAnimTbl[pItem->_iCurs];
+		int frameNum = nCel - 1;
+		if (bItem - 1 == pcursitem || AutoMapShowItems)
+			Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 121, 127, 160, textureNum, frameNum);
+		int brightness = 255 - ((light_table_index * 255) / lightmax);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		return;
+	}
+
 	if (bItem - 1 == pcursitem || AutoMapShowItems) {
 		CelBlitOutline(181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
 		if (options_opaqueWallsWithSilhouette) //Fluffy

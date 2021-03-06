@@ -144,9 +144,9 @@ enum {
 	TEXTURE_PLAYERS,
 	TEXTURE_PLAYERS_LAST = TEXTURE_PLAYERS + (PLAYERANIM_NUM * MAX_PLRS),
 
-	/*//Animations of items on ground from CEL data
+	//Animations of items on ground from CEL data
 	TEXTURE_ITEMS,
-	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,*/
+	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,
 
 	//Missile textures from CEL data
 	TEXTURE_MISSILES,

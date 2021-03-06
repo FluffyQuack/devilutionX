@@ -1914,6 +1914,12 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			Texture_ConvertCEL_SingleFrame(pSTextBoxCels, TEXTURE_TEXTBOX2, 271); //Narrow version of text box 2
 			Texture_ConvertCEL_MultipleFrames(pSPentSpn2Cels, TEXTURE_SPINNINGPENTAGRAM2, 12); //Tiny spinning pentagram
 			Texture_ConvertCEL_MultipleFrames(pSTextSlidCels, TEXTURE_DYNAMICWINDOW, 12); //Textures for dynamic window creation
+
+			//Item textures
+			int itemTypes = gbIsHellfire ? ITEMTYPES : 35;
+			for (int i = 0; i < itemTypes; i++) {
+				Texture_ConvertCEL_MultipleFrames(itemanims[i], TEXTURE_ITEMS + i, 96, -1, true);
+			}
 		}
 
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
