@@ -1252,8 +1252,10 @@ void FreeMissileGFX(int mi)
 	}
 
 	//Fluffy: Free missile SDL textures
-	for (i = TEXTURE_MISSILES; i <= TEXTURE_MISSILES_LAST; i++)
-		Texture_UnloadTexture(i);
+	if (options_initHwRendering) {
+		for (i = TEXTURE_MISSILES; i <= TEXTURE_MISSILES_LAST; i++)
+			Texture_UnloadTexture(i);
+	}
 }
 
 void FreeMissiles()
