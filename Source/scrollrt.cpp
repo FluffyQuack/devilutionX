@@ -230,6 +230,59 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 	if (m->_miPreFlag != pre || !m->_miDrawFlag)
 		return;
 
+	mx = sx + m->_mixoff - m->_miAnimWidth2;
+	my = sy + m->_miyoff;
+
+	if (options_hwRendering) { //Fluffy: Render missile via SDL
+
+		//Figure out what texture to use for this missile
+		int textureNum = -1;
+		int frameNum = m->_miAnimFrame - 1;
+		if (m->_mitype == MIS_RHINO) { //Some missiles will actually use a monster's texture (ie, Rhino's charge move)
+			CMonster *mon = monster[m->_misource].MType;
+			int monType = monster[m->_misource]._mMTidx;
+			int anim;
+			if (mon->mtype >= MT_HORNED && mon->mtype <= MT_OBLORD) {
+				anim = MA_SPECIAL;
+			} else {
+				if (mon->mtype >= MT_NSNAKE && mon->mtype <= MT_GSNAKE)
+					anim = MA_ATTACK;
+				else
+					anim = MA_WALK;
+			}
+			textureNum = TEXTURE_MONSTERS + (monType * MA_NUM) + anim;
+
+			//Cycle through directions to find matching animation data
+			for (int j = 0; j < 8; j++)
+				if (m->_miAnimData == mon->Anims[anim].Data[j]) {
+					frameNum += j * m->_miAnimLen; //TODO: Are we using the right animation length here?
+					goto foundTexture;
+				}
+		}
+		for (int j = 0; j < 16; j++) { //Missile texture
+			if (m->_miAnimData == misfiledata[m->_miAnimType].mAnimData[j]) {
+				textureNum = TEXTURE_MISSILES + (m->_miAnimType * 16) + j;
+				goto foundTexture;
+			}
+		}
+		assert(textureNum != -1);
+	foundTexture:
+
+		//Render missile
+		int brightness;
+		if (m->_miLightFlag)
+			brightness = 255;
+		else
+			brightness = 255 - ((light_table_index * 255) / lightmax);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(mx - BORDER_LEFT, my - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		//TODO: Handle m->_miUniqTrans
+		return;
+	}
+
 	pCelBuff = m->_miAnimData;
 	if (!pCelBuff) {
 		// app_fatal("Draw Missile 2 type %d: NULL Cel Buffer", m->_mitype);
@@ -241,8 +294,6 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 		// app_fatal("Draw Missile 2: frame %d of %d, missile type==%d", nCel, frames, m->_mitype);
 		return;
 	}
-	mx = sx + m->_mixoff - m->_miAnimWidth2;
-	my = sy + m->_miyoff;
 	if (m->_miUniqTrans)
 		Cl2DrawLightTbl(mx, my, m->_miAnimData, m->_miAnimFrame, m->_miAnimWidth, m->_miUniqTrans + 3);
 	else if (m->_miLightFlag)

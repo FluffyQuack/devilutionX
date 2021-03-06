@@ -146,12 +146,11 @@ enum {
 
 	/*//Animations of items on ground from CEL data
 	TEXTURE_ITEMS,
-	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,
+	TEXTURE_ITEMS_LAST = TEXTURE_ITEMS + ITEMTYPES,*/
 
 	//Missile textures from CEL data
 	TEXTURE_MISSILES,
-	TEXTURE_MISSILES_LAST = TEXTURE_MISSILES + ((16) * 108), //108 is the quantity of unique missiles in the game. 16 is the quantity of animations one missiles can have. TODO: Replace numbers with references
-	*/
+	TEXTURE_MISSILES_LAST = TEXTURE_MISSILES + (16 * MFILE_NONE), //16 is the quantity of animations one missile can have. TODO: Replace number with reference
 
 	//Monster textures from CEL data
 	TEXTURE_MONSTERS,
