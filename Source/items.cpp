@@ -3331,7 +3331,7 @@ void FreeItemGFX()
 	}
 
 	if (options_initHwRendering) { //Fluffy: Unload item SDL textures
-		for (int i = TEXTURE_OBJECTS; i <= TEXTURE_OBJECTS_LAST; i++)
+		for (int i = TEXTURE_ITEMS; i <= TEXTURE_ITEMS_LAST; i++)
 			Texture_UnloadTexture(i);
 	}
 }
