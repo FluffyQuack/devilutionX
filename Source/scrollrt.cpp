@@ -1551,6 +1551,17 @@ static void DrawGame(int x, int y)
 	scrollrt_draw(x, y, sx, sy, rows, columns);
 
 	if (options_hwRendering && options_lightmapping) { //Fluffy: Render lightmap
+
+		/*
+		//This applies more of a contrast to the lighting. Maybe it has some potential?
+		SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);
+		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_MOD);
+		SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL);
+		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
+		*/
+
 		if (currlevel != 0) //We don't apply lightmap to the town
 			Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
 	}
