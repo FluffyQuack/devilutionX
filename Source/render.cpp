@@ -340,15 +340,15 @@ void RenderTileViaSDL(int sx, int sy)
 			overlayTexture = TEXTURE_TILE_LEFTMASK;
 		} else if (arch_draw_type == 2 && tile != RT_RTRIANGLE) {
 			overlayTexture = TEXTURE_TILE_RIGHTMASK;
-		} else if (arch_draw_type && cel_foliage_active) {
-			if (tile != RT_TRANSPARENT) {
-				return;
-			}
-			if (arch_draw_type == 1) {
-				overlayTexture = TEXTURE_TILE_LEFTFOLIAGEMASK;
-			} else if (arch_draw_type == 2) {
-				overlayTexture = TEXTURE_TILE_RIGHTFOLIAGEMASK;
-			}
+		}
+	} else if (arch_draw_type && cel_foliage_active) {
+		if (tile != RT_TRANSPARENT) {
+			return;
+		}
+		if (arch_draw_type == 1) {
+			overlayTexture = TEXTURE_TILE_LEFTFOLIAGEMASK;
+		} else if (arch_draw_type == 2) {
+			overlayTexture = TEXTURE_TILE_RIGHTFOLIAGEMASK;
 		}
 	}
 
