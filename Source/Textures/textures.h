@@ -139,6 +139,7 @@ enum {
 	//Hive loading screen (nlevels\cutl6.cel)
 	TEXTURE_DURABILITYWARNING, //Durability icons on HUD (Items\DurIcons.CEL)
 	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
+	TEXTURE_DUNGEONTILES_SPECIAL, //Texture for current "special" town/dungeon tileset (ie, levels\l1data\l1s.cel)
 
 	//Player textures from CEL data
 	TEXTURE_PLAYERS,

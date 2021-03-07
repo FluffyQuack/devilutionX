@@ -964,6 +964,21 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 		Cl2DrawToImportant(165, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth, false);
 }
 
+static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
+{
+	archNum -= 1;
+	int brightness = 255 - ((light_table_index * 255) / lightmax);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
+	if (transparent)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 127);
+	Render_Texture_FromBottom(x - BORDER_LEFT, y - BORDER_TOP, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255, 255, 255);
+	if (transparent)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255);
+}
+
 /**
  * @brief Render object sprites
  * @param sx dPiece coordinate
@@ -1103,11 +1118,12 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 
 	if (leveltype != DTYPE_TOWN) {
 		bArch = dSpecial[sx][sy];
+
 		if (bArch != 0) {
+
 			if (options_opaqueWallsUnlessObscuring && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette && !importantObjectNearby) //Fluffy: Make this opaque if nothing important is nearby
 				cel_transparency_active = 0;
-			else
-			{
+			else {
 				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) //Fluffy
 					cel_transparency_active = true;
 				else
@@ -1118,16 +1134,24 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				cel_transparency_active = 0; //Fluffy: Turn transparency off here for debugging
 			}
 #endif
-			CelClippedBlitLightTrans(&gpBuffer[dx + BUFFER_WIDTH * dy], pSpecialCels, bArch, 64);
+
+			if (options_hwRendering) //Fluffy: Render via SDL
+				RenderArchViaSDL(dx, dy, bArch, cel_transparency_active != 0);
+			else
+				CelClippedBlitLightTrans(&gpBuffer[dx + BUFFER_WIDTH * dy], pSpecialCels, bArch, 64);
 		}
 	} else {
 		// Tree leaves should always cover player when entering or leaving the tile,
 		// So delay the rendering until after the next row is being drawn.
 		// This could probably have been better solved by sprites in screen space.
+
 		if (sx > 0 && sy > 0 && dy > TILE_HEIGHT + SCREEN_Y) {
 			bArch = dSpecial[sx - 1][sy - 1];
 			if (bArch != 0) {
-				CelBlitFrame(&gpBuffer[dx + BUFFER_WIDTH * (dy - TILE_HEIGHT)], pSpecialCels, bArch, 64);
+				if (options_hwRendering) //Fluffy: Render via SDL
+					RenderArchViaSDL(dx, dy - TILE_HEIGHT, bArch, 0);
+				else
+					CelBlitFrame(&gpBuffer[dx + BUFFER_WIDTH * (dy - TILE_HEIGHT)], pSpecialCels, bArch, 64);
 			}
 		}
 	}

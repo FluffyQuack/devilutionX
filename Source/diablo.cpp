@@ -297,6 +297,7 @@ void FreeGameMem()
 	//Fluffy: Also delete equivalent SDL textures
 	if (options_initHwRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
 	}
 }
 
@@ -1923,6 +1924,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		}
 
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
+		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , true); //TODO: Can we replace 64 with a reference?
 	}
 }
 
