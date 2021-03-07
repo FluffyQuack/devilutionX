@@ -1076,6 +1076,7 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				if (brightness < 255)
 					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 				//TODO: Do rendering differently if pDeadGuy->_deadtrans is non-zero
+				break;
 			}
 			pCelBuff = pDeadGuy->_deadData[dd];
 			assert(pCelBuff != NULL);
