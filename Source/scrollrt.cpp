@@ -597,7 +597,20 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		return;
 	}
 
-	if (options_hwRendering) { //Fluffy: Render object via SDL
+	if (options_hwRendering) { 
+		if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);                           //Render target
+			int width = 512;
+			int height = width - (width / 2);
+			int lightX = ox - 23;
+			int lightY = oy - 171;
+			SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
+			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
+			SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
+			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
+		}
+
+		//Fluffy: Render object via SDL
 		int brightness;
 		if (!object[bv]._oLight)
 			brightness = 255;
@@ -701,6 +714,8 @@ static void drawFloor(int x, int y, int sx, int sy)
 {
 	cel_transparency_active = 0;
 	light_table_index = dLight[x][y];
+	if (options_hwRendering && options_lightmapping) //Fluffy: Force brightness to max for lightmapping
+		light_table_index = 0;
 
 	BYTE *dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	arch_draw_type = 1; // Left
@@ -956,7 +971,21 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
+
 	if (options_hwRendering) { //Fluffy: Render player via SDL
+		if (options_lightmapping) {//Fluffy: Render light for player
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame); //Render target
+			int width = 1024;
+			int height = width - (width / 2);
+			//int lightX = px - (pPlayer->_pAnimWidth / 2);
+			//int lightY = py - BORDER_TOP;
+			//int lightY = py - (SPANEL_HEIGHT / 2);
+			int lightX = px - 23;
+			int lightY = py - 171;
+			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
+			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
+		}
+
 		DrawPlayer_SDL(p, x, y, px, py);
 		return;
 	}
@@ -1006,6 +1035,8 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 	dRendered[sx][sy] = true;
 
 	light_table_index = dLight[sx][sy];
+	if (options_hwRendering && options_lightmapping) //Fluffy: Force brightness to max for lightmapping
+		light_table_index = 0;
 
 	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
 	bool importantObjectNearby = 0;
@@ -1542,6 +1573,11 @@ static void DrawGame(int x, int y)
 	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
 	scrollrt_draw(x, y, sx, sy, rows, columns);
 
+	if (options_hwRendering && options_lightmapping) { //Fluffy: Render lightmap
+		if (currlevel != 0) //We don't apply lightmap to the town
+			Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
+	}
+
 	// Allow rendering to the whole screen
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y)];
 
@@ -1639,6 +1675,12 @@ void ClearScreenBuffer()
 
 	if (options_hwRendering) //Fluffy: Also clear the intermediate texture
 	{
+		if (options_lightmapping) { //Clear lightmap
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+			SDL_RenderClear(renderer);
+		}
+
 		//I'm pretty sure this function is only called outside of ingame rendering, so it should be fine to switch to and from render-to-texture
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
@@ -1805,6 +1847,9 @@ static void DrawFPS()
 				else
 					snprintf(String, 100, "hwRendering: OFF");
 				RenderDebugLine(&x, &y, String);
+
+				snprintf(String, 100, "lightMapping: %s", options_lightmapping ? "ON" : "OFF");
+				RenderDebugLine(&x, &y, String);
 			}
 		}
 	}
@@ -1939,6 +1984,12 @@ void DrawAndBlit()
 
 	if (options_hwRendering) //Fluffy: Change render target to texture
 	{
+		if (options_lightmapping) { //Clear lightmap
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+			SDL_RenderClear(renderer);
+		}
+
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 
 		//Clear the render target

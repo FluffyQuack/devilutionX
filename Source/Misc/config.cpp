@@ -44,6 +44,12 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Opaque Walls With Silhouttes", &options_opaqueWallsWithSilhouette);
 	LoadBoolVariableFromConfig("Hardware Rendering", &options_initHwRendering);
 	options_hwRendering = options_initHwRendering;
+	LoadBoolVariableFromConfig("Lightmapping", &options_initLightmapping);
+	options_lightmapping = options_initLightmapping;
+	if (!options_initHwRendering) {
+		options_initLightmapping = false;
+		options_lightmapping = false;
+	}
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
 }
 

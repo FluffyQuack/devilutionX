@@ -182,13 +182,18 @@ enum {
 	TEXTURE_TILE_LEFTMASK,
 	TEXTURE_TILE_RIGHTMASK,
 
-	//This is used for multiple render passes for tiles needing a different alpha mask
+	//This is used for multiple render passes
 	TEXTURE_TILE_INTERMEDIATE, //32x32
 	TEXTURE_TILE_INTERMEDIATE_BIG, //SCREEN_WIDTH * SCREEN_HEIGHT
+	TEXTURE_LIGHT_FRAMEBUFFER, //Lightmap to apply to entire screen
 
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,
 	TEXTURE_MANAFLASK,
+
+	//Lights for lightmap generation
+	TEXTURE_LIGHT_SMOOTHGRADIENT,
+	TEXTURE_LIGHT_HALFGRADIENT_HALFGREY,
 
 	TEXTURE_NUM
 };

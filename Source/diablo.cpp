@@ -105,6 +105,8 @@ BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always o
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
 BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
 BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
+BOOL options_initLightmapping = false;
+BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 
 /* rdata */
@@ -1386,6 +1388,10 @@ static void PressChar(WPARAM vkey)
 	case 'h': //Fluffy: Toggle between normal and SDL rendering
 		if (options_initHwRendering)
 			options_hwRendering = !options_hwRendering;
+		return;
+	case 'j': //Fluffy: Toggle between normal and lightmap lighting
+		if (options_initLightmapping)
+			options_lightmapping = !options_lightmapping;
 		return;
 #endif
 	}

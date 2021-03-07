@@ -59,7 +59,9 @@ extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
 extern BOOL options_opaqueWallsWithSilhouette;
 extern BOOL options_initHwRendering;
+extern BOOL options_initLightmapping;
 extern BOOL options_hwRendering;
+extern BOOL options_lightmapping;
 extern BOOL options_animatedUIFlasks;
 
 void FreeGameMem();
