@@ -606,6 +606,8 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		int objectType = object[bv]._otype;
 		int textureNum = TEXTURE_OBJECTS + AllObjects[objectType].ofindex;
 		int frameNum = nCel - 1;
+		if (!object[bv]._oLight)
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_ADD);
 		if (bv == pcursobj)
 			Render_TextureOutline_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
 		if (brightness < 255)
@@ -613,6 +615,8 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		if (!object[bv]._oLight)
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
 		return;
 	}
 
