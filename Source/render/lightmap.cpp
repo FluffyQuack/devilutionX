@@ -22,7 +22,6 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 
 	if (options_hwRendering) {                                                                  //Fluffy: Render player via SDL
 		if (options_lightmapping) {                                                             //Fluffy: Render light for player
-			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame); //Render target
 			int width = 1024;
 			int height = width - (width / 2);
 			//int lightX = px - (pPlayer->_pAnimWidth / 2);
@@ -31,7 +30,6 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 			int lightX = px - 23;
 			int lightY = py - 171;
 			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
-			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 		}
 	}
 }
@@ -60,7 +58,6 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 
 	if (options_hwRendering) {
 		if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
-			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);    //Render target
 			int width = 512;
 			int height = width - (width / 2);
 			int lightX = ox - 23;
@@ -68,7 +65,6 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
 			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
 			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
-			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 		}
 	}
 }
@@ -258,6 +254,7 @@ static void ProcessTile(int sx, int sy, int dx, int dy)
 
 void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 {
+	SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame); //Render target
 	memset(dRendered_lightmap, 0, sizeof(dRendered_lightmap));
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
@@ -299,6 +296,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 			sx -= TILE_WIDTH / 2;
 		}
 	}
+	SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 }
 
 DEVILUTION_END_NAMESPACE

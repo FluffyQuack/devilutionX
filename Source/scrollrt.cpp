@@ -1545,7 +1545,7 @@ static void DrawGame(int x, int y)
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 		memset(gpBuffer_important, 0, BUFFER_WIDTH * BUFFER_HEIGHT); //Fluffy: Reset "important" buffer before drawing stuff
 
-	if (options_hwRendering && options_lightmapping) //Fluffy: Process all entities with a light source and make adds lights to the lightmap
+	if (options_hwRendering && options_lightmapping) //Fluffy: Process all entities with a light source and have them add lights to the lightmap buffer
 		Lightmap_MakeLightmap(x, y, sx, sy, rows, columns);
 	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
 	scrollrt_draw(x, y, sx, sy, rows, columns);
