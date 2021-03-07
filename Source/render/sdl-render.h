@@ -2,6 +2,7 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+int Render_IndexLightToBrightness();
 void Render_Texture_SolidColor(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum);
 void Render_TextureOutline_FromBottom(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum = 0);
 void Render_TextureOutline(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum = 0);

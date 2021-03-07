@@ -322,7 +322,7 @@ skip:
 void RenderTileViaSDL(int sx, int sy)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
-	int brightness = 255 - ((light_table_index * 255) / lightmax);
+	int brightness = Render_IndexLightToBrightness();
 	int tile = (level_cel_block & 0x7000) >> 12;
 	int overlayTexture = -1;
 

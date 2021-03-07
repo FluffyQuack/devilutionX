@@ -273,7 +273,7 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 		if (m->_miLightFlag)
 			brightness = 255;
 		else
-			brightness = 255 - ((light_table_index * 255) / lightmax);
+			brightness = Render_IndexLightToBrightness();
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
 		Render_Texture_FromBottom(mx - BORDER_LEFT, my - BORDER_TOP, textureNum, frameNum);
@@ -404,7 +404,7 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
 	if (p == myplr)
 		brightness = 255;
 	else
-		brightness = 255 - ((light_table_index * 255) / lightmax);
+		brightness = Render_IndexLightToBrightness();
 	for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
 		facing = i;
 		if (pPlayer->_pAnimData == pPlayer->_pNAnim[i])
@@ -602,7 +602,7 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		if (!object[bv]._oLight)
 			brightness = 255;
 		else
-			brightness = 255 - ((light_table_index * 255) / lightmax);
+			brightness = Render_IndexLightToBrightness();
 		int objectType = object[bv]._otype;
 		int textureNum = TEXTURE_OBJECTS + AllObjects[objectType].ofindex;
 		int frameNum = nCel - 1;
@@ -760,7 +760,7 @@ static void DrawItem(int x, int y, int sx, int sy, BOOL pre)
 		int frameNum = nCel - 1;
 		if (bItem - 1 == pcursitem || AutoMapShowItems)
 			Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 121, 127, 160, textureNum, frameNum);
-		int brightness = 255 - ((light_table_index * 255) / lightmax);
+		int brightness = Render_IndexLightToBrightness();
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
 		Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
@@ -894,7 +894,7 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 	py = sy + pMonster->_myoff;
 
 	if (options_hwRendering) { //Fluffy: Render monster via SDL
-		int brightness = 255 - ((light_table_index * 255) / lightmax);
+		int brightness = Render_IndexLightToBrightness();
 		int textureNum = TEXTURE_MONSTERS + (pMonster->_mMTidx * MA_NUM);
 		int facing = -1;
 		for (int i = 0; i < MA_NUM; i++) {
@@ -967,7 +967,7 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 {
 	archNum -= 1;
-	int brightness = 255 - ((light_table_index * 255) / lightmax);
+	int brightness = Render_IndexLightToBrightness();
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
 	if (transparent)
@@ -1069,7 +1069,7 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				assert(textureNum != -1);
 
 				//Render
-				int brightness = 255 - ((light_table_index * 255) / lightmax);
+				int brightness = Render_IndexLightToBrightness();
 				if (brightness < 255)
 					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
 				Render_Texture_FromBottom(px - BORDER_LEFT, dy - BORDER_TOP, textureNum, frameNum);

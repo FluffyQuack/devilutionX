@@ -6,6 +6,19 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+static unsigned char brightnessValues[16] = {255, 230, 210, 180, 140, 120, 100, 88, 74, 62, 50, 40, 30, 20, 10, 0};
+
+int Render_IndexLightToBrightness()
+{
+	int brightness;
+	brightness = 255 - ((light_table_index * 255) / lightmax);
+	if (lightmax == 15) {
+		return brightnessValues[light_table_index];
+	} else {
+		return brightness;
+	}
+}
+
 //Render texture as a solid colour
 void Render_Texture_SolidColor(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
 {
