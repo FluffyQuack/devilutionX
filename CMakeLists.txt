@@ -258,9 +258,9 @@ add_library(devilution STATIC
   Source/Misc/misc.cpp
   Source/Misc/config.cpp
   Source/IO/fluffy-savegame.cpp
-  Source/Textures/textures.cpp
-  Source/Textures/cel-convert.cpp
-  Source/Render/sdl-render.cpp
+  Source/textures/textures.cpp
+  Source/textures/cel-convert.cpp
+  Source/render/sdl-render.cpp
   )
 
 set(devilutionx_SRCS
