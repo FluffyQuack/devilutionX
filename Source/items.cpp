@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
+#include "textures/textures.h" //Fluffy: For unloading item textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -3327,6 +3328,11 @@ void FreeItemGFX()
 {
 	for (int i = 0; i < ITEMTYPES; i++) {
 		MemFreeDbg(itemanims[i]);
+	}
+
+	if (options_initHwRendering) { //Fluffy: Unload item SDL textures
+		for (int i = TEXTURE_OBJECTS; i <= TEXTURE_OBJECTS_LAST; i++)
+			Texture_UnloadTexture(i);
 	}
 }
 
