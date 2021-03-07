@@ -156,11 +156,9 @@ enum {
 	TEXTURE_MONSTERS,
 	TEXTURE_MONSTERS_LAST = TEXTURE_MONSTERS + (MA_NUM * 138), //138 is the quantity of unique monsters in the game. TODO: Replace number with a reference
 
-	/*
 	//Object textures from CEL data
 	TEXTURE_OBJECTS,
-	TEXTURE_OBJECTS_LAST = TEXTURE_OBJECTS + 40, //40 is the quantity of unique objects in the game. TODO: Replace number with a reference
-	*/
+	TEXTURE_OBJECTS_LAST = TEXTURE_OBJECTS + 56, //56 is the quantity of unique objects in the game (equal to size of ObjMasterLoadList[]). TODO: Replace number with a reference
 
 	//Towners
 	TEXTURE_SMITH, //Towners\\Smith\\SmithN.CEL

@@ -597,6 +597,25 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		return;
 	}
 
+	if (options_hwRendering) { //Fluffy: Render object via SDL
+		int brightness;
+		if (!object[bv]._oLight)
+			brightness = 255;
+		else
+			brightness = 255 - ((light_table_index * 255) / lightmax);
+		int objectType = object[bv]._otype;
+		int textureNum = TEXTURE_OBJECTS + AllObjects[objectType].ofindex;
+		int frameNum = nCel - 1;
+		if (bv == pcursobj)
+			Render_TextureOutline_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		return;
+	}
+
 	if (bv == pcursobj) {
 		CelBlitOutline(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
