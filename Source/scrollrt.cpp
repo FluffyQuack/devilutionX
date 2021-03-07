@@ -1842,10 +1842,7 @@ static void DrawFPS()
 					snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
 				RenderDebugLine(&x, &y, String);
 			
-				if (options_hwRendering)
-					snprintf(String, 100, "hwRendering: ON");
-				else
-					snprintf(String, 100, "hwRendering: OFF");
+				snprintf(String, 100, "hwRendering: %s", options_hwRendering ? "ON" : "OFF");
 				RenderDebugLine(&x, &y, String);
 
 				snprintf(String, 100, "lightMapping: %s", options_lightmapping ? "ON" : "OFF");
