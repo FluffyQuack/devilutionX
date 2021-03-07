@@ -261,6 +261,7 @@ add_library(devilution STATIC
   Source/Textures/textures.cpp
   Source/Textures/cel-convert.cpp
   Source/Render/sdl-render.cpp
+  Source/render/lightmap.cpp
   )
 
 set(devilutionx_SRCS

@@ -6,6 +6,7 @@
 #include "all.h"
 #include "textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
+#include "render/lightmap.h" //Fluffy: For lightmap generation
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -597,20 +598,7 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		return;
 	}
 
-	if (options_hwRendering) { 
-		if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
-			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);                           //Render target
-			int width = 512;
-			int height = width - (width / 2);
-			int lightX = ox - 23;
-			int lightY = oy - 171;
-			SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
-			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
-			SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
-			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
-		}
-
-		//Fluffy: Render object via SDL
+	if (options_hwRendering) {  //Fluffy: Render object via SDL
 		int brightness;
 		if (!object[bv]._oLight)
 			brightness = 255;
@@ -973,19 +961,6 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 
 
 	if (options_hwRendering) { //Fluffy: Render player via SDL
-		if (options_lightmapping) {//Fluffy: Render light for player
-			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame); //Render target
-			int width = 1024;
-			int height = width - (width / 2);
-			//int lightX = px - (pPlayer->_pAnimWidth / 2);
-			//int lightY = py - BORDER_TOP;
-			//int lightY = py - (SPANEL_HEIGHT / 2);
-			int lightX = px - 23;
-			int lightY = py - 171;
-			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
-			SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
-		}
-
 		DrawPlayer_SDL(p, x, y, px, py);
 		return;
 	}
@@ -1570,6 +1545,8 @@ static void DrawGame(int x, int y)
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 		memset(gpBuffer_important, 0, BUFFER_WIDTH * BUFFER_HEIGHT); //Fluffy: Reset "important" buffer before drawing stuff
 
+	if (options_hwRendering && options_lightmapping) //Fluffy: Process all entities with a light source and make adds lights to the lightmap
+		Lightmap_MakeLightmap(x, y, sx, sy, rows, columns);
 	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
 	scrollrt_draw(x, y, sx, sy, rows, columns);
 
