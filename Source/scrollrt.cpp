@@ -667,13 +667,27 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 			cel_transparency_active = (BYTE)(nTransTable[level_piece_id] & TransList[dTransVal[x][y]]);
 	}
 
+	//Fluffy: Debug test for wall lighting
+	int lightx = -1;
+	int lighty = -1;
+	if (options_hwRendering && options_lightmapping) {
+		lightx = sx;
+		lighty = sy;
+		lightx -= BORDER_LEFT;
+		lighty -= BORDER_TOP;
+		if (lightx < 0 || lightx >= SCREEN_WIDTH || lighty < 0 || lighty >= SCREEN_HEIGHT) {
+			lightx = 0;
+			lighty = 0;
+		}
+	}
+
 	cel_foliage_active = !nSolidTable[level_piece_id];
 	for (int i = 0; i < (MicroTileLen >> 1); i++) {
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
 			if (options_hwRendering) //Fluffy
-				RenderTileViaSDL(sx, sy);
+				RenderTileViaSDL(sx, sy, lightx, lighty);
 			else
 				RenderTile(dst);
 		}
@@ -681,7 +695,7 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
 			if (options_hwRendering) //Fluffy
-				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy, lightx, lighty);
 			else
 				RenderTile(dst + TILE_WIDTH / 2);
 		}
@@ -1011,7 +1025,7 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 
 	light_table_index = dLight[sx][sy];
 	if (options_hwRendering && options_lightmapping) //Fluffy: Force brightness to max for lightmapping
-		light_table_index = 0;
+		light_table_index = 15; //Fluffy: Debug test for new wall lighting. Changed this to 15 for now. This should be changed to 0 later
 
 	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
 	bool importantObjectNearby = 0;
@@ -1548,7 +1562,7 @@ static void DrawGame(int x, int y)
 	if (options_hwRendering && options_lightmapping) //Fluffy: Process all entities with a light source and have them add lights to the lightmap buffer
 		Lightmap_MakeLightmap(x, y, sx, sy, rows, columns);
 	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
-	scrollrt_draw(x, y, sx, sy, rows, columns);
+	//scrollrt_draw(x, y, sx, sy, rows, columns); //Fluffy: Debug: test for new wall lighting
 
 	if (options_hwRendering && options_lightmapping) { //Fluffy: Render lightmap
 
@@ -1567,6 +1581,8 @@ static void DrawGame(int x, int y)
 			Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
+
+	scrollrt_draw(x, y, sx, sy, rows, columns); //Fluffy: Debug: test for new wall lighting
 
 	// Allow rendering to the whole screen
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y)];

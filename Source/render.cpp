@@ -319,7 +319,7 @@ skip:
 	(*dst) += n;
 }
 
-void RenderTileViaSDL(int sx, int sy)
+void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
 	int brightness = Render_IndexLightToBrightness();
@@ -353,6 +353,44 @@ void RenderTileViaSDL(int sx, int sy)
 	}
 
 	int textureNum = TEXTURE_DUNGEONTILES;
+	if (lightx != -1 && lighty != -1) { //Fluffy: Debug test for wall lighting. (We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture)
+		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
+		SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_NONE);
+		Render_Texture(0, 0, textureNum, frame);
+		if (overlayTexture != -1)
+			Render_Texture(0, 0, overlayTexture);
+		SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_BLEND);
+		if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
+			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
+		textureNum = TEXTURE_TILE_INTERMEDIATE;
+		frame = 0;
+
+		//Apply lightmapping
+		SDL_Rect srcRect;
+		srcRect.x = lightx;
+		srcRect.y = lighty;
+		srcRect.w = 1;
+		srcRect.h = 1;
+
+		SDL_Rect dstRect;
+		dstRect.x = 0;
+		dstRect.y = 0;
+		dstRect.w = textures[textureNum].frames[frame].width;
+		dstRect.h = textures[textureNum].frames[frame].height;
+		SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
+		/*rect.w = 1;
+		for (int i = 0; i < textures[textureNum].frames[frame].width; i += 1) {
+			SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
+			rect.x += 1;
+			srcRect.x += 1;
+		}*/
+
+		//Render final result to screen
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		Render_Texture_Crop(sx - BORDER_LEFT, (sy - BORDER_TOP) - (dstRect.h - 1), textureNum, 0, 0, textures[textureNum].frames[frame].width, dstRect.h, frame);
+		return;
+	}
+
 	if (overlayTexture != -1) {
 		//Switch to the intermediate tile render target and clear it
 		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
@@ -362,7 +400,7 @@ void RenderTileViaSDL(int sx, int sy)
 		//Render normal texture and the alpha mask texture
 		Render_Texture(0, 0, TEXTURE_DUNGEONTILES, frame);
 		Render_Texture(0, 0, overlayTexture);
-
+		
 		//Switch render target back to intermediate texture
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 		textureNum = TEXTURE_TILE_INTERMEDIATE;
