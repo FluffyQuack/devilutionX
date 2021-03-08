@@ -6,6 +6,7 @@
 #include "all.h"
 #include "textures/textures.h" //Fluffy: For SDL textures
 #include "render/sdl-render.h" //Fluffy: For rendering SDL textures
+#include "render/lightmap.h" //Fluffy: For getting light values from the lightmap
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -319,7 +320,7 @@ skip:
 	(*dst) += n;
 }
 
-void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
+void RenderTileViaSDL(int sx, int sy)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
 	int brightness = Render_IndexLightToBrightness();
@@ -353,46 +354,59 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
 	}
 
 	int textureNum = TEXTURE_DUNGEONTILES;
-	if (lightx != -1 && lighty != -1) { //Fluffy: Debug test for wall lighting. (We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture)
-		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
-		SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_NONE);
-		Render_Texture(0, 0, textureNum, frame);
-		if (overlayTexture != -1)
-			Render_Texture(0, 0, overlayTexture);
-		SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_BLEND);
+	if (lightmap_lightx != -1 && lightmap_lighty != -1) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
+
+		//TODO: Handle overlayTexture as well
+
+		int type = 0;
+		int lightx = lightmap_lightx - (TILE_WIDTH / 2);
+		int lighty = lightmap_lighty;
+		if (lightx < 0)
+			lightx = 0;
+
+		if (type == 1 || type == 2) {
+			if (type = 2) {
+				lighty -= 16;
+				if (lighty < 0)
+					lighty = 0;
+			}
+
+			SDL_Rect srcRect;
+			srcRect.x = 0;
+			srcRect.y = 0;
+			srcRect.w = 1;
+			srcRect.h = textures[textureNum].frames[frame].height;
+
+			SDL_Rect dstRect;
+			dstRect.x = sx - BORDER_LEFT;
+			dstRect.y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+			dstRect.w = 1;
+			dstRect.h = textures[textureNum].frames[frame].height;
+			for (int i = 0; i < textures[textureNum].frames[frame].width; i++) {
+				brightness = lightmap_imgData[(SCREEN_WIDTH * 4 * lighty) + (4 * lightx)];
+				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+				SDL_RenderCopy(renderer, textures[textureNum].frames[frame].frame, &srcRect, &dstRect);
+				dstRect.x += 1;
+				srcRect.x += 1;
+				lightx++;
+				if (i > 0 && i % 2 == 0) {
+					if (type == 1) {
+						if (lighty > 0)
+							lighty--;
+					} else {
+						if (lighty + 1 < SCREEN_HEIGHT)
+							lighty++;
+					}
+				}
+			}
+		} else {
+			brightness = lightmap_imgData[(SCREEN_WIDTH * 4 * lighty) + (4 * lightx)];
+			SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
+		}
+		SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
 		if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
 			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
-		textureNum = TEXTURE_TILE_INTERMEDIATE;
-		frame = 0;
-
-		//Apply lightmapping
-		SDL_Rect srcRect;
-		srcRect.x = lightx;
-		srcRect.y = lighty;
-		//srcRect.w = 1;
-		srcRect.w = textures[textureNum].frames[frame].width;
-		srcRect.h = 1;
-
-		SDL_Rect dstRect;
-		dstRect.x = 0;
-		dstRect.y = 0;
-		dstRect.w = textures[textureNum].frames[frame].width;
-		dstRect.h = textures[textureNum].frames[frame].height;
-		SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
-		/*dstRect.w = 1;
-		for (int i = 0; i < textures[textureNum].frames[frame].width; i += 1) {
-			SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
-			dstRect.x += 1;
-			srcRect.x += 1;
-			if (i > 0 && i % 2 == 0) {
-				if (srcRect.y > 0)
-					srcRect.y -= 1;
-			}
-		}*/
-
-		//Render final result to screen
-		SDL_SetRenderTarget(renderer, texture_intermediate);
-		Render_Texture_Crop(sx - BORDER_LEFT, (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1), textureNum, 0, 0, textures[textureNum].frames[frame].width, textures[textureNum].frames[frame].height, frame);
 		return;
 	}
 

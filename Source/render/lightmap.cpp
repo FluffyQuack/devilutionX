@@ -4,7 +4,10 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-bool dRendered_lightmap[MAXDUNX][MAXDUNY];
+static bool dRendered_lightmap[MAXDUNX][MAXDUNY];
+unsigned char *lightmap_imgData = 0; //Same as TEXTURE_LIGHT_FRAMEBUFFER but in system RAM
+int lightmap_lightx = 0; //What value to use for current tile we're processing
+int lightmap_lighty = 0;
 
 static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 {
@@ -20,8 +23,8 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
-	if (options_hwRendering) {                                                                  //Fluffy: Render player via SDL
-		if (options_lightmapping) {                                                             //Fluffy: Render light for player
+	if (options_hwRendering) { //Fluffy: Render player via SDL
+		if (options_lightmapping) { //Fluffy: Render light for player
 			int width = 1024;
 			int height = width - (width / 2);
 			//int lightX = px - (pPlayer->_pAnimWidth / 2);
@@ -296,6 +299,8 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 			sx -= TILE_WIDTH / 2;
 		}
 	}
+
+	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, SCREEN_WIDTH * 4); //Read lightmap into system RAM
 	SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 }
 

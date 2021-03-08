@@ -2,6 +2,7 @@
 
 #include "../all.h"
 #include "textures.h"
+#include "../render/lightmap.h"
 #include <sdl_image.h>
 
 DEVILUTION_BEGIN_NAMESPACE
@@ -161,6 +162,8 @@ void Textures_Init()
 	if (options_initLightmapping) {
 		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH, SCREEN_HEIGHT, true);
 		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
+		lightmap_imgData = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT * 4];
+		memset(lightmap_imgData, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 4);
 	}
 }
 
@@ -170,6 +173,9 @@ void Textures_Deinit()
 	for (int i = 0; i < TEXTURE_NUM; i++) {
 		Texture_UnloadTexture(i);
 	}
+	if (lightmap_imgData)
+		delete[] lightmap_imgData;
+	lightmap_imgData = 0;
 }
 
 DEVILUTION_END_NAMESPACE

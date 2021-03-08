@@ -3,6 +3,7 @@
 #include "../all.h"
 #include "../textures/textures.h"
 #include "sdl-render.h"
+#include "lightmap.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -10,6 +11,8 @@ static unsigned char brightnessValues[16] = {255, 230, 210, 180, 140, 120, 100, 
 
 int Render_IndexLightToBrightness()
 {
+	if (options_lightmapping && lightmap_lightx != -1 && lightmap_lighty != -1)
+		return lightmap_imgData[(SCREEN_WIDTH * 4 * lightmap_lighty) + (4 * lightmap_lightx)];
 	int brightness;
 	brightness = 255 - ((light_table_index * 255) / lightmax);
 	if (lightmax == 15) {
