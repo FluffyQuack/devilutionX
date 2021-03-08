@@ -233,6 +233,12 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 	mx = sx + m->_mixoff - m->_miAnimWidth2;
 	my = sy + m->_miyoff;
 
+	pCelBuff = m->_miAnimData;
+	if (!pCelBuff) {
+		// app_fatal("Draw Missile 2 type %d: NULL Cel Buffer", m->_mitype);
+		return;
+	}
+
 	if (options_hwRendering) { //Fluffy: Render missile via SDL
 
 		//Figure out what texture to use for this missile
@@ -282,12 +288,7 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 		//TODO: Handle m->_miUniqTrans
 		return;
 	}
-
-	pCelBuff = m->_miAnimData;
-	if (!pCelBuff) {
-		// app_fatal("Draw Missile 2 type %d: NULL Cel Buffer", m->_mitype);
-		return;
-	}
+	
 	nCel = m->_miAnimFrame;
 	frames = SDL_SwapLE32(*(DWORD *)pCelBuff);
 	if (nCel < 1 || frames > 50 || nCel > frames) {
