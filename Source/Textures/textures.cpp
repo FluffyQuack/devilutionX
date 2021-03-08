@@ -157,9 +157,9 @@ void Textures_Init()
 	//Generate tile intermediate render target
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, SCREEN_WIDTH, SCREEN_HEIGHT, true);
-	GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH, SCREEN_HEIGHT, true);
 
 	if (options_initLightmapping) {
+		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH, SCREEN_HEIGHT, true);
 		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
 }
