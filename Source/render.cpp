@@ -369,7 +369,8 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
 		SDL_Rect srcRect;
 		srcRect.x = lightx;
 		srcRect.y = lighty;
-		srcRect.w = 1;
+		//srcRect.w = 1;
+		srcRect.w = textures[textureNum].frames[frame].width;
 		srcRect.h = 1;
 
 		SDL_Rect dstRect;
@@ -378,16 +379,16 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
 		dstRect.w = textures[textureNum].frames[frame].width;
 		dstRect.h = textures[textureNum].frames[frame].height;
 		SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
-		/*rect.w = 1;
+		/*dstRect.w = 1;
 		for (int i = 0; i < textures[textureNum].frames[frame].width; i += 1) {
 			SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
-			rect.x += 1;
+			dstRect.x += 1;
 			srcRect.x += 1;
 		}*/
 
 		//Render final result to screen
 		SDL_SetRenderTarget(renderer, texture_intermediate);
-		Render_Texture_Crop(sx - BORDER_LEFT, (sy - BORDER_TOP) - (dstRect.h - 1), textureNum, 0, 0, textures[textureNum].frames[frame].width, dstRect.h, frame);
+		Render_Texture_Crop(sx - BORDER_LEFT, (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1), textureNum, 0, 0, textures[textureNum].frames[frame].width, textures[textureNum].frames[frame].height, frame);
 		return;
 	}
 
