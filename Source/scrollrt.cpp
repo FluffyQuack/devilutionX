@@ -1944,10 +1944,6 @@ void DrawAndBlit()
 		SDL_RenderClear(renderer);
 	}
 
-	//Fluffy debug: Clear gpBuffer
-	memset(gpBuffer, 0, BUFFER_WIDTH * BUFFER_HEIGHT);
-	
-
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
 		drawhpflag = TRUE;
 		drawmanaflag = TRUE;
