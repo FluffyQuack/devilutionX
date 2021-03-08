@@ -384,6 +384,10 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty)
 			SDL_RenderCopy(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, &srcRect, &dstRect);
 			dstRect.x += 1;
 			srcRect.x += 1;
+			if (i > 0 && i % 2 == 0) {
+				if (srcRect.y > 0)
+					srcRect.y -= 1;
+			}
 		}*/
 
 		//Render final result to screen
