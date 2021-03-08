@@ -937,6 +937,7 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		//TODO: Do rendering differently if trans is non-zero
+		return;
 	}
 
 	if (mi == pcursmonst) {
