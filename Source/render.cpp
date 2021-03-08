@@ -354,13 +354,13 @@ void RenderTileViaSDL(int sx, int sy)
 
 	int textureNum = TEXTURE_DUNGEONTILES;
 	if (overlayTexture != -1) {
-		//Switch to the intermediate tile render target and clear it
+		//Switch to the intermediate tile render target
 		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
-		SDL_RenderClear(renderer);
 
 		//Render normal texture and the alpha mask texture
+		SDL_SetTextureBlendMode(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, SDL_BLENDMODE_NONE);
 		Render_Texture(0, 0, TEXTURE_DUNGEONTILES, frame);
+		SDL_SetTextureBlendMode(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, SDL_BLENDMODE_BLEND);
 		Render_Texture(0, 0, overlayTexture);
 
 		//Switch render target back to intermediate texture
