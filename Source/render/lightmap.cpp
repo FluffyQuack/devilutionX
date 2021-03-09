@@ -257,6 +257,16 @@ static void ProcessTile(int sx, int sy, int dx, int dy)
 
 void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 {
+	//Expand the search of tiles we'll be going through so we can add lights which are out of view (TODO: We should calculate how big this search expansion actually needs to be)
+	{
+		int expandBy = 10;
+		sx -= (TILE_WIDTH / 2) * expandBy;
+		sy -= (TILE_HEIGHT / 2) * expandBy;
+		x -= expandBy;
+		columns += expandBy * 2;
+		rows += expandBy * 2;
+	}
+
 	SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame); //Render target
 	memset(dRendered_lightmap, 0, sizeof(dRendered_lightmap));
 	for (int i = 0; i < rows; i++) {
