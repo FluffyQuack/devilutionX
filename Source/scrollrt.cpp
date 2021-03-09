@@ -666,9 +666,9 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	if (options_hwRendering && options_lightmapping) {
 		lightType = LIGHTING_SUBTILE_UNIFORM;
 		//Fluffy TODO: We need some kind of database with lighting types for each sub-tile in each tileset
-		if (level_piece_id == 1 || level_piece_id == 3 || level_piece_id == 205 || level_piece_id == 206)
+		if (level_piece_id == 1 || level_piece_id == 3 || level_piece_id == 205 || level_piece_id == 206 || level_piece_id == 27)
 			lightType = LIGHTING_SUBTILE_DIAGONALFORWARD;
-		else if (level_piece_id == 5 || level_piece_id == 6 || level_piece_id == 15 || level_piece_id == 56 || level_piece_id == 127 || level_piece_id == 133 || level_piece_id == 134 || level_piece_id == 138)
+		else if (level_piece_id == 5 || level_piece_id == 6 || level_piece_id == 15 || level_piece_id == 56 || level_piece_id == 127 || level_piece_id == 133 || level_piece_id == 134 || level_piece_id == 138 || level_piece_id == 26)
 			lightType = LIGHTING_SUBTILE_DIAGONALBACKWARD;
 		else if (level_piece_id == 8 || level_piece_id == 25)
 			lightType = LIGHTING_SUBTILE_MIXEDFOREGROUND;
