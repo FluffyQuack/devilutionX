@@ -1641,6 +1641,18 @@ static void DrawGame(int x, int y)
 
 	scrollrt_draw(x, y, sx, sy, rows, columns);
 
+	if (options_hwRendering && !zoomflag) { //Fluffy: Scale up the render if we're zooming in. TODO: Implement integer scaling for this?
+		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
+		SDL_Rect rect;
+		rect.x = 0;
+		rect.y = 0;
+		rect.w = SCREEN_WIDTH / 2;
+		rect.h = SCREEN_HEIGHT / 2;
+		SDL_RenderCopy(renderer, texture_intermediate, &rect, NULL);
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame, NULL, NULL);
+	}
+
 	// Allow rendering to the whole screen
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y)];
 
