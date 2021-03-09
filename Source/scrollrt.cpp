@@ -863,7 +863,12 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 			}
 			if (mi == pcursmonst)
 				Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 165, 90, 90, textureNum, frameNum);
+			int brightness = Render_IndexLightToBrightness();
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
 			Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 			return;
 		}
 		if (mi == pcursmonst) {
@@ -1578,7 +1583,7 @@ static void DrawGame(int x, int y)
 		*/
 
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_NONE);
-		if (currlevel != 0) //We don't apply lightmap to the town
+		//if (currlevel != 0) //We don't apply lightmap to the town
 			Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
