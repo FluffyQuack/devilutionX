@@ -657,7 +657,29 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 
 	dst = &gpBuffer[sx + sy * BUFFER_WIDTH];
 	pMap = &dpiece_defs_map_2[x][y];
-	level_piece_id = dPiece[x][y];
+	level_piece_id = dPiece[x][y]; //This corresponds to "sub-tile" in Diablo 1 graphics tool and, same as the tool, the first tile is 1
+
+	//Fluffy
+	int lightx = -1;
+	int lighty = -1;
+	int lightType = LIGHTING_SUBTILE_NONE;
+	if (options_hwRendering && options_lightmapping) {
+		lightType = LIGHTING_SUBTILE_UNIFORM;
+		//Fluffy TODO: We need some kind of database with lighting types for each sub-tile in each tileset
+		if (level_piece_id == 1 || level_piece_id == 3 || level_piece_id == 205 || level_piece_id == 206)
+			lightType = LIGHTING_SUBTILE_DIAGONALFORWARD;
+		else if (level_piece_id == 5 || level_piece_id == 6 || level_piece_id == 15 || level_piece_id == 56 || level_piece_id == 127 || level_piece_id == 133 || level_piece_id == 134 || level_piece_id == 138)
+			lightType = LIGHTING_SUBTILE_DIAGONALBACKWARD;
+		else if (level_piece_id == 8 || level_piece_id == 25)
+			lightType = LIGHTING_SUBTILE_MIXEDFOREGROUND;
+		else if (level_piece_id == 9 || level_piece_id == 10 || level_piece_id == 137 || level_piece_id == 139)
+			lightType = LIGHTING_SUBTILE_MIXEDBACKGROUND;
+
+		if (lightType == LIGHTING_SUBTILE_UNIFORM) {
+			lightx = lightmap_lightx;
+			lighty = lightmap_lighty;
+		}
+	}
 
 	if (options_opaqueWallsUnlessObscuring && !importantObjectNearby && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette) //Fluffy: Make this opaque if there's nothing important nearby
 		cel_transparency_active = 0;
@@ -670,19 +692,48 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 
 	cel_foliage_active = !nSolidTable[level_piece_id];
 	for (int i = 0; i < (MicroTileLen >> 1); i++) {
+
+		//Fluffy
+		int curType = lightType;
+		if (options_hwRendering && options_lightmapping) {
+			if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
+				lightx = lightmap_lightx - (TILE_WIDTH / 2);
+				lighty = lightmap_lighty + (TILE_HEIGHT / 2);
+				curType = LIGHTING_SUBTILE_DIAGONALFORWARD;
+			} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
+				lightx = lightmap_lightx - (TILE_WIDTH / 2);
+				lighty = lightmap_lighty - (TILE_HEIGHT / 2);
+				curType = LIGHTING_SUBTILE_DIAGONALBACKWARD;
+			}
+		}
+
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
 			if (options_hwRendering) //Fluffy
-				RenderTileViaSDL(sx, sy);
+				RenderTileViaSDL(sx, sy, lightx, lighty, curType);
 			else
 				RenderTile(dst);
 		}
+
+		//Fluffy
+		if (options_hwRendering && options_lightmapping) {
+			if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) {
+				lightx = lightmap_lightx;
+				lighty = lightmap_lighty;
+				curType = LIGHTING_SUBTILE_DIAGONALFORWARD;
+			} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) {
+				lightx = lightmap_lightx;
+				lighty = lightmap_lighty;
+				curType = LIGHTING_SUBTILE_DIAGONALBACKWARD;
+			}
+		}
+
 		level_cel_block = pMap->mt[2 * i + 1];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
 			if (options_hwRendering) //Fluffy
-				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy, lightx, lighty, curType);
 			else
 				RenderTile(dst + TILE_WIDTH / 2);
 		}

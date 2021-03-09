@@ -320,10 +320,17 @@ skip:
 	(*dst) += n;
 }
 
-void RenderTileViaSDL(int sx, int sy)
+static int ReturnLightmapBrightness(int x, int y) //Fluffy
+{
+	if (x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
+		return 0;
+	return lightmap_imgData[(SCREEN_WIDTH * 4 * y) + (4 * x)];
+}
+
+void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
-	int brightness = Render_IndexLightToBrightness();
+	int brightness;
 	int tile = (level_cel_block & 0x7000) >> 12;
 	int overlayTexture = -1;
 
@@ -354,23 +361,10 @@ void RenderTileViaSDL(int sx, int sy)
 	}
 
 	int textureNum = TEXTURE_DUNGEONTILES;
-	if (lightmap_lightx != -1 && lightmap_lighty != -1) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
-
+	if (lightType != LIGHTING_SUBTILE_NONE) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
 		//TODO: Handle overlayTexture as well
 
-		int type = 0;
-		int lightx = lightmap_lightx - (TILE_WIDTH / 2);
-		int lighty = lightmap_lighty;
-		if (lightx < 0)
-			lightx = 0;
-
-		if (type == 1 || type == 2) {
-			if (type = 2) {
-				lighty -= 16;
-				if (lighty < 0)
-					lighty = 0;
-			}
-
+		if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD) {
 			SDL_Rect srcRect;
 			srcRect.x = 0;
 			srcRect.y = 0;
@@ -383,24 +377,22 @@ void RenderTileViaSDL(int sx, int sy)
 			dstRect.w = 1;
 			dstRect.h = textures[textureNum].frames[frame].height;
 			for (int i = 0; i < textures[textureNum].frames[frame].width; i++) {
-				brightness = lightmap_imgData[(SCREEN_WIDTH * 4 * lighty) + (4 * lightx)];
+				brightness = ReturnLightmapBrightness(lightx, lighty);
 				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
 				SDL_RenderCopy(renderer, textures[textureNum].frames[frame].frame, &srcRect, &dstRect);
 				dstRect.x += 1;
 				srcRect.x += 1;
-				lightx++;
+				lightx += 1;
 				if (i > 0 && i % 2 == 0) {
-					if (type == 1) {
-						if (lighty > 0)
-							lighty--;
-					} else {
-						if (lighty + 1 < SCREEN_HEIGHT)
-							lighty++;
+					if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD) {
+						lighty -= 1;
+					} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD) {
+						lighty += 1;
 					}
 				}
 			}
 		} else {
-			brightness = lightmap_imgData[(SCREEN_WIDTH * 4 * lighty) + (4 * lightx)];
+			brightness = ReturnLightmapBrightness(lightx, lighty);
 			SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
 			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
 		}
@@ -426,6 +418,7 @@ void RenderTileViaSDL(int sx, int sy)
 		frame = 0;
 	}
 
+	brightness = Render_IndexLightToBrightness();
 	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
 	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
 	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
