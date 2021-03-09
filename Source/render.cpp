@@ -362,7 +362,22 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 
 	int textureNum = TEXTURE_DUNGEONTILES;
 	if (lightType != LIGHTING_SUBTILE_NONE) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
-		//TODO: Handle overlayTexture as well
+		if (overlayTexture != -1) {
+			//Switch to the intermediate tile render target
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+		}
+
+		SDL_Rect dstRect;
+		if (overlayTexture != -1) {
+			dstRect.x = 0;
+			dstRect.y = 0;
+		} else {
+			dstRect.x = sx - BORDER_LEFT;
+			dstRect.y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+		}
+		dstRect.w = 1;
+		dstRect.h = textures[textureNum].frames[frame].height;
 
 		if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD) {
 			SDL_Rect srcRect;
@@ -370,12 +385,7 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 			srcRect.y = 0;
 			srcRect.w = 1;
 			srcRect.h = textures[textureNum].frames[frame].height;
-
-			SDL_Rect dstRect;
-			dstRect.x = sx - BORDER_LEFT;
-			dstRect.y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
-			dstRect.w = 1;
-			dstRect.h = textures[textureNum].frames[frame].height;
+			
 			for (int i = 0; i < textures[textureNum].frames[frame].width; i++) {
 				brightness = ReturnLightmapBrightness(lightx, lighty);
 				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
@@ -394,11 +404,21 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 		} else {
 			brightness = ReturnLightmapBrightness(lightx, lighty);
 			SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
-			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
+			Render_Texture(dstRect.x, dstRect.y, textureNum, frame);
 		}
 		SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
 		if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
 			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
+
+		if (overlayTexture != -1) {
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
+			Render_Texture(0, 0, overlayTexture); //Render overlay texture
+
+			//Switch render target back to intermediate texture and render final result
+			SDL_SetRenderTarget(renderer, texture_intermediate);
+			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_TILE_INTERMEDIATE, 0);
+		}
+
 		return;
 	}
 
