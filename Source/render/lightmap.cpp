@@ -1,13 +1,123 @@
 #include "../all.h"
 #include "../textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "../render/sdl-render.h" //Fluffy: For rendering 32-bit textures
+#include "lightmap.h"
 
 DEVILUTION_BEGIN_NAMESPACE
+
+#define SUBTILEDATAVERSION 1
+#define SUBTILEDATAMAGIC 'WFLF'
 
 static bool dRendered_lightmap[MAXDUNX][MAXDUNY];
 unsigned char *lightmap_imgData = 0; //Same as TEXTURE_LIGHT_FRAMEBUFFER but in system RAM
 int lightmap_lightx = 0; //What value to use for current tile we're processing
 int lightmap_lighty = 0;
+unsigned char *lightInfo_subTiles = 0;
+unsigned int lightInfo_subTilesSize = 0;
+
+void Lightmap_UnloadSubtileData()
+{
+	if (lightInfo_subTiles)
+		delete[] lightInfo_subTiles;
+	lightInfo_subTiles = 0;
+}
+
+static int LevelTypeNumber()
+{
+	int num = 0;
+	if (leveltype == DTYPE_TOWN)
+		num = 0;
+	else if (leveltype == DTYPE_CATHEDRAL && currlevel < 21)
+		num = 1;
+	else if (leveltype == DTYPE_CATACOMBS)
+		num = 2;
+	else if (leveltype == DTYPE_CAVES && currlevel < 17)
+		num = 3;
+	else if (leveltype == DTYPE_HELL)
+		num = 4;
+	else if (leveltype == DTYPE_CAVES) //Nest
+		num = 5;
+	else if (leveltype == DTYPE_CATHEDRAL) //Crypt
+		num = 6;
+	return num;
+}
+
+void Lightmap_SaveSubtileData()
+{
+	if (lightInfo_subTiles) {
+		FILE *file;
+		char path[MAX_PATH];
+		sprintf_s(path, MAX_PATH, "l%i.flf", LevelTypeNumber());
+		fopen_s(&file, path, "wb");
+		if (!file) {
+			//TODO: Quit with error
+			return;
+		}
+
+		int var = SUBTILEDATAMAGIC; //Magic
+		fwrite(&var, sizeof(int), 1, file); 
+		var = SUBTILEDATAVERSION; //Version
+		fwrite(&var, sizeof(int), 1, file);
+		fwrite(&lightInfo_subTilesSize, sizeof(int), 1, file);
+		fwrite(lightInfo_subTiles, 1, lightInfo_subTilesSize, file);
+		fclose(file);
+	}
+}
+
+void Lightmap_LoadSubtileData()
+{
+#ifdef LIGHTMAP_SUBTILE_EDITOR
+	subtileSelection = 0;
+#endif
+	bool loadedFromFile = false;
+
+	FILE *file;
+	char path[MAX_PATH];
+	sprintf_s(path, MAX_PATH, "l%i.flf", LevelTypeNumber());
+	fopen_s(&file, path, "rb");
+
+	if (file) {
+		int var = 0;
+		fread(&var, sizeof(int), 1, file);
+		if (var != SUBTILEDATAMAGIC) { //Check magic
+			fclose(file);
+			goto skipFileLoad;
+		}
+		fread(&var, sizeof(int), 1, file);
+		if (var > SUBTILEDATAVERSION) { //Check version
+			fclose(file);
+			goto skipFileLoad;
+		}
+
+		fread(&lightInfo_subTilesSize, sizeof(int), 1, file);
+		lightInfo_subTiles = new unsigned char[lightInfo_subTilesSize];
+		fread(lightInfo_subTiles, 1, lightInfo_subTilesSize, file);
+		fclose(file);
+		loadedFromFile = true;
+	}
+	skipFileLoad:
+
+	if (loadedFromFile == false) {
+		lightInfo_subTilesSize = 452;
+		if (leveltype == DTYPE_TOWN)
+			lightInfo_subTilesSize = 1257;
+		else if (leveltype == DTYPE_CATHEDRAL && currlevel < 21)
+			lightInfo_subTilesSize = 452;
+		else if (leveltype == DTYPE_CATACOMBS)
+			lightInfo_subTilesSize = 558;
+		else if (leveltype == DTYPE_CAVES && currlevel < 17)
+			lightInfo_subTilesSize = 559;
+		else if (leveltype == DTYPE_HELL)
+			lightInfo_subTilesSize = 455;
+		else if (leveltype == DTYPE_CAVES) //Nest
+			lightInfo_subTilesSize = 605;
+		else if (leveltype == DTYPE_CATHEDRAL) //Crypt
+			lightInfo_subTilesSize = 649;
+		lightInfo_subTilesSize += 1;
+		lightInfo_subTiles = new unsigned char[lightInfo_subTilesSize];
+		memset(lightInfo_subTiles, LIGHTING_SUBTILE_UNIFORM, lightInfo_subTilesSize);
+	}
+}
 
 static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 {
@@ -27,6 +137,12 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 		if (options_lightmapping) { //Fluffy: Render light for player
 			int width = 1024;
 			int height = width - (width / 2);
+
+			if (currlevel == 0) {
+				width *= 2;
+				height *= 2;
+			}
+
 			//int lightX = px - (pPlayer->_pAnimWidth / 2);
 			//int lightY = py - BORDER_TOP;
 			//int lightY = py - (SPANEL_HEIGHT / 2);
@@ -313,5 +429,65 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, SCREEN_WIDTH * 4); //Read lightmap into system RAM
 	SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 }
+
+#ifdef LIGHTMAP_SUBTILE_EDITOR
+int subtileSelection = 0;
+void Lightmap_SubtilePreview()
+{
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_Rect rect;
+	rect.x = SCREEN_WIDTH - 160;
+	rect.y = 148;
+	rect.w = 100;
+	rect.h = 210;
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	SDL_RenderFillRect(renderer, &rect);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	char *message = "INVALID";
+	if (lightInfo_subTiles && subtileSelection < lightInfo_subTilesSize) {
+		if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_NONE)
+			message = "NONE";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_UNIFORM)
+			message = "UNIFORM";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_DIAGONALFORWARD)
+			message = "DIAGONALF";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_DIAGONALBACKWARD)
+			message = "DIAGONALB";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_MIXEDFOREGROUND)
+			message = "MIXEDF";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_MIXEDBACKGROUND)
+			message = "MIXEDB";
+		else if (lightInfo_subTiles[subtileSelection] == LIGHTING_SUBTILE_LIGHTMAP)
+			message = "LIGHTMAP";
+	}
+	PrintGameStr(rect.x + 10, rect.y + 190, message, 255);
+	char str[100];
+	sprintf_s(str, 100, "%i / %i", subtileSelection + 1, lightInfo_subTilesSize);
+	PrintGameStr(rect.x + 10, rect.y + 205, str, 255);
+
+	light_table_index = 0;
+	lightmap_lightx = -1;
+	lightmap_lighty = -1;
+	arch_draw_type = 3;
+	int subTileSize = 10;
+	if (leveltype == DTYPE_TOWN || leveltype == DTYPE_HELL)
+		subTileSize = 16;
+	int x = rect.x + 64 + 20;
+	int y = rect.y + 200;
+	for (int i = 0; i < subTileSize; i++) {
+		unsigned short piece = (unsigned short &)pLevelPieces[(subtileSelection * subTileSize * 2) + (i * 2)];
+		if (piece != 0) {
+			level_cel_block = piece;
+			RenderTileViaSDL(x, y, 0, 0, 0);
+		}
+		if (i % 2 == 0) {
+			x += TILE_WIDTH / 2;
+		} else {
+			x -= TILE_WIDTH / 2;
+			y += TILE_HEIGHT;
+		}
+	}
+}
+#endif
 
 DEVILUTION_END_NAMESPACE

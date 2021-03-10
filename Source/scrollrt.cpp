@@ -664,16 +664,8 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	int lighty = -1;
 	int lightType = LIGHTING_SUBTILE_NONE;
 	if (options_hwRendering && options_lightmapping) {
-		lightType = LIGHTING_SUBTILE_UNIFORM;
-		//Fluffy TODO: We need some kind of database with lighting types for each sub-tile in each tileset
-		if (level_piece_id == 1 || level_piece_id == 3 || level_piece_id == 205 || level_piece_id == 206 || level_piece_id == 27)
-			lightType = LIGHTING_SUBTILE_DIAGONALFORWARD;
-		else if (level_piece_id == 5 || level_piece_id == 6 || level_piece_id == 15 || level_piece_id == 56 || level_piece_id == 127 || level_piece_id == 133 || level_piece_id == 134 || level_piece_id == 138 || level_piece_id == 26)
-			lightType = LIGHTING_SUBTILE_DIAGONALBACKWARD;
-		else if (level_piece_id == 8 || level_piece_id == 25)
-			lightType = LIGHTING_SUBTILE_MIXEDFOREGROUND;
-		else if (level_piece_id == 9 || level_piece_id == 10 || level_piece_id == 137 || level_piece_id == 139)
-			lightType = LIGHTING_SUBTILE_MIXEDBACKGROUND;
+		if (lightInfo_subTiles && level_piece_id < lightInfo_subTilesSize)
+			lightType = lightInfo_subTiles[level_piece_id - 1];
 
 		if (lightType == LIGHTING_SUBTILE_UNIFORM) {
 			lightx = lightmap_lightx;
@@ -1652,6 +1644,11 @@ static void DrawGame(int x, int y)
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 		SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame, NULL, NULL);
 	}
+
+#ifdef LIGHTMAP_SUBTILE_EDITOR
+	//Fluffy sub-tile editor
+	Lightmap_SubtilePreview();
+#endif
 
 	// Allow rendering to the whole screen
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y)];

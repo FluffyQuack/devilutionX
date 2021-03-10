@@ -11,6 +11,7 @@
 #include "misc/config.h" //Fluffy: For reading options from config during startup
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "render/lightmap.h" //Fluffy: For lightmap debugging
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -295,6 +296,9 @@ void FreeGameMem()
 	FreeObjectGFX();
 	FreeMonsterSnd();
 	FreeTownerGFX();
+
+	if (options_initLightmapping) //Fluffy: Unload lighting information for subtiles
+		Lightmap_UnloadSubtileData();
 
 	//Fluffy: Also delete equivalent SDL textures
 	if (options_initHwRendering) {
@@ -1150,6 +1154,46 @@ static void PressChar(WPARAM vkey)
 	}
 
 	switch (vkey) {
+
+	//Fluffy: For lightmap debugging
+#ifdef LIGHTMAP_SUBTILE_EDITOR
+	case 'w':
+		if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000)
+			subtileSelection -= 100;
+		else if (GetAsyncKeyState(DVL_VK_CONTROL) & 0x8000)
+			subtileSelection -= 10;
+		else
+			subtileSelection--;
+		if (subtileSelection < 0)
+			subtileSelection = 0;
+		break;
+	case 'e': {
+		if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000)
+			subtileSelection += 100;
+		else if (GetAsyncKeyState(DVL_VK_CONTROL) & 0x8000)
+			subtileSelection += 10;
+		else
+			subtileSelection++;
+		if (subtileSelection >= lightInfo_subTilesSize)
+			subtileSelection = lightInfo_subTilesSize - 1;
+		break;
+	}
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+		if (lightInfo_subTiles)
+			lightInfo_subTiles[subtileSelection] = vkey - '1';
+		break;
+	case 'S':
+	case 's':
+		Lightmap_SaveSubtileData();
+		break;
+#endif
+
 	case 'G':
 	case 'g':
 		DecreaseGamma();
@@ -1206,6 +1250,7 @@ static void PressChar(WPARAM vkey)
 		zoomflag = !zoomflag;
 		CalcViewportGeometry();
 		return;
+#ifndef LIGHTMAP_SUBTILE_EDITOR
 	case 'S':
 	case 's':
 		if (stextflag == STORE_NONE) {
@@ -1218,6 +1263,7 @@ static void PressChar(WPARAM vkey)
 			track_repeat_walk(FALSE);
 		}
 		return;
+#endif
 	case 'B':
 	case 'b':
 		if (stextflag == STORE_NONE) {
@@ -1249,6 +1295,7 @@ static void PressChar(WPARAM vkey)
 	case 'V':
 		NetSendCmdString(1 << myplr, gszVersionNumber);
 		return;
+#ifndef LIGHTMAP_SUBTILE_EDITOR
 	case '!':
 	case '1':
 		if (plr[myplr].SpdList[0]._itype != ITYPE_NONE && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
@@ -1303,6 +1350,7 @@ static void PressChar(WPARAM vkey)
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 7);
 		}
 		return;
+#endif
 #ifdef _DEBUG
 	case ')':
 	case '0':
@@ -1385,6 +1433,7 @@ static void PressChar(WPARAM vkey)
 			GiveGoldCheat();
 		}
 		return;
+#endif
 	case 'h': //Fluffy: Toggle between normal and SDL rendering
 		if (options_initHwRendering)
 			options_hwRendering = !options_hwRendering;
@@ -1393,7 +1442,6 @@ static void PressChar(WPARAM vkey)
 		if (options_initLightmapping)
 			options_lightmapping = !options_lightmapping;
 		return;
-#endif
 	}
 }
 
@@ -1492,12 +1540,12 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
-	case 'e': //Fluffy
+	/*case 'e': //Fluffy
 		if (currlevel == 0 && debug_mode_key_w) {
 			GiveGoldCheat();
 			SetAllSpellsCheat();
 		}
-		return;
+		return;*/
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_RIGHT) {
@@ -1861,6 +1909,9 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		InitMissiles();
 		IncProgress();
 	}
+
+	if (options_initLightmapping) //Fluffy: Load subtile data
+		Lightmap_LoadSubtileData();
 
 	SyncPortals();
 
