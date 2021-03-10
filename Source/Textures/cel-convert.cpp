@@ -16,6 +16,9 @@ enum {
 	//CELDATAFORMAT_TYPE5,
 };
 
+static SDL_Surface *mask1 = 0; //Fluffy debug: Masks for modifying textures we're loading
+static SDL_Surface *mask2 = 0;
+
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
 	unsigned char width;
@@ -309,6 +312,7 @@ next:
 	return false;
 }
 
+int useMask = 0; //Fluffy debug: Masking for ceiling tiles
 static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1, int format = CELDATAFORMAT_TYPE1)
 {
 	//TODO: In order to reduce texture size, we could detect if there are rows/columns of fully transparent pixels along the edges and then crop baed on that
@@ -459,6 +463,35 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		}
 	}
 
+	//Fluffy debug: Use mask for ceiling tiles
+	if (useMask == 1 || useMask == 2) {
+		unsigned char *pixels;
+		if (useMask == 1)
+			pixels = (unsigned char *) mask1->pixels;
+		else
+			pixels = (unsigned char *) mask2->pixels;
+
+		unsigned int pos = 0;
+		while (pos < textureFrame->width * textureFrame->height * textureFrame->channels) {
+			if (pixels[pos + 3] == 0 && imgData[pos + 0] >= 0) {
+				imgData[pos + 1] = 0;
+				imgData[pos + 2] = 0;
+				imgData[pos + 3] = 0;
+			}
+			pos += 4;
+		}
+	} else if(useMask == 3) {
+		unsigned int pos = 0;
+		while (pos < textureFrame->width * textureFrame->height * textureFrame->channels) {
+			if (imgData[pos + 0] >= 0) {
+				imgData[pos + 1] = 0;
+				imgData[pos + 2] = 0;
+				imgData[pos + 3] = 0;
+			}
+			pos += 4;
+		}
+	}
+
 	//Create SDL texture utilizing converted image data
 	textureFrame->frame = SDL_CreateTexture(renderer, textureFrame->channels == 4 ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
@@ -550,6 +583,10 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
+	//Fluffy debug: Load masks
+	mask1 = IMG_Load("Data\\Textures\\Tiles\\LeftMaskNulls-Invert.png");
+	mask2 = IMG_Load("Data\\Textures\\Tiles\\RightMaskNulls-Invert-OneRowTaller.png");
+
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
 	texture->frames = new textureFrame_s[frameCount];
@@ -576,9 +613,26 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 			format = CELDATAFORMAT_TYPE1;
 		}
 
+		//Fluffy debug: Use masks for ceiling tiles
+		if (j == 112 || j == 117 || j == 126 || j == 127)
+			useMask = 1;
+		else if (j == 113 || j == 119 || j == 120 || j == 133)
+			useMask = 2;
+		else if (j == 114 || j == 115 || j == 116 || j == 118 || j == 121 || j == 124 || j == 125 || j == 129 || j == 132)
+			useMask = 3;
+		else
+			useMask = 0;
+
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
 		celDataOffsetPos += 4;
 	}
+
+	//Fluffy debug: Unload masks
+	SDL_FreeSurface(mask1);
+	SDL_FreeSurface(mask2);
+	mask1 = 0;
+	mask2 = 0;
+
 	texture->loaded = true;
 }
 
