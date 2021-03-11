@@ -334,6 +334,23 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 	int tile = (level_cel_block & 0x7000) >> 12;
 	int overlayTexture = -1;
 
+	if (options_lightmapping) { //Ceiling tiles are handled in a separate pass, so we skip them all here
+		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
+			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132) //Skip
+				return;
+		}
+		/*
+		if (j == 112 || j == 117 || j == 126 || j == 127) //Left mask
+			useMask = 1;
+		else if (j == 119 || j == 120 || j == 133) //Right mask
+			useMask = 2;
+		else if (j == 113 || j == 114 || j == 115 || j == 116 || j == 118 || j == 121 || j == 124 || j == 125 || j == 129 || j == 132) //Skip
+			useMask = 3;
+		else
+			useMask = 0;
+			*/
+	}
+
 #ifndef _DEBUG
 	if (cel_transparency_active) {
 #else
