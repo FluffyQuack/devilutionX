@@ -176,11 +176,13 @@ enum {
 	TEXTURE_COWFARMER, //Towners\\Farmer\\cfrmrn2.CEL (or mfrmrn2.CEL)
 	TEXTURE_GIRL, //Towners\\Girl\\Girlw1.CEL (or Girls1.CEL)
 
-	//Texture versions of various masks in render.cpp
+	//Texture versions of various masks
 	TEXTURE_TILE_LEFTFOLIAGEMASK,
 	TEXTURE_TILE_RIGHTFOLIAGEMASK,
 	TEXTURE_TILE_LEFTMASK,
 	TEXTURE_TILE_RIGHTMASK,
+	TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, //This and the following one is for removing ceiling tiles
+	TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE,
 
 	//This is used for multiple render passes
 	TEXTURE_TILE_INTERMEDIATE, //32x32

@@ -336,19 +336,13 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 
 	if (options_lightmapping) { //Ceiling tiles are handled in a separate pass, so we skip them all here
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
-			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132) //Skip
+			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) //Skip
 				return;
+			if (frame == 112 || frame == 117 || frame == 126 || frame == 127) //Left mask
+				overlayTexture = TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE;
+			else if (frame == 119 || frame == 120 || frame == 133) //Right mask
+				overlayTexture = TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE;
 		}
-		/*
-		if (j == 112 || j == 117 || j == 126 || j == 127) //Left mask
-			useMask = 1;
-		else if (j == 119 || j == 120 || j == 133) //Right mask
-			useMask = 2;
-		else if (j == 113 || j == 114 || j == 115 || j == 116 || j == 118 || j == 121 || j == 124 || j == 125 || j == 129 || j == 132) //Skip
-			useMask = 3;
-		else
-			useMask = 0;
-			*/
 	}
 
 #ifndef _DEBUG
