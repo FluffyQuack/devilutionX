@@ -6,7 +6,7 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 #define SUBTILEDATAVERSION 1
-#define SUBTILEDATAMAGIC 'WFLF'
+#define SUBTILEDATAMAGIC 'PNDF'
 
 static bool dRendered_lightmap[MAXDUNX][MAXDUNY];
 unsigned char *lightmap_imgData = 0; //Same as TEXTURE_LIGHT_FRAMEBUFFER but in system RAM
