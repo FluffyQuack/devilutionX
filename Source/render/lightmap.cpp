@@ -199,10 +199,12 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 			break;
 		}
 		
-		//if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
-		if (options_lightmapping && lightRadius /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
+		if (options_lightmapping && lightRadius) { //Fluffy: Generate lightmap for light
 			int width = 512;
 			width = (width * 5) / lightRadius;
+
+			//width += random_(0, 40); //TODO: Add nice flickering for flame objects
+
 			int height = width - (width / 2);
 			int lightX = ox - 23;
 			int lightY = oy - 171;
