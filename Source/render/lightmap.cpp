@@ -15,6 +15,13 @@ int lightmap_lighty = 0;
 unsigned char *lightInfo_subTiles = 0;
 unsigned int lightInfo_subTilesSize = 0;
 
+int Lightmap_ReturnBrightness(int x, int y)
+{
+	if (x < 0 || y < 0 || x >= (SCREEN_WIDTH + LIGHTMAP_APPEND_X) || y >= (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y))
+		return 0;
+	return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * y) + (4 * x)];
+}
+
 void Lightmap_UnloadSubtileData()
 {
 	if (lightInfo_subTiles)

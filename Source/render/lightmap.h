@@ -20,6 +20,7 @@ extern int lightmap_lighty;
 extern unsigned char *lightInfo_subTiles;
 extern unsigned int lightInfo_subTilesSize;
 
+int Lightmap_ReturnBrightness(int x, int y);
 void Lightmap_UnloadSubtileData();
 void Lightmap_SaveSubtileData();
 void Lightmap_LoadSubtileData();

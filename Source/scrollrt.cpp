@@ -1024,6 +1024,58 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 
 static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 {
+	if (options_lightmapping) {
+		bool forward = true;
+		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
+			if (archNum == 2 || archNum == 3 || archNum == 8)
+				forward == false;
+		}
+		archNum -= 1;
+
+		SDL_Rect srcRect;
+		srcRect.x = 0;
+		srcRect.y = 0;
+		srcRect.w = 1;
+		srcRect.h = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].height;
+
+		SDL_Rect dstRect;
+		dstRect.x = x - BORDER_LEFT;
+		dstRect.y = (y - BORDER_TOP) - (srcRect.h - 1);
+		dstRect.w = 1;
+		dstRect.h = srcRect.h;
+
+		if (transparent)
+			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 127);
+
+		int lightx, lighty, brightness;
+		if (forward) {
+			lightx = lightmap_lightx - (TILE_WIDTH / 2);
+			lighty = lightmap_lighty + (TILE_HEIGHT / 2);
+		} else {
+			lightx = lightmap_lightx - (TILE_WIDTH / 2);
+			lighty = lightmap_lighty - (TILE_HEIGHT / 2); //TODO: I think this value should be different to avoid seams
+		}
+
+		for (int i = 0; i < textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width; i++) {
+			brightness = Lightmap_ReturnBrightness(lightx, lighty);
+			SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
+			SDL_RenderCopy(renderer, textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, &srcRect, &dstRect);
+			dstRect.x += 1;
+			srcRect.x += 1;
+			lightx += 1;
+			if (i > 0 && i % 2 == 0) {
+				if (forward) {
+					lighty -= 1;
+				} else {
+					lighty += 1;
+				}
+			}
+		}
+		if (transparent)
+			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255);
+		return;
+	}
+
 	archNum -= 1;
 	int brightness = Render_IndexLightToBrightness();
 	if (brightness < 255)

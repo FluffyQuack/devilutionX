@@ -320,13 +320,6 @@ skip:
 	(*dst) += n;
 }
 
-static int ReturnLightmapBrightness(int x, int y) //Fluffy
-{
-	if (x < 0 || y < 0 || x >= (SCREEN_WIDTH + LIGHTMAP_APPEND_X) || y >= (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y))
-		return 0;
-	return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * y) + (4 * x)];
-}
-
 void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
@@ -411,8 +404,8 @@ repeat:
 			return;
 
 		}
-		if (x > ReturnLightmapBrightness(x, y) == 0 && ReturnLightmapBrightness(x + 32, y) == 0
-		    && ReturnLightmapBrightness(x + 32, y + 32) == 0 && ReturnLightmapBrightness(x, y + 32) == 0) {
+		if (x > Lightmap_ReturnBrightness(x, y) == 0 && Lightmap_ReturnBrightness(x + 32, y) == 0
+		    && Lightmap_ReturnBrightness(x + 32, y + 32) == 0 && Lightmap_ReturnBrightness(x, y + 32) == 0) {
 			if (repeatRender)
 				goto repeat;
 			return;
@@ -446,7 +439,7 @@ repeat:
 			srcRect.h = textures[textureNum].frames[frame].height;
 			
 			for (int i = 0; i < textures[textureNum].frames[frame].width; i++) {
-				brightness = ReturnLightmapBrightness(lightx, lighty);
+				brightness = Lightmap_ReturnBrightness(lightx, lighty);
 				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
 				SDL_RenderCopy(renderer, textures[textureNum].frames[frame].frame, &srcRect, &dstRect);
 				dstRect.x += 1;
@@ -462,7 +455,7 @@ repeat:
 			}
 		} else {
 			if (lightType != LIGHTING_SUBTILE_LIGHTMAP) {
-				brightness = ReturnLightmapBrightness(lightx, lighty);
+				brightness = Lightmap_ReturnBrightness(lightx, lighty);
 				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
 			}
 			Render_Texture(dstRect.x, dstRect.y, textureNum, frame);
