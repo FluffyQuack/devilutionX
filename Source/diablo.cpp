@@ -304,6 +304,16 @@ void FreeGameMem()
 	if (options_initHwRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
+
+		//Fluffy debug: Testing optimization
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASK);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASK);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
 	}
 }
 
@@ -1982,6 +1992,16 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
 		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , currlevel == 0 ? false: true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
+
+		//Fluffy debug: Testing optimization
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASK);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASK);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
 	}
 }
 

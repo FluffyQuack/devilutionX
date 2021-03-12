@@ -16,6 +16,8 @@ enum {
 	//CELDATAFORMAT_TYPE5,
 };
 
+static SDL_Surface *mask1 = 0; //Fluffy debug: Mask for modifying textures we're loading
+
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
 	unsigned char width;
@@ -459,6 +461,27 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		}
 	}
 
+	//Fluffy debug: Use mask for ceiling tiles
+	unsigned char *pixels = 0;
+	if (mask1) {
+		pixels = (unsigned char *)mask1->pixels;
+
+		unsigned int pos = 0;
+		while (pos < textureFrame->width * textureFrame->height * textureFrame->channels) {
+			if (imgData[pos + 0] > 0) {
+				if (pixels[pos + 0] == 0) {
+					imgData[pos + 0] = 0;
+					imgData[pos + 1] = 0;
+					imgData[pos + 2] = 0;
+					imgData[pos + 3] = 0;
+				} else if (pixels[pos + 3] < 255) {
+					imgData[pos + 0] = pixels[pos + 3];
+				}
+			}
+			pos += 4;
+		}
+	}
+
 	//Create SDL texture utilizing converted image data
 	textureFrame->frame = SDL_CreateTexture(renderer, textureFrame->channels == 4 ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
@@ -550,6 +573,24 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
+	//Fluffy debug: Load masks
+	if (textureNum == TEXTURE_DUNGEONTILES_LEFTFOLIAGE)
+		mask1 = IMG_Load("data/textures/tiles/LeftFoliageMask.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTFOLIAGE)
+		mask1 = IMG_Load("data/textures/tiles/RightFoliageMask.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASK)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskTransparent.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASK)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskTransparent.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKINVERTED)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls-Invert.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
+
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
 	texture->frames = new textureFrame_s[frameCount];
@@ -579,6 +620,11 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
 		celDataOffsetPos += 4;
 	}
+
+	//Fluffy debug: Unload masks
+	if (mask1)
+		SDL_FreeSurface(mask1);
+	mask1 = 0;
 
 	texture->loaded = true;
 }
