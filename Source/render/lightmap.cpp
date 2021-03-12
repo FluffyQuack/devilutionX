@@ -176,13 +176,39 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 	assert((unsigned char)bv < MAXOBJECTS);
 
 	if (options_hwRendering) {
-		if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
+
+		int lightRadius = 0;
+		switch (object[bv]._otype) {
+		case OBJ_L1LIGHT:
+		case OBJ_SKFIRE:
+		case OBJ_CANDLE1:
+		case OBJ_CANDLE2:
+		case OBJ_BOOKCANDLE:
+		case OBJ_BCROSS:
+		case OBJ_TBCROSS:
+			lightRadius = 5;
+			break;
+		case OBJ_STORYCANDLE:
+			lightRadius = 3;
+			break;
+		case OBJ_TORCHL:
+		case OBJ_TORCHR:
+		case OBJ_TORCHL2:
+		case OBJ_TORCHR2:
+			lightRadius = 8;
+			break;
+		}
+		
+		//if (options_lightmapping && !object[bv]._oLight /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
+		if (options_lightmapping && lightRadius /*&& object[bv]._otype == OBJ_L1LIGHT*/) { //Fluffy: Generate lightmap for light
 			int width = 512;
+			width = (width * 5) / lightRadius;
 			int height = width - (width / 2);
 			int lightX = ox - 23;
 			int lightY = oy - 171;
 			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
-			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
+			//Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
+			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
 			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
 		}
 	}
