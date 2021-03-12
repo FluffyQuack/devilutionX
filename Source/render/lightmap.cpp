@@ -452,7 +452,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 		}
 	}
 
-	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, SCREEN_WIDTH * 4); //Read lightmap into system RAM
+	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, (SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4); //Read lightmap into system RAM
 	SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 }
 

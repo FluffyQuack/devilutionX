@@ -322,9 +322,9 @@ skip:
 
 static int ReturnLightmapBrightness(int x, int y) //Fluffy
 {
-	if (x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
+	if (x < 0 || y < 0 || x >= (SCREEN_WIDTH + LIGHTMAP_APPEND_X) || y >= (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y))
 		return 0;
-	return lightmap_imgData[(SCREEN_WIDTH * 4 * y) + (4 * x)];
+	return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * y) + (4 * x)];
 }
 
 void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)

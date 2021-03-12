@@ -4,6 +4,9 @@ DEVILUTION_BEGIN_NAMESPACE
 
 //#define MAXCELPATH 260
 
+#define LIGHTMAP_APPEND_X 32
+#define LIGHTMAP_APPEND_Y 160 //Should be 224 for town
+
 //Player animation types
 enum {
 	PLAYERANIM_STAND,

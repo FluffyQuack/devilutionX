@@ -1627,7 +1627,7 @@ static void DrawGame(int x, int y)
 
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_NONE);
 		//if (currlevel != 0) //We don't apply lightmap to the town
-			Render_Texture(0, 0, TEXTURE_LIGHT_FRAMEBUFFER);
+			Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
 

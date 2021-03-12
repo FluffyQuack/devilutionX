@@ -171,10 +171,10 @@ void Textures_Init()
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, SCREEN_WIDTH, SCREEN_HEIGHT, true);
 
 	if (options_initLightmapping) {
-		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH, SCREEN_HEIGHT, true);
+		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH + LIGHTMAP_APPEND_X, SCREEN_HEIGHT + LIGHTMAP_APPEND_Y, true);
 		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
-		lightmap_imgData = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT * 4];
-		memset(lightmap_imgData, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 4);
+		lightmap_imgData = new unsigned char[(SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4];
+		memset(lightmap_imgData, 0, (SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4);
 	}
 }
 
