@@ -333,15 +333,34 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 	int brightness;
 	int tile = (level_cel_block & 0x7000) >> 12;
 	int overlayTexture = -1;
+	bool repeatRender = false; //Used for tiles containing both ceiling and wall image data
 
+repeat:
 	if (options_lightmapping) { //Ceiling tiles are handled in a separate pass, so we skip them all here
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
-			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) //Skip
-				return;
+			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) //Tiles are 100% ceiling
+				lightType = LIGHTING_SUBTILE_LIGHTMAP;
 			if (frame == 112 || frame == 117 || frame == 126 || frame == 127) //Left mask
-				overlayTexture = TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE;
-			else if (frame == 119 || frame == 120 || frame == 133) //Right mask
-				overlayTexture = TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE;
+			{
+				if (repeatRender) {
+					lightType = LIGHTING_SUBTILE_LIGHTMAP;
+					overlayTexture = TEXTURE_TILE_LEFTMASK_OPAQUE;
+					repeatRender = false;
+				} else {
+					overlayTexture = TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE;
+					repeatRender = true;
+				}
+			} else if (frame == 119 || frame == 120 || frame == 133) //Right mask
+			{
+				if (repeatRender) {
+					lightType = LIGHTING_SUBTILE_LIGHTMAP;
+					overlayTexture = TEXTURE_TILE_RIGHTMASK_OPAQUE;
+					repeatRender = false;
+				} else {
+					overlayTexture = TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE;
+					repeatRender = true;
+				}
+			}
 		}
 	}
 
@@ -373,14 +392,14 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 
 	int textureNum = TEXTURE_DUNGEONTILES;
 	if (lightType != LIGHTING_SUBTILE_NONE) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
-		if (overlayTexture != -1) {
+		if (overlayTexture != -1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) {
 			//Switch to the intermediate tile render target
 			SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
 			SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
 		}
 
 		SDL_Rect dstRect;
-		if (overlayTexture != -1) {
+		if (overlayTexture != -1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) {
 			dstRect.x = 0;
 			dstRect.y = 0;
 		} else {
@@ -413,23 +432,34 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 				}
 			}
 		} else {
-			brightness = ReturnLightmapBrightness(lightx, lighty);
-			SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+			if (lightType != LIGHTING_SUBTILE_LIGHTMAP) {
+				brightness = ReturnLightmapBrightness(lightx, lighty);
+				SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+			}
 			Render_Texture(dstRect.x, dstRect.y, textureNum, frame);
 		}
 		SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
 		if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
 			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
 
-		if (overlayTexture != -1) {
+		if (overlayTexture != -1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) {
 			SDL_SetTextureBlendMode(textures[textureNum].frames[frame].frame, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
-			Render_Texture(0, 0, overlayTexture); //Render overlay texture
+			if (overlayTexture != -1)
+				Render_Texture(0, 0, overlayTexture); //Render overlay texture
+			if (lightType == LIGHTING_SUBTILE_LIGHTMAP) {
+				int x = sx - BORDER_LEFT;
+				int y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+				y += 64;
+				Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, x, y, x + 32, y + 32);
+			}
 
 			//Switch render target back to intermediate texture and render final result
 			SDL_SetRenderTarget(renderer, texture_intermediate);
 			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_TILE_INTERMEDIATE, 0);
 		}
 
+		if (repeatRender)
+			goto repeat;
 		return;
 	}
 

@@ -181,8 +181,10 @@ enum {
 	TEXTURE_TILE_RIGHTFOLIAGEMASK,
 	TEXTURE_TILE_LEFTMASK,
 	TEXTURE_TILE_RIGHTMASK,
-	TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, //This and the following one is for removing ceiling tiles
+	TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, //This and the following three are for separating ceiling tiles from wall tiles
 	TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE,
+	TEXTURE_TILE_LEFTMASK_OPAQUE,
+	TEXTURE_TILE_RIGHTMASK_OPAQUE,
 
 	//This is used for multiple render passes
 	TEXTURE_TILE_INTERMEDIATE, //32x32

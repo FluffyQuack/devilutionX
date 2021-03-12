@@ -1611,7 +1611,7 @@ static void DrawGame(int x, int y)
 		lightmap_lighty = -1;
 	}
 
-	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
+	scrollrt_drawFloor(x, y, sx, sy, rows, columns); //Render floor tiles
 
 	if (options_hwRendering && options_lightmapping) { //Fluffy: Render lightmap on top of floor tiles
 
@@ -1631,7 +1631,7 @@ static void DrawGame(int x, int y)
 		//SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 	}
 
-	scrollrt_draw(x, y, sx, sy, rows, columns);
+	scrollrt_draw(x, y, sx, sy, rows, columns); //Render walls, ceilings (if lightmapping is off), objects, player, objects and more
 
 	if (options_hwRendering && !zoomflag) { //Fluffy: Scale up the render if we're zooming in. TODO: Implement integer scaling for this?
 		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);

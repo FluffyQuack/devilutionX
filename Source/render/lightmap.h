@@ -11,7 +11,7 @@ enum {
 	LIGHTING_SUBTILE_DIAGONALBACKWARD, //Draw columns of lighting starting from topleft going to bottomright
 	LIGHTING_SUBTILE_MIXEDFOREGROUND,  //Draw columns of lighting starting from topleft going to bottom and then to topright
 	LIGHTING_SUBTILE_MIXEDBACKGROUND,  //Draw columns of lighting starting from bottomleft going to top and then to bottomright
-	LIGHTING_SUBTILE_LIGHTMAP, //Straightforwardly apply the lightmap (same way as floor tiles) (NOT IMPLEMENTED YET)
+	LIGHTING_SUBTILE_LIGHTMAP, //Straightforwardly apply the lightmap with an offset (this is meant for ceiling tiles)
 };
 
 extern unsigned char *lightmap_imgData;
@@ -24,6 +24,7 @@ void Lightmap_UnloadSubtileData();
 void Lightmap_SaveSubtileData();
 void Lightmap_LoadSubtileData();
 void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns);
+void Lightmap_RenderCeiling(int x, int y, int sx, int sy, int rows, int columns);
 
 #ifdef LIGHTMAP_SUBTILE_EDITOR
 extern int subtileSelection;
