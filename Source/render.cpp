@@ -479,6 +479,10 @@ repeat:
 				int x = sx - BORDER_LEFT;
 				int y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
 				y += 64;
+				if (x < 0)
+					x = 0;
+				if (y < 0)
+					y = 0;
 				Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, x, y, x + 32, y + 32);
 			}
 
