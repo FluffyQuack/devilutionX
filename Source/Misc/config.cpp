@@ -50,6 +50,7 @@ void LoadOptionsFromConfig()
 		options_initLightmapping = false;
 		options_lightmapping = false;
 	}
+	options_hwRendering = 0; //Fluffy TODO: Remove this once we've fully replaced all UI rendering with hw rendering
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
 }
 
