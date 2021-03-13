@@ -1052,8 +1052,9 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 			lightx = lightmap_lightx - (TILE_WIDTH / 2);
 			lighty = lightmap_lighty + (TILE_HEIGHT / 2);
 		} else {
+			//TODO: I think these values should be different to avoid seams
 			lightx = lightmap_lightx - (TILE_WIDTH / 2);
-			lighty = lightmap_lighty - (TILE_HEIGHT / 2); //TODO: I think this value should be different to avoid seams
+			lighty = lightmap_lighty - (TILE_HEIGHT); 
 		}
 
 		for (int i = 0; i < textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width; i++) {
