@@ -1383,11 +1383,11 @@ static void PressChar(WPARAM vkey)
 			GiveGoldCheat();
 		}
 		return;
+#endif
 	case 'h': //Fluffy: Toggle between normal and SDL rendering
 		if (options_initHwRendering)
 			options_hwRendering = !options_hwRendering;
 		return;
-#endif
 	}
 }
 
@@ -1486,12 +1486,6 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
-	case 'e': //Fluffy
-		if (currlevel == 0 && debug_mode_key_w) {
-			GiveGoldCheat();
-			SetAllSpellsCheat();
-		}
-		return;
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_RIGHT) {
