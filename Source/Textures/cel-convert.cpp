@@ -578,7 +578,7 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 }
 
 #define TILE_SIZE 32
-#define ATLAS_SIZE 4096
+#define ATLAS_SIZE 2048
 static void CopyImgData(unsigned char *from, unsigned char *to, int toX, int toY)
 {
 	unsigned int fromPos = 0;
@@ -618,7 +618,7 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 
 	//Create image data for compositing texture atlas
 	if (atlasImgData == 0) {
-		atlasImgData = new unsigned char[4096 * 4096 * 4];
+		atlasImgData = new unsigned char[ATLAS_SIZE * ATLAS_SIZE * 4];
 		atlasCurPosX = 0;
 		atlasCurPosY = 0;
 	}
