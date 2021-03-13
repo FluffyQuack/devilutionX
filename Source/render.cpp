@@ -325,6 +325,7 @@ void RenderTileViaSDL(int sx, int sy)
 	int brightness = Render_IndexLightToBrightness();
 	int tile = (level_cel_block & 0x7000) >> 12;
 	int overlayTexture = -1;
+	SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES].frames[0].frame;
 
 #ifndef _DEBUG
 	if (cel_transparency_active) {
@@ -335,7 +336,7 @@ void RenderTileViaSDL(int sx, int sy)
 		}
 #endif
 		if (arch_draw_type == 0)
-			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, 127);
+			SDL_SetTextureAlphaMod(tex, 127);
 		else if (arch_draw_type == 1 && tile != RT_LTRIANGLE) {
 			overlayTexture = TEXTURE_TILE_LEFTMASK;
 		} else if (arch_draw_type == 2 && tile != RT_RTRIANGLE) {
@@ -355,25 +356,27 @@ void RenderTileViaSDL(int sx, int sy)
 	int textureNum = TEXTURE_DUNGEONTILES;
 	if (overlayTexture != -1) {
 		//Switch to the intermediate tile render target
-		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
+		SDL_Texture *intermediateTex = textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame;
+		SDL_SetRenderTarget(renderer, intermediateTex);
 
 		//Render normal texture and the alpha mask texture
-		SDL_SetTextureBlendMode(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, SDL_BLENDMODE_NONE);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
 		Render_Texture(0, 0, TEXTURE_DUNGEONTILES, frame);
-		SDL_SetTextureBlendMode(textures[TEXTURE_DUNGEONTILES].frames[frame].frame, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
 		Render_Texture(0, 0, overlayTexture);
 
 		//Switch render target back to intermediate texture
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 		textureNum = TEXTURE_TILE_INTERMEDIATE;
+		tex = intermediateTex;
 		frame = 0;
 	}
 
-	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+	SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
 	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
-	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
+	SDL_SetTextureColorMod(tex, 255, 255, 255);
 	if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
-		SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
+		SDL_SetTextureAlphaMod(tex, 255);
 }
 
 #if defined(__clang__) || defined(__GNUC__)

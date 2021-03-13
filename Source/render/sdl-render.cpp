@@ -177,6 +177,7 @@ void Render_Texture(int x, int y, int textureNum, int frameNum)
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
+
 	textureFrame_s *textureFrame = &textures[textureNum].frames[frameNum];
 	SDL_Rect dstR;
 	dstR.x = x;
@@ -184,7 +185,18 @@ void Render_Texture(int x, int y, int textureNum, int frameNum)
 	dstR.w = textureFrame->width;
 	dstR.h = textureFrame->height;
 
-	SDL_RenderCopy(renderer, textureFrame->frame, NULL, &dstR);
+	SDL_Rect srcR;
+	SDL_Rect *srcR_ptr = 0;
+	if (textures[textureNum].usesAtlas == true) {
+		srcR.x = textureFrame->offsetX;
+		srcR.y = textureFrame->offsetY;
+		srcR.w = textureFrame->width;
+		srcR.h = textureFrame->height;
+		textureFrame = &textures[textureNum].frames[0];
+		srcR_ptr = &srcR;
+	}
+
+	SDL_RenderCopy(renderer, textureFrame->frame, srcR_ptr, &dstR);
 }
 
 DEVILUTION_END_NAMESPACE
