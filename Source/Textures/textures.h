@@ -238,14 +238,15 @@ struct textureFrame_s {
 	int width;
 	int height;
 	int channels;
-	//int offsetX; //Offset for texture in the SDL_Texture (this is used for texture atlases)
-	//int offsetY;
+	int offsetX; //Offset for texture in the SDL_Texture (this is used for texture atlases)
+	int offsetY;
 };
 
 struct texture_s {
 	bool loaded; //Whether or not texture is loaded
 	textureFrame_s *frames;
 	int frameCount; //Quantity of frames (imgData is an array of this length)
+	bool usesAtlas;
 };
 
 //extern celInfo_s celInfo[CEL_NUM];

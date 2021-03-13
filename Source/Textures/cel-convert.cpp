@@ -212,6 +212,7 @@ void Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(BYTE *celData
 		celDataOffsetPos += 4;
 	}
 	texture->loaded = true;
+	texture->usesAtlas = false;
 }
 
 static bool IsThisActuallyType1(unsigned char *src, unsigned char *end) //Check if it's valid to go through this as if it's a type 1 CEL frame
@@ -311,7 +312,7 @@ next:
 	return false;
 }
 
-static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1, int format = CELDATAFORMAT_TYPE1)
+static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData, unsigned int celDataOffsetPos, bool frameHeader, int frameWidth, int frameHeight = -1, int format = CELDATAFORMAT_TYPE1, unsigned char **rtrnImgData = 0)
 {
 	//TODO: In order to reduce texture size, we could detect if there are rows/columns of fully transparent pixels along the edges and then crop baed on that
 
@@ -482,6 +483,11 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		}
 	}
 
+	if (rtrnImgData != 0) { //Return image data rather than making an SDL texture
+		*rtrnImgData = imgData;
+		return;
+	}
+
 	//Create SDL texture utilizing converted image data
 	textureFrame->frame = SDL_CreateTexture(renderer, textureFrame->channels == 4 ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, textureFrame->width, textureFrame->height);
 	if (textureFrame->frame == 0)
@@ -512,6 +518,7 @@ void Texture_ConvertCEL_MultipleFrames_VariableResolution(BYTE *celData, int tex
 		celDataOffsetPos += 4;
 	}
 	texture->loaded = true;
+	texture->usesAtlas = false;
 }
 
 void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameWidth, int frameHeight, bool frameHeader, int groupNum)
@@ -550,6 +557,7 @@ void Texture_ConvertCEL_MultipleFrames(BYTE *celData, int textureNum, int frameW
 		}
 	}
 	texture->loaded = true;
+	texture->usesAtlas = false;
 }
 
 void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidth)
@@ -566,8 +574,25 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 	textureFrame_s *textureFrame = &texture->frames[0];
 	ConvertCELtoSDL(textureFrame, celData, 4, 0, frameWidth);
 	texture->loaded = true;
+	texture->usesAtlas = false;
 }
 
+#define TILE_SIZE 32
+#define ATLAS_SIZE 4096
+static void CopyImgData(unsigned char *from, unsigned char *to, int toX, int toY)
+{
+	unsigned int fromPos = 0;
+	unsigned int toPos = ((toY * ATLAS_SIZE) + toX) * 4;
+	for (int i = 0; i < TILE_SIZE; i++) {
+		memcpy(&to[toPos], &from[fromPos], TILE_SIZE * 4);
+		fromPos += TILE_SIZE * 4;
+		toPos += ATLAS_SIZE * 4;
+	}
+}
+
+unsigned char *atlasImgData = 0;
+unsigned int atlasCurPosX = 0;
+unsigned int atlasCurPosY = 0;
 void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 {
 	texture_s *texture = &textures[textureNum];
@@ -590,6 +615,13 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls.png");
 	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
 		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
+
+	//Create image data for compositing texture atlas
+	if (atlasImgData == 0) {
+		atlasImgData = new unsigned char[4096 * 4096 * 4];
+		atlasCurPosX = 0;
+		atlasCurPosY = 0;
+	}
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -617,8 +649,22 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 			format = CELDATAFORMAT_TYPE1;
 		}
 
-		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format);
+		unsigned char *imgData;
+		ConvertCELtoSDL(textureFrame, celData, celDataOffsetPos, false, width, height, format, &imgData);
 		celDataOffsetPos += 4;
+
+		//Copy image data to texture atlas
+		CopyImgData(imgData, atlasImgData, atlasCurPosX, atlasCurPosY);
+		textureFrame->offsetX = atlasCurPosX;
+		textureFrame->offsetY = atlasCurPosY;
+		atlasCurPosX += TILE_SIZE;
+		if (atlasCurPosX >= ATLAS_SIZE) {
+			atlasCurPosX = 0;
+			atlasCurPosY += TILE_SIZE;
+			if (atlasCurPosY >= ATLAS_SIZE)
+				atlasCurPosY = atlasCurPosY;
+		}
+		delete[] imgData;
 	}
 
 	//Fluffy debug: Unload masks
@@ -627,6 +673,24 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	mask1 = 0;
 
 	texture->loaded = true;
+	texture->usesAtlas = true;
+
+	//Turn rest of texture atlas into zero data
+	unsigned int toPos = ((atlasCurPosX * ATLAS_SIZE) + atlasCurPosY) * 4;
+	unsigned int toEnd = ATLAS_SIZE * ATLAS_SIZE * 4;
+	memset(&atlasImgData[toPos], 0, toEnd - toPos);
+
+	//Turn atlas into an SDL texture
+	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, ATLAS_SIZE, ATLAS_SIZE);
+	if (texture->frames[0].frame == 0)
+		ErrSdl();
+	if (SDL_UpdateTexture(texture->frames[0].frame, NULL, atlasImgData, ATLAS_SIZE * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
+		ErrSdl();
+	delete[] atlasImgData;
+	atlasImgData = 0;
+	if (SDL_SetTextureBlendMode(texture->frames[0].frame, SDL_BLENDMODE_BLEND) < 0)
+		ErrSdl();
+	totalTextureSize += ATLAS_SIZE * ATLAS_SIZE * 4;
 }
 
 static int GetCL2PixelCount(unsigned char *src, unsigned char *dataEnd)
@@ -774,6 +838,7 @@ void Texture_ConvertCL2_MultipleFrames(BYTE *celData, int textureNum, int groupN
 		}
 	}
 	texture->loaded = true;
+	texture->usesAtlas = false;
 }
 
 DEVILUTION_END_NAMESPACE

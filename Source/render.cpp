@@ -328,6 +328,7 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 	int overlayTexture = -1;
 	bool repeatRender = false; //Used for tiles containing both ceiling and wall image data
 	int dungeonTilesTexture = TEXTURE_DUNGEONTILES;
+	SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES].frames[0].frame;
 
 repeat:
 	if (options_lightmapping) { //Ceiling tiles get lightmapping applied in a unique way
@@ -372,7 +373,7 @@ repeat:
 		}
 #endif
 		if (arch_draw_type == 0)
-			SDL_SetTextureAlphaMod(textures[dungeonTilesTexture].frames[frame].frame, 128);
+			SDL_SetTextureAlphaMod(tex, 127);
 		else if (arch_draw_type == 1 && tile != RT_LTRIANGLE) {
 			dungeonTilesTexture = TEXTURE_DUNGEONTILES_LEFTMASK;
 			//overlayTexture = TEXTURE_TILE_LEFTMASK;
@@ -491,26 +492,28 @@ repeat:
 
 	if (overlayTexture != -1) {
 		//Switch to the intermediate tile render target
-		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame);
+		SDL_Texture *intermediateTex = textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame;
+		SDL_SetRenderTarget(renderer, intermediateTex);
 
 		//Render normal texture and the alpha mask texture
-		SDL_SetTextureBlendMode(textures[dungeonTilesTexture].frames[frame].frame, SDL_BLENDMODE_NONE);
-		Render_Texture(0, 0, dungeonTilesTexture, frame);
-		SDL_SetTextureBlendMode(textures[dungeonTilesTexture].frames[frame].frame, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
+		Render_Texture(0, 0, TEXTURE_DUNGEONTILES, frame);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
 		Render_Texture(0, 0, overlayTexture);
 		
 		//Switch render target back to intermediate texture
 		SDL_SetRenderTarget(renderer, texture_intermediate);
 		textureNum = TEXTURE_TILE_INTERMEDIATE;
+		tex = intermediateTex;
 		frame = 0;
 	}
 
 	brightness = Render_IndexLightToBrightness();
-	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, brightness, brightness, brightness);
+	SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
 	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
-	SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
+	SDL_SetTextureColorMod(tex, 255, 255, 255);
 	if (textureNum == dungeonTilesTexture && arch_draw_type == 0 && cel_transparency_active)
-		SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
+		SDL_SetTextureAlphaMod(tex, 255);
 }
 
 #if defined(__clang__) || defined(__GNUC__)
