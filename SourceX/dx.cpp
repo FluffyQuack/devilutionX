@@ -290,49 +290,51 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
-		if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
-			ErrSdl();
-		}
-
-		// Clear buffer to avoid artifacts in case the window was resized
-		if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
-			ErrSdl();
-		}
-
-		if (SDL_RenderClear(renderer) <= -1) {
-			ErrSdl();
-		}
-
-		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
-			ErrSdl();
-		}
-
-		if (options_hwRendering) {
-			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
+		if (!options_hwRendering) {
+			if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
 				ErrSdl();
 			}
-		}
 
-		if (options_hwRendering && dx_fade > 0) { //Fluffy: Render a black rectangle with dx_fadeStatus as alpha value
-			if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, dx_fade) < 0)
+			// Clear buffer to avoid artifacts in case the window was resized
+			if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
 				ErrSdl();
-			if(SDL_RenderFillRect(renderer, NULL) < 0)
-				ErrSdl();
-		}
+			}
 
-		//Fluffy debug
-		if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
 			if (SDL_RenderClear(renderer) <= -1) {
 				ErrSdl();
 			}
-			int i = 0;
-			for (int y = 0; y < 80; y++)
-				for (int x = 0; x < 60; x++) {
-					if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
-						Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
-					i++;
+
+			if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
+				ErrSdl();
+			}
+		} else {
+			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
+				ErrSdl();
+			}
+
+			if (dx_fade > 0) { //Fluffy: Render a black rectangle with dx_fadeStatus as alpha value
+				if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, dx_fade) < 0)
+					ErrSdl();
+				if (SDL_RenderFillRect(renderer, NULL) < 0)
+					ErrSdl();
+			}
+
+			//Fluffy debug
+			if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
+				if (SDL_RenderClear(renderer) <= -1) {
+					ErrSdl();
 				}
+				int i = 0;
+				for (int y = 0; y < 80; y++)
+					for (int x = 0; x < 60; x++) {
+						if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
+							Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
+						i++;
+					}
+			}
 		}
+
+		
 		
 		SDL_RenderPresent(renderer);
 
