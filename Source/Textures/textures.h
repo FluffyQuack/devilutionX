@@ -247,6 +247,8 @@ struct texture_s {
 	textureFrame_s *frames;
 	int frameCount; //Quantity of frames (imgData is an array of this length)
 	bool usesAtlas;
+	int atlasSizeX;
+	int atlasSizeY;
 };
 
 //extern celInfo_s celInfo[CEL_NUM];

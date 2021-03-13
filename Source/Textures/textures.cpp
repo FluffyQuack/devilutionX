@@ -19,7 +19,7 @@ void Texture_UnloadTexture(int textureNum) //Unloads all frames for one texture
 
 	if (texture->usesAtlas) { //This is stored as a texture atlas so we handle it differently
 		SDL_DestroyTexture(texture->frames[0].frame);
-		totalTextureSize -= 4096 * 4096 * 4;
+		totalTextureSize -= texture->atlasSizeX * texture->atlasSizeY * 4;
 		texture->loaded = false;
 		texture->usesAtlas = false;
 		delete[] texture->frames;

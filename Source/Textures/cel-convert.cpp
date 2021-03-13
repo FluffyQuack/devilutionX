@@ -577,22 +577,23 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 	texture->usesAtlas = false;
 }
 
-#define TILE_SIZE 32
-#define ATLAS_SIZE 2048
-static void CopyImgData(unsigned char *from, unsigned char *to, int toX, int toY)
-{
-	unsigned int fromPos = 0;
-	unsigned int toPos = ((toY * ATLAS_SIZE) + toX) * 4;
-	for (int i = 0; i < TILE_SIZE; i++) {
-		memcpy(&to[toPos], &from[fromPos], TILE_SIZE * 4);
-		fromPos += TILE_SIZE * 4;
-		toPos += ATLAS_SIZE * 4;
-	}
-}
-
 unsigned char *atlasImgData = 0;
 unsigned int atlasCurPosX = 0;
 unsigned int atlasCurPosY = 0;
+unsigned int atlasSizeX = 0;
+unsigned int atlasSizeY = 0;
+#define TILE_SIZE 32
+static void CopyImgData(unsigned char *from, unsigned char *to, int toX, int toY)
+{
+	unsigned int fromPos = 0;
+	unsigned int toPos = ((toY * atlasSizeX) + toX) * 4;
+	for (int i = 0; i < TILE_SIZE; i++) {
+		memcpy(&to[toPos], &from[fromPos], TILE_SIZE * 4);
+		fromPos += TILE_SIZE * 4;
+		toPos += atlasSizeX * 4;
+	}
+}
+
 void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 {
 	texture_s *texture = &textures[textureNum];
@@ -616,19 +617,30 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
 		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
 
-	//Create image data for compositing texture atlas
-	if (atlasImgData == 0) {
-		atlasImgData = new unsigned char[ATLAS_SIZE * ATLAS_SIZE * 4];
-		atlasCurPosX = 0;
-		atlasCurPosY = 0;
-	}
-
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
 	texture->frames = new textureFrame_s[frameCount];
 	texture->frameCount = frameCount;
 	unsigned int celDataOffsetPos = 4;
 	int width = 32, height = 32; //All frames in a dungeon CELs are 32x32
+
+	//Create image data for compositing texture atlas
+	if (atlasImgData == 0) {
+
+		//Calculate resolution needed for atlas
+		unsigned long long totalPixels = frameCount * width * height;
+		atlasSizeX = (unsigned int) sqrt(totalPixels);
+		//Pad resolution so it's divisible by 32
+		if (atlasSizeX % 32 != 0) {
+			atlasSizeX += 32 - (atlasSizeX % 32);
+		}
+		atlasSizeY = atlasSizeX;
+
+		atlasImgData = new unsigned char[atlasSizeX * atlasSizeY * 4];
+		atlasCurPosX = 0;
+		atlasCurPosY = 0;
+	}
+
 	for (int j = 0; j < frameCount; j++) {
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
@@ -658,10 +670,10 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		textureFrame->offsetX = atlasCurPosX;
 		textureFrame->offsetY = atlasCurPosY;
 		atlasCurPosX += TILE_SIZE;
-		if (atlasCurPosX >= ATLAS_SIZE) {
+		if (atlasCurPosX >= atlasSizeX) {
 			atlasCurPosX = 0;
 			atlasCurPosY += TILE_SIZE;
-			if (atlasCurPosY >= ATLAS_SIZE)
+			if (atlasCurPosY >= atlasSizeY)
 				atlasCurPosY = atlasCurPosY;
 		}
 		delete[] imgData;
@@ -676,21 +688,23 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	texture->usesAtlas = true;
 
 	//Turn rest of texture atlas into zero data
-	unsigned int toPos = ((atlasCurPosX * ATLAS_SIZE) + atlasCurPosY) * 4;
-	unsigned int toEnd = ATLAS_SIZE * ATLAS_SIZE * 4;
+	unsigned int toPos = ((atlasCurPosX * atlasSizeX) + atlasCurPosY) * 4;
+	unsigned int toEnd = atlasSizeX * atlasSizeY * 4;
 	memset(&atlasImgData[toPos], 0, toEnd - toPos);
 
 	//Turn atlas into an SDL texture
-	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, ATLAS_SIZE, ATLAS_SIZE);
+	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, atlasSizeX, atlasSizeY);
 	if (texture->frames[0].frame == 0)
 		ErrSdl();
-	if (SDL_UpdateTexture(texture->frames[0].frame, NULL, atlasImgData, ATLAS_SIZE * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
+	if (SDL_UpdateTexture(texture->frames[0].frame, NULL, atlasImgData, atlasSizeX * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
 		ErrSdl();
 	delete[] atlasImgData;
 	atlasImgData = 0;
 	if (SDL_SetTextureBlendMode(texture->frames[0].frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
-	totalTextureSize += ATLAS_SIZE * ATLAS_SIZE * 4;
+	totalTextureSize += atlasSizeX * atlasSizeY * 4;
+	texture->atlasSizeX = atlasSizeX;
+	texture->atlasSizeY = atlasSizeY;
 }
 
 static int GetCL2PixelCount(unsigned char *src, unsigned char *dataEnd)
