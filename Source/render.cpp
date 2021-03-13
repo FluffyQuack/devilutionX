@@ -330,7 +330,7 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 	int dungeonTilesTexture = TEXTURE_DUNGEONTILES;
 
 repeat:
-	if (options_lightmapping) { //Ceiling tiles are handled in a separate pass, so we skip them all here
+	if (options_lightmapping) { //Ceiling tiles get lightmapping applied in a unique way
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
 			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) { //Tiles are 100% ceiling
 				lightType = LIGHTING_SUBTILE_LIGHTMAP;
