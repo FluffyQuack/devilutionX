@@ -1028,7 +1028,7 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 		bool forward = true;
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
 			if (archNum == 2 || archNum == 3 || archNum == 8)
-				forward == false;
+				forward = false;
 		}
 		archNum -= 1;
 
@@ -1052,9 +1052,8 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 			lightx = lightmap_lightx - (TILE_WIDTH / 2);
 			lighty = lightmap_lighty + (TILE_HEIGHT / 2);
 		} else {
-			//TODO: I think these values should be different to avoid seams
 			lightx = lightmap_lightx - (TILE_WIDTH / 2);
-			lighty = lightmap_lighty - (TILE_HEIGHT); 
+			lighty = lightmap_lighty - (TILE_HEIGHT / 2);
 		}
 
 		for (int i = 0; i < textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width; i++) {
