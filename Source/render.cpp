@@ -388,7 +388,7 @@ repeat:
 
 	SDL_Texture *tex = textures[dungeonTilesTexture].frames[0].frame;
 	if (transparent)
-		SDL_SetTextureAlphaMod(tex, 127);
+		SDL_SetTextureAlphaMod(tex, 191);
 
 	if (options_lightmapping && arch_draw_type != 0 && lightType == LIGHTING_SUBTILE_LIGHTMAP) { //Optimization check. If this part of the lightmap is 100% dark (and not transparent), then don't render this tile
 		//We check the four corners of this lightmap piece

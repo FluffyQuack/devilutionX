@@ -1045,7 +1045,7 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 		dstRect.h = srcRect.h;
 
 		if (transparent)
-			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 127);
+			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);
 
 		int lightx, lighty, brightness;
 		if (forward) {
@@ -1081,7 +1081,7 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
 	if (transparent)
-		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 127);
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);
 	Render_Texture_FromBottom(x - BORDER_LEFT, y - BORDER_TOP, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255, 255, 255);
