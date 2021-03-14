@@ -469,7 +469,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 int subtileSelection = 0;
 void Lightmap_SubtilePreview()
 {
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_Rect rect;
 	rect.x = SCREEN_WIDTH - 160;
 	rect.y = 148;
