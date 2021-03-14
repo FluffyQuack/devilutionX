@@ -390,24 +390,32 @@ repeat:
 	if (transparent)
 		SDL_SetTextureAlphaMod(tex, 191);
 
-	if (options_lightmapping && arch_draw_type != 0 && lightType == LIGHTING_SUBTILE_LIGHTMAP) { //Optimization check. If this part of the lightmap is 100% dark (and not transparent), then don't render this tile
-		//We check the four corners of this lightmap piece
-		int x = sx - BORDER_LEFT;
-		int y = (sy - BORDER_TOP) - (32 - 1);
-		y += 64;
-		if (x + 32 >= SCREEN_WIDTH || y + 32 >= SCREEN_HEIGHT) {
-			if (repeatRender)
-				goto repeat;
-			return;
-
-		}
-		if (x > Lightmap_ReturnBrightness(x, y) == 0 && Lightmap_ReturnBrightness(x + 32, y) == 0
-		    && Lightmap_ReturnBrightness(x + 32, y + 32) == 0 && Lightmap_ReturnBrightness(x, y + 32) == 0) {
-			if (repeatRender)
-				goto repeat;
-			return;
-		}
-	}
+	//if (options_lightmapping && arch_draw_type != 0) { //Optimization check. If this part of the lightmap is 100% dark (and not transparent), then don't render this tile
+	//	if (lightType == LIGHTING_SUBTILE_LIGHTMAP) { //We check the four corners of this lightmap piece
+	//		int x = sx - BORDER_LEFT;
+	//		int y = (sy - BORDER_TOP) - (32 - 1);
+	//		y += 64;
+	//		if (x + 32 >= SCREEN_WIDTH || y + 32 >= SCREEN_HEIGHT) {
+	//			if (repeatRender)
+	//				goto repeat;
+	//			return;
+	//		}
+	//		if (Lightmap_ReturnBrightness(x, y) == 0 && Lightmap_ReturnBrightness(x + 31, y) == 0
+	//			&& Lightmap_ReturnBrightness(x + 31, y + 31) == 0 && Lightmap_ReturnBrightness(x, y + 31) == 0) {
+	//			if (repeatRender)
+	//				goto repeat;
+	//			return;
+	//		}
+	//	} else if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD) { //We check start and end points of a line on the lightmap
+	//		int x = sx - BORDER_LEFT;
+	//		int y = sy - BORDER_TOP;
+	//		if (Lightmap_ReturnBrightness(x, y) == 0 && Lightmap_ReturnBrightness(x + 31, y) == 0) {
+	//			if (repeatRender)
+	//				goto repeat;
+	//			return;
+	//		}
+	//	}
+	//}
 
 	int textureNum = dungeonTilesTexture;
 	if (lightType != LIGHTING_SUBTILE_NONE) { //Fluffy: We take the pixel at coordinates lightx and lighty from the lightmap and apply that to the entire texture
