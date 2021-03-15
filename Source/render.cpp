@@ -18,7 +18,11 @@ enum {
 	RT_LTRIANGLE,
 	RT_RTRIANGLE,
 	RT_LTRAPEZOID,
-	RT_RTRAPEZOID
+	RT_RTRAPEZOID,
+	RT_LTRAPEZOID_OR_OPAQUE, //Fluffy: CEL type is RT_LTRAPEZOID and rendered as such if above tile is walkable. If not walkable, render it as opaque
+	RT_RTRAPEZOID_OR_OPAQUE,
+	RT_SQUARE_OR_LTRAPEZOID, //Fluffy: CEL type is RT_SQUARE and rendered as such if same tile is walkable. If not walkable, render it as a RT_LTRAPEZOID
+	RT_SQUARE_OR_RTRAPEZOID,
 };
 
 /** Fluffy: Fully transparent variant of WallMask. */
@@ -324,7 +328,7 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 {
 	int frame = (level_cel_block & 0xFFF) - 1;
 	int brightness;
-	int tile = (level_cel_block & 0x7000) >> 12;
+	int tile = (level_cel_block & 0xF000) >> 12;
 	int overlayTexture = -1;
 	bool repeatRender = false; //Used for tiles containing both ceiling and wall image data
 	int dungeonTilesTexture = TEXTURE_DUNGEONTILES;
@@ -332,9 +336,11 @@ void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 repeat:
 	if (options_lightmapping) { //Ceiling tiles get lightmapping applied in a unique way
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
-			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) { //Tiles are 100% ceiling
+			if (frame == 113 || frame == 114 || frame == 115 || frame == 116 || frame == 118 || frame == 121 || frame == 124 || frame == 125 || frame == 129 || frame == 132 || (frame >= 1099 && frame <= 1104)) { //Tiles that are 100% ceiling
 				lightType = LIGHTING_SUBTILE_LIGHTMAP;
 			}
+
+			//Tiles that are a mix of ceiling and wall
 			if (frame == 112 || frame == 117 || frame == 126 || frame == 127) //Left mask
 			{
 				if (repeatRender) {
@@ -368,6 +374,15 @@ repeat:
 			return;
 		}
 #endif
+
+		if (tile == RT_LTRAPEZOID_OR_OPAQUE) {
+		} else if (tile == RT_RTRAPEZOID_OR_OPAQUE) {
+		} else if (tile == RT_SQUARE_OR_LTRAPEZOID) {
+			dungeonTilesTexture = TEXTURE_DUNGEONTILES_LEFTTRIANGLE;
+		} else if (tile == RT_SQUARE_OR_RTRAPEZOID) {
+			dungeonTilesTexture = TEXTURE_DUNGEONTILES_RIGHTMASK;
+		} else
+
 		if (arch_draw_type == 0)
 			transparent = true;
 		else if (arch_draw_type == 1 && tile != RT_LTRIANGLE) {

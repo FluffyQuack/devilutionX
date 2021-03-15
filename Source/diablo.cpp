@@ -314,6 +314,7 @@ void FreeGameMem()
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTTRIANGLE);
 	}
 }
 
@@ -1597,6 +1598,12 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	MainWndProc(hWnd, uMsg, wParam, lParam);
 }
 
+static void ChangeCelType(int pieceSize, int piece, int cel, char newType)
+{
+	unsigned short *piecePtr = (unsigned short *)&pLevelPieces[(piece * pieceSize * 2) + (cel * 2)];
+	*piecePtr = (*piecePtr & 0xFFF) + (newType << 12);
+}
+
 void LoadLvlGFX()
 {
 	assert(!pDungeonCels);
@@ -1654,6 +1661,15 @@ void LoadLvlGFX()
 	default:
 		app_fatal("LoadLvlGFX");
 		break;
+	}
+
+	//Fluffy: Modify the celtype of certain corner pieces so they can rendered correctly
+	int subTileSize = 10;
+	if (leveltype == DTYPE_TOWN || leveltype == DTYPE_HELL)
+		subTileSize = 16;
+	if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) {
+		ChangeCelType(subTileSize, 13, 9, 7); //Bottom right CEL of piece 14
+		ChangeCelType(subTileSize, 13, 7, 8); //The CEL directly above #9
 	}
 }
 
@@ -2002,6 +2018,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTTRIANGLE);
 	}
 }
 
