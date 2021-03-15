@@ -616,8 +616,6 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls.png");
 	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
 		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTTRIANGLE)
-		mask1 = IMG_Load("data/textures/tiles/LeftTriangleTransparent.png");
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;

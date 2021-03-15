@@ -19,10 +19,6 @@ enum {
 	RT_RTRIANGLE,
 	RT_LTRAPEZOID,
 	RT_RTRAPEZOID,
-	RT_LTRAPEZOID_OR_OPAQUE, //Fluffy: CEL type is RT_LTRAPEZOID and rendered as such if above tile is walkable. If not walkable, render it as opaque
-	RT_RTRAPEZOID_OR_OPAQUE,
-	RT_SQUARE_OR_LTRAPEZOID, //Fluffy: CEL type is RT_SQUARE and rendered as such if same tile is walkable. If not walkable, render it as a RT_LTRAPEZOID
-	RT_SQUARE_OR_RTRAPEZOID,
 };
 
 /** Fluffy: Fully transparent variant of WallMask. */
@@ -374,14 +370,6 @@ repeat:
 			return;
 		}
 #endif
-
-		if (tile == RT_LTRAPEZOID_OR_OPAQUE) {
-		} else if (tile == RT_RTRAPEZOID_OR_OPAQUE) {
-		} else if (tile == RT_SQUARE_OR_LTRAPEZOID) {
-			dungeonTilesTexture = TEXTURE_DUNGEONTILES_LEFTTRIANGLE;
-		} else if (tile == RT_SQUARE_OR_RTRAPEZOID) {
-			dungeonTilesTexture = TEXTURE_DUNGEONTILES_RIGHTMASK;
-		} else
 
 		if (arch_draw_type == 0)
 			transparent = true;
