@@ -333,8 +333,6 @@ void RenderPresent()
 					}
 			}
 		}
-
-		
 		
 		SDL_RenderPresent(renderer);
 
