@@ -181,6 +181,7 @@ void Textures_Init()
 
 	//Generate tile intermediate render target
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
+	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, SCREEN_WIDTH, SCREEN_HEIGHT, true);
 
 	if (options_initLightmapping) {

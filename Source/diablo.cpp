@@ -314,6 +314,7 @@ void FreeGameMem()
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_DUNGEONPIECES);
 	}
 }
 
@@ -1990,6 +1991,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			}
 		}
 
+		//Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES, TEXTURE_DUNGEONTILES_DUNGEONPIECES, pLevelPieces);
 		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
 		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , currlevel == 0 ? false: true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
 

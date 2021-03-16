@@ -682,6 +682,137 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 			cel_transparency_active = (BYTE)(nTransTable[level_piece_id] & TransList[dTransVal[x][y]]);
 	}
 
+	//Fluffy: Render cell as one whole dungeon piece
+	if (0 && nSolidTable[level_piece_id]  && options_hwRendering && options_lightmapping) {
+		level_piece_id--;
+		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
+		int brightness;
+
+		if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD ||
+			lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) {
+
+			if (1) { //Render target render
+				//Switch to the intermediate tile render target
+				SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
+				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+				Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
+
+				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
+					lightx = lightmap_lightx - (TILE_WIDTH / 2);
+					lighty = lightmap_lighty + (TILE_HEIGHT / 2);
+				} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
+					lightx = lightmap_lightx - (TILE_WIDTH / 2);
+					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
+				}
+
+				SDL_Rect dstRect;
+				dstRect.x = 0;
+				dstRect.y = 0;
+				dstRect.w = 1;
+				dstRect.h = 160;
+
+				SDL_Rect srcRect;
+				srcRect.x = lightx;
+				srcRect.y = lighty;
+				srcRect.w = 1;
+				srcRect.h = 1;
+
+				int width = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].width;
+				SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
+				for (int i = 0; i < width; i++) {
+					SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
+					dstRect.x += 1;
+					srcRect.x += 1;
+					if (i > 0 && i % 2 == 0) {
+						if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
+						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
+						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
+							srcRect.y -= 1;
+						} else {
+							srcRect.y += 1;
+						}
+					}
+				}
+
+				//Switch render target back to intermediate texture and render final result
+				SDL_SetRenderTarget(renderer, texture_intermediate);
+				Render_Texture_FromBottom(sx - BORDER_LEFT, sy - (BORDER_TOP), TEXTURE_TILE_INTERMEDIATE_PIECE, 0);
+			} else {
+				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
+					lightx = lightmap_lightx - (TILE_WIDTH / 2);
+					lighty = lightmap_lighty + (TILE_HEIGHT / 2);
+				} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
+					lightx = lightmap_lightx - (TILE_WIDTH / 2);
+					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
+				}
+
+				SDL_Rect dstRect;
+				dstRect.x = sx - BORDER_LEFT;
+				dstRect.y = (sy - BORDER_TOP) - (160 - 1);
+				dstRect.w = 1;
+				dstRect.h = 160;
+
+				SDL_Rect srcRect;
+				srcRect.x = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].offsetX;
+				srcRect.y = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].offsetY;
+				srcRect.w = 1;
+				srcRect.h = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height;
+
+				int width = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].width;
+				for (int i = 0; i < width; i++) {
+					brightness = Lightmap_ReturnBrightness(lightx, lighty);
+					SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
+					SDL_RenderCopy(renderer, tex, &srcRect, &dstRect);
+					dstRect.x += 1;
+					srcRect.x += 1;
+					lightx += 1;
+					if (i > 0 && i % 2 == 0) {
+						if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
+						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
+						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
+							lighty -= 1;
+						} else {
+							lighty += 1;
+						}
+					}
+				}
+				SDL_SetTextureColorMod(tex, 255, 255, 255);
+			}
+		} else if (1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) {
+			//Switch to the intermediate tile render target
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
+			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+			Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
+
+			int x = sx - BORDER_LEFT;
+			int y = (sy - BORDER_TOP) - (160 - 1);
+			y += 64;
+			if (x < 0)
+				x = 0;
+			if (y < 0)
+				y = 0;
+			Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, x, y, x + 64, y + 160);
+
+			//Switch render target back to intermediate texture and render final result
+			SDL_SetRenderTarget(renderer, texture_intermediate);
+			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - (BORDER_TOP), TEXTURE_TILE_INTERMEDIATE_PIECE, 0);
+
+			//Render_Texture(sx - BORDER_LEFT, sy - (BORDER_TOP + 159), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+
+
+		} else {
+
+
+
+			Render_Texture(sx - BORDER_LEFT, sy - (BORDER_TOP + 159), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+
+		}
+		
+		return;
+	}
+
 	cel_foliage_active = !nSolidTable[level_piece_id];
 	for (int i = 0; i < (MicroTileLen >> 1); i++) {
 

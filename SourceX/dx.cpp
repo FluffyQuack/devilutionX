@@ -320,15 +320,33 @@ void RenderPresent()
 			}
 
 			//Fluffy debug
-			if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
+			if (1 && textures[TEXTURE_DUNGEONTILES].frames) {
 				if (SDL_RenderClear(renderer) <= -1) {
 					ErrSdl();
 				}
-				int i = 0;
+				SDL_Rect rect;
+				rect.x = 0;
+				rect.y = 0;
+				rect.w = textures[TEXTURE_DUNGEONTILES].atlasSizeX;
+				rect.h = textures[TEXTURE_DUNGEONTILES].atlasSizeY;
+				SDL_RenderCopy(renderer, textures[TEXTURE_DUNGEONTILES].frames[0].frame, NULL, &rect);
+				/*int i = 0;
 				for (int y = 0; y < 80; y++)
 					for (int x = 0; x < 60; x++) {
 						if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
 							Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
+						i++;
+					}*/
+			}
+			if (0 && textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].loaded) {
+				if (SDL_RenderClear(renderer) <= -1) {
+					ErrSdl();
+				}
+				int i = 0;
+				for (int y = 0; y < 6; y++)
+					for (int x = 0; x < 30; x++) {
+						if (i < textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frameCount)
+							Render_Texture(x * 64, y * 160, TEXTURE_DUNGEONTILES_DUNGEONPIECES, i);
 						i++;
 					}
 			}
