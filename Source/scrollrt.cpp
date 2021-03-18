@@ -709,29 +709,27 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 				SDL_Rect dstRect;
 				dstRect.x = 0;
 				dstRect.y = 0;
-				dstRect.w = 1;
+				dstRect.w = 2;
 				dstRect.h = 160;
 
 				SDL_Rect srcRect;
 				srcRect.x = lightx;
 				srcRect.y = lighty;
-				srcRect.w = 1;
+				srcRect.w = 2;
 				srcRect.h = 1;
 
 				int width = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].width;
 				SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
-				for (int i = 0; i < width; i++) {
+				for (int i = 0; i < width; i += 2) {
 					SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
-					dstRect.x += 1;
-					srcRect.x += 1;
-					if (i > 0 && i % 2 == 0) {
-						if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
-							srcRect.y -= 1;
-						} else {
-							srcRect.y += 1;
-						}
+					dstRect.x += 2;
+					srcRect.x += 2;
+					if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
+						|| (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
+						|| (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
+						srcRect.y -= 1;
+					} else {
+						srcRect.y += 1;
 					}
 				}
 
