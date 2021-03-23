@@ -683,7 +683,7 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	}
 
 	//Fluffy: Render cell as one whole dungeon piece
-	if (0 && nSolidTable[level_piece_id]  && options_hwRendering && options_lightmapping) {
+	if (1 && nSolidTable[level_piece_id]  && options_hwRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
 		int brightness;
@@ -733,10 +733,22 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 					}
 				}
 
+				if(0) { //Go through nearby tiles and render any important entity as a silhouette
+					//TODO: Finish this code. Right now it's only a basic stress test
+					//Render player as solid colour
+					Render_Texture(0, 0, TEXTURE_PLAYERS, 0);
+
+					//Render alpha from wall texture
+					SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ZERO, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha = srcAlpha)
+					SDL_SetTextureBlendMode(tex, blendMode);
+					Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+					SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+				}
+
 				//Switch render target back to intermediate texture and render final result
 				SDL_SetRenderTarget(renderer, texture_intermediate);
 				Render_Texture_FromBottom(sx - BORDER_LEFT, sy - (BORDER_TOP), TEXTURE_TILE_INTERMEDIATE_PIECE, 0);
-			} else {
+			} else { //Render using light info from lightmap in RAM
 				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
 					lightx = lightmap_lightx - (TILE_WIDTH / 2);
 					lighty = lightmap_lighty + (TILE_HEIGHT / 2);
