@@ -135,6 +135,9 @@ static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
 //Load textures
 void Textures_Init()
 {
+	//TODO: Use this for figuring out maxiumum texture size:
+	//https://wiki.libsdl.org/SDL_RendererInfo
+
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
 	if (!options_initHwRendering)
