@@ -683,7 +683,7 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	}
 
 	//Fluffy: Render cell as one whole dungeon piece
-	if (1 && nSolidTable[level_piece_id]  && options_hwRendering && options_lightmapping) {
+	if (1 && nSolidTable[level_piece_id] && options_hwRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
 		int brightness;
