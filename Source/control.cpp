@@ -1992,7 +1992,7 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 		//TODO: This is more indirectly related, but we should make it so that when equipment is fully destroyed, we should show some kind of icon then as well (we could add a new variable to the player struct which defines if a slot is empty due to item destruction or not, and if true, show a durability icon for that slot)
 	} else {
 		if (amount)
-			CelDraw_CropY(x, y, pDurIcons, c + 8, height, 0, amount); //Gold icon
+			CelDraw_CropY(x, y, pDurIcons, c + 8, 32, 0, amount); //Gold icon
 		if (amount != height)
 			CelDraw_CropY(x, y, pDurIcons, c, 32, amount, height); //Red icon
 	}
