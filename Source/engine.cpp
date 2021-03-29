@@ -73,6 +73,20 @@ void CelBlitFrame(BYTE *pBuff, BYTE *pCelBuff, int nCel, int nWidth)
 	CelBlitSafe(pBuff, pRLEBytes, nDataSize, nWidth);
 }
 
+//Fluffy: Same as CelDraw but with custom clipping of Y coordinate
+void CelDraw_CropY(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, int startX, int endY)
+{
+	int nDataSize;
+	BYTE *pRLEBytes;
+	BYTE *pBuff = &gpBuffer[sx + BUFFER_WIDTH * sy];
+
+	assert(pCelBuff != NULL);
+	assert(pBuff != NULL);
+
+	pRLEBytes = CelGetFrame(pCelBuff, nCel, &nDataSize);
+	CelBlitSafe_CropY(pBuff, pRLEBytes, nDataSize, nWidth, startX, endY);
+}
+
 /**
  * @brief Same as CelDraw but with the option to skip parts of the top and bottom of the sprite
  * @param sx Back buffer coordinate
@@ -227,6 +241,52 @@ void CelBlitSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
 			if (!(width & 0x80)) {
 				i -= width;
 				if (dst < gpBufEnd && dst > gpBufStart) {
+					memcpy(dst, src, width);
+				}
+				src += width;
+				dst += width;
+			} else {
+				width = -(char)width;
+				dst += width;
+				i -= width;
+			}
+		}
+	}
+}
+
+//Fluffy
+/**
+ * @brief Blit vertically cropped CEL sprite to the given buffer, checks for drawing outside the buffer
+ * @param pDecodeTo The output buffer
+ * @param pRLEBytes CEL pixel stream (run-length encoded)
+ * @param nDataSize Size of CEL in bytes
+ * @param nWidth Width of sprite
+ * @param startY At what  Y coordinate to start drawing CEL (note: 0 is equal to bottom of CEL)
+ * @param endY Final Y coordinate to draw
+ */
+void CelBlitSafe_CropY(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, int startY, int endY)
+{
+	int i, w;
+	BYTE width;
+	BYTE *src, *dst;
+
+	assert(pDecodeTo != NULL);
+	assert(pRLEBytes != NULL);
+	assert(gpBuffer);
+
+	src = pRLEBytes;
+	dst = pDecodeTo;
+	w = nWidth;
+	int curY = 0;
+
+	for (; src != &pRLEBytes[nDataSize]; dst -= BUFFER_WIDTH + w, curY++) {
+		if (curY > endY)
+			return;
+		for (i = w; i;) {
+			width = *src++;
+			if (!(width & 0x80)) {
+				i -= width;
+				if (curY >= startY && dst < gpBufEnd && dst > gpBufStart) {
 					memcpy(dst, src, width);
 				}
 				src += width;
