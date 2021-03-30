@@ -594,6 +594,45 @@ static void CopyImgData(unsigned char *from, unsigned char *to, int fromX, int f
 	}
 }
 
+static void SaveAsTGA(int sizeX, int sizeY, unsigned char *imgData, char *name)
+{
+	//Create TGA header
+	struct TargaHeader {
+		BYTE IDLength;
+		BYTE ColormapType;
+		BYTE ImageType;
+		BYTE ColormapSpecification[5];
+		WORD XOrigin;
+		WORD YOrigin;
+		WORD ImageWidth;
+		WORD ImageHeight;
+		BYTE PixelDepth;
+		BYTE ImageDescriptor;
+	} tgaHeader;
+	memset(&tgaHeader, 0, sizeof(tgaHeader));
+	tgaHeader.IDLength = 0;
+	tgaHeader.ImageType = 2;
+	tgaHeader.ImageWidth = sizeX;
+	tgaHeader.ImageHeight = sizeY;
+	tgaHeader.PixelDepth = 32;
+	tgaHeader.ImageDescriptor = 0x28;
+
+	unsigned char *tgaData = new unsigned char[sizeX * sizeY * 4];
+	for (unsigned int i = 0; i < sizeX * sizeY * 4; i += 4) {
+		tgaData[i + 3] = imgData[i + 0];
+		tgaData[i + 0] = imgData[i + 1];
+		tgaData[i + 1] = imgData[i + 2];
+		tgaData[i + 2] = imgData[i + 3];
+	}
+
+	FILE *file;
+	fopen_s(&file, name, "wb");
+	fwrite(&tgaHeader, sizeof(TargaHeader), 1, file);
+	fwrite(tgaData, 1, sizeX * sizeY * 4, file);
+	fclose(file);
+	delete[] tgaData;
+}
+
 void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureNumDungeonPieces, unsigned char *dungeonPieceInfo)
 {
 	texture_s *texture = &textures[textureNum];
@@ -679,6 +718,10 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 		}
 		delete[] imgData;
 	}
+
+	//Debug: Output micro-tile atlas as TGA
+	if (mask1 == 0 && 0)
+		SaveAsTGA(atlasSizeX, atlasSizeY, atlasImgData, "MicroTiles.tga");
 
 	//Fluffy debug: Unload masks
 	if (mask1)
@@ -790,6 +833,10 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 				}
 			}
 		}
+
+		//Debug: Output dungeon piece atlas as TGA
+		if (0)
+			SaveAsTGA(atlas2SizeX, atlas2SizeY, atlas2ImgData, "DungeonPieces.tga");
 
 		//Turn atlas into an SDL texture
 		texture2->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, atlas2SizeX, atlas2SizeY);
