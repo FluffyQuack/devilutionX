@@ -1932,13 +1932,11 @@ void ReleaseChrBtns()
 	}
 }
 
-#define DURABILITY_RED 2
-#define DURABILITY_GOLD 5
 static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 {
 	if (pItem->_itype == ITYPE_NONE)
 		return x;
-	if (pItem->_iDurability > DURABILITY_GOLD)
+	if (pItem->_iDurability > options_durabilityIconGold)
 		return x;
 	if (c == 0) {
 		if (pItem->_iClass == ICLASS_WEAPON) {
@@ -1968,14 +1966,21 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 
 	//Fluffy: Calculate how much of the icon should be gold and red
 	int height = 32;
-	//int max = (pItem->_iMaxDur > DURABILITY_GOLD ? DURABILITY_GOLD : pItem->_iMaxDur) - DURABILITY_RED;
-	int max = DURABILITY_GOLD - DURABILITY_RED;
+	//int max = (pItem->_iMaxDur > options_durabilityIconGold ? options_durabilityIconGold : pItem->_iMaxDur) - options_durabilityIconRed;
+	int max = options_durabilityIconGold - options_durabilityIconRed;
 	int amount;
-	if (pItem->_iDurability <= DURABILITY_RED || max <= 0)
-		amount = 0;
-	else {
-		int cur = pItem->_iDurability - DURABILITY_RED;
-		amount = (height * cur) / max;
+	if (!options_durabilityIconGradualChange) {
+		if (pItem->_iDurability <= options_durabilityIconRed)
+			amount = 0;
+		else
+			amount = height;
+	} else {
+		if (pItem->_iDurability <= options_durabilityIconRed || max <= 0)
+			amount = 0;
+		else {
+			int cur = pItem->_iDurability - options_durabilityIconRed;
+			amount = (height * cur) / max;
+		}
 	}
 
 	if (options_hwRendering) { //Fluffy: Render via SDL rendering

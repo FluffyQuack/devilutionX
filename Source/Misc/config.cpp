@@ -46,6 +46,14 @@ void LoadOptionsFromConfig()
 	options_hwRendering = options_initHwRendering;
 	options_hwRendering = 0; //Fluffy TODO: Remove this once we've fully replaced all UI rendering with hw rendering
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
+
+	LoadBoolVariableFromConfig("Durability Icon Gradual Change", &options_durabilityIconGradualChange);
+	if (!SRegLoadValue("devilutionx", "Durability Icon Gold Value", 0, &options_durabilityIconGold)) {
+		options_durabilityIconGold = 5;
+	}
+	if (!SRegLoadValue("devilutionx", "Durability Icon Red Value", 0, &options_durabilityIconRed)) {
+		options_durabilityIconRed = 2;
+	}
 }
 
 DEVILUTION_END_NAMESPACE

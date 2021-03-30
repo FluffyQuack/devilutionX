@@ -106,6 +106,9 @@ BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are alw
 BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
 BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
+BOOL options_durabilityIconGradualChange = true;
+int options_durabilityIconGold = 8;
+int options_durabilityIconRed = 1;
 
 /* rdata */
 

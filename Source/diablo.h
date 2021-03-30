@@ -61,6 +61,9 @@ extern BOOL options_opaqueWallsWithSilhouette;
 extern BOOL options_initHwRendering;
 extern BOOL options_hwRendering;
 extern BOOL options_animatedUIFlasks;
+extern BOOL options_durabilityIconGradualChange;
+extern int options_durabilityIconGold;
+extern int options_durabilityIconRed;
 
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
