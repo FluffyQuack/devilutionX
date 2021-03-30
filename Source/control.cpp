@@ -1969,7 +1969,7 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 
 	int y = -17 + PANEL_Y;
 
-	//Calculate how much of the icon should be gold and red
+	//Fluffy: Calculate how much of the icon should be gold and red
 	int height = 32;
 	int max = (pItem->_iMaxDur > DURABILITY_GOLD ? DURABILITY_GOLD : pItem->_iMaxDur) - DURABILITY_RED;
 	int amount;

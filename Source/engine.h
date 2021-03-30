@@ -50,7 +50,7 @@ inline BYTE *CelGetFrameClipped(BYTE *pCelBuff, int nCel, int *nDataSize)
 }
 
 void CelDraw(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
-void CelDraw_CropY(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, int startX, int endY);
+void CelDraw_CropY(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, int startX, int endY); //Fluffy
 void CelBlitFrame(BYTE *pBuff, BYTE *pCelBuff, int nCel, int nWidth);
 void CelClippedDraw(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void CelDrawLight(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BYTE *tbl);
@@ -58,7 +58,7 @@ void CelClippedDrawLight(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void CelClippedBlitLightTrans(BYTE *pBuff, BYTE *pCelBuff, int nCel, int nWidth);
 void CelDrawLightRed(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, char light);
 void CelBlitSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth);
-void CelBlitSafe_CropY(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, int startY, int endY);
+void CelBlitSafe_CropY(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, int startY, int endY); //Fluffy
 void CelClippedDrawSafe(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
 void CelBlitLightSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, BYTE *tbl);
 void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, BYTE *tbl);
