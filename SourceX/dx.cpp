@@ -350,6 +350,30 @@ void RenderPresent()
 						i++;
 					}
 			}
+			if(0) {
+				int tex = TEXTURE_DUNGEONTILES;
+				if (textures[tex].frames) {
+					if (SDL_RenderClear(renderer) <= -1) {
+						ErrSdl();
+					}
+					SDL_Rect rect;
+
+					rect.x = 0;
+					rect.y = 0;
+					rect.w = 32;
+					rect.h = 32;
+
+					SDL_Rect srcR;
+					int frame = 1470;
+					srcR.x = textures[tex].frames[frame].offsetX;
+					srcR.y = textures[tex].frames[frame].offsetY;
+					srcR.w = 32;
+					srcR.h = 32;
+
+					SDL_SetTextureBlendMode(textures[tex].frames[0].frame, SDL_BLENDMODE_BLEND);
+					SDL_RenderCopy(renderer, textures[tex].frames[0].frame, &srcR, &rect);
+				}
+			}
 		}
 		
 		SDL_RenderPresent(renderer);
