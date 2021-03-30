@@ -754,7 +754,6 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 
 		//Define basic size info
 		width = 64;
-		height = 160;
 		int frame2Count = 452;
 		if (leveltype == DTYPE_TOWN)
 			frame2Count = 1257;
@@ -771,6 +770,16 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 		else if (leveltype == DTYPE_CATHEDRAL) //Crypt
 			frame2Count = 649;
 		frame2Count += 1;
+
+		//Define height of dungeon pieces based on tileset
+		int subTileSize;
+		if (leveltype == DTYPE_TOWN || leveltype == DTYPE_HELL) {
+			subTileSize = 16;
+			height = 256;
+		} else {
+			subTileSize = 10;
+			height = 160;
+		}
 
 		//Calculate resolution needed for atlas
 		unsigned long long totalPixels = frame2Count * width * height;
@@ -797,10 +806,7 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 		//Create textureFrame_s pointer array
 		texture2->frames = new textureFrame_s[frame2Count];
 		texture2->frameCount = frame2Count;
-
-		int subTileSize = 10;
-		if (leveltype == DTYPE_TOWN || leveltype == DTYPE_HELL)
-			subTileSize = 16;
+		
 		for (int i = 0; i < frame2Count; i++) {
 			textureFrame_s *textureFrame = &texture2->frames[i];
 
