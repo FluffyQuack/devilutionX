@@ -1964,14 +1964,12 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 		}
 	}
 
-	if (pItem->_iDurability > DURABILITY_RED && pItem->_iDurability == pItem->_iMaxDur) //Avoid showing durability icon if it's equal to a low max (and above "red" durability value)
-		return x;
-
 	int y = -17 + PANEL_Y;
 
 	//Fluffy: Calculate how much of the icon should be gold and red
 	int height = 32;
-	int max = (pItem->_iMaxDur > DURABILITY_GOLD ? DURABILITY_GOLD : pItem->_iMaxDur) - DURABILITY_RED;
+	//int max = (pItem->_iMaxDur > DURABILITY_GOLD ? DURABILITY_GOLD : pItem->_iMaxDur) - DURABILITY_RED;
+	int max = DURABILITY_GOLD - DURABILITY_RED;
 	int amount;
 	if (pItem->_iDurability <= DURABILITY_RED || max <= 0)
 		amount = 0;
