@@ -731,10 +731,6 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 	texture->loaded = true;
 	texture->usesAtlas = true;
 
-	//Turn rest of texture atlas into zero data
-	unsigned int toPos = ((atlasCurPosY * atlasSizeX) + atlasCurPosX) * 4;
-	unsigned int toEnd = atlasSizeX * atlasSizeY * 4;
-	memset(&atlasImgData[toPos], 0, toEnd - toPos);
 
 	//Turn atlas into an SDL texture
 	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, atlasSizeX, atlasSizeY);
