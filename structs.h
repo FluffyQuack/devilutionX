@@ -312,6 +312,8 @@ typedef struct PlayerStruct {
 	unsigned char *_pWAnim_c[8]; //Casual walking animation
 	int _pWFrames_c;
 	int _pWWidth_c;
+	int safetyCounter; //If zero, then it is safe to jog. If higher than 0, then it counts down once per tick. It gets set to a high value whenever player takes damage, attacks, or sees an enemy
+	bool walking; //If true, player is currently walking slowly aka combat walk (not jogging)
 
 	ItemStruct InvBody[NUM_INVLOC];
 	ItemStruct InvList[NUM_INV_GRID_ELEM];
