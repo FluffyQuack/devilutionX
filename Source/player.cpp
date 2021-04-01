@@ -344,6 +344,13 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			else if (i == PFILE_STAND_CASUAL) textureNum += PLAYERANIM_STAND_CASUAL;
 			else if (i == PFILE_WALK_CASUAL) textureNum += PLAYERANIM_WALK_CASUAL;
 			Texture_ConvertCL2_MultipleFrames(pData, textureNum, 8);
+
+			//Fluffy: Replace stand animation with cow animation data
+			if (i == PFILE_STAND) {
+				LoadFileWithMem("towners\\animals\\cow.cel", pData);
+				Texture_ConvertCEL_MultipleFrames(pData, TEXTURE_PLAYERS + (PLAYERANIM_NUM * pnum) + PLAYERANIM_STAND, 128, -1, true, 8);
+				//MemFreeDbg(pData);
+			}
 		}
 	}
 }
@@ -517,6 +524,7 @@ void NewPlrAnim(int pnum, BYTE *Peq, int numFrames, int Delay, int width)
 
 	plr[pnum]._pAnimData = Peq;
 	plr[pnum]._pAnimLen = numFrames;
+	plr[pnum]._pAnimLen = 12; //Fluffy: Cow animation length
 	plr[pnum]._pAnimFrame = 1;
 	plr[pnum]._pAnimCnt = 0;
 	plr[pnum]._pAnimDelay = Delay;

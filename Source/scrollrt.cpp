@@ -409,28 +409,29 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
 		brightness = Render_IndexLightToBrightness();
 	for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
 		facing = i;
+
 		if (pPlayer->_pAnimData == pPlayer->_pNAnim[i])
 			textureNum += PLAYERANIM_STAND;
 		else if (pPlayer->_pAnimData == pPlayer->_pWAnim[i])
-			textureNum += PLAYERANIM_WALK;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pAAnim[i])
-			textureNum += PLAYERANIM_ATTACK;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pLAnim[i])
-			textureNum += PLAYERANIM_SPELL_LIGHTNING;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pFAnim[i])
-			textureNum += PLAYERANIM_SPELL_FIRE;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pTAnim[i])
-			textureNum += PLAYERANIM_SPELL_GENERIC;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pHAnim[i])
-			textureNum += PLAYERANIM_GETHIT;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pDAnim[i])
-			textureNum += PLAYERANIM_DEATH;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pBAnim[i])
-			textureNum += PLAYERANIM_BLOCK;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pNAnim_c[i])
-			textureNum += PLAYERANIM_STAND_CASUAL;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else if (pPlayer->_pAnimData == pPlayer->_pWAnim_c[i])
-			textureNum += PLAYERANIM_WALK_CASUAL;
+			textureNum += PLAYERANIM_STAND; //Fluffy: Player is always standing because cow
 		else
 			continue;
 		break;
@@ -1155,6 +1156,7 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 		DrawPlayer_SDL(p, x, y, px, py);
 		return;
 	}
+	return; //Fluffy: Don't draw player in software because cow
 
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 	if (options_opaqueWallsWithBlobs) //Fluffy
