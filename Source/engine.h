@@ -67,7 +67,7 @@ void CelBlit_ShadowPixels(char col, int sx, int sy, BYTE *pCelBuff, int nCel, in
 void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
 void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline); //Fluffy
 void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth); //Fluffy
-void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
+void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, bool skipColorIndexZero); //Fluffy: Added skipColorIndexZero
 void ENG_set_pixel(int sx, int sy, BYTE col);
 void engine_draw_pixel(int sx, int sy);
 void DrawLine(int x0, int y0, int x1, int y1, BYTE col);

@@ -622,7 +622,7 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 	}
 
 	if (bv == pcursobj) {
-		CelBlitOutline(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
+		CelBlitOutline(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, true);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, true);
 	}
@@ -775,7 +775,7 @@ static void DrawItem(int x, int y, int sx, int sy, BOOL pre)
 	}
 
 	if (bItem - 1 == pcursitem || AutoMapShowItems) {
-		CelBlitOutline(181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
+		CelBlitOutline(181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth, true);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(181, px, sy, pItem->_iAnimData, nCel, pItem->_iAnimWidth, true);
 	}
@@ -864,7 +864,7 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 			return;
 		}
 		if (mi == pcursmonst) {
-			CelBlitOutline(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
+			CelBlitOutline(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, true);
 			if (options_opaqueWallsWithSilhouette) //Fluffy
 				CelDrawToImportant(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, true);
 		}

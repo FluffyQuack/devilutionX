@@ -932,7 +932,7 @@ void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, 
  * @param nCel CEL frame number
  * @param nWidth Width of sprite
  */
-void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
+void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, bool skipColorIndexZero) //Fluffy: Added skipColorIndexZero
 {
 	int nDataSize, w;
 	BYTE *src, *dst, *end;
@@ -953,22 +953,24 @@ void CelBlitOutline(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWid
 				if (dst < gpBufEnd && dst > gpBufStart) {
 					if (dst >= gpBufEnd - BUFFER_WIDTH) {
 						while (width) {
-							if (*src++) {
+							if (!skipColorIndexZero || *src > 0) {
 								dst[-BUFFER_WIDTH] = col;
 								dst[-1] = col;
 								dst[1] = col;
 							}
+							src++;
 							dst++;
 							width--;
 						}
 					} else {
 						while (width) {
-							if (*src++) {
+							if (!skipColorIndexZero || *src > 0) {
 								dst[-BUFFER_WIDTH] = col;
 								dst[-1] = col;
 								dst[1] = col;
 								dst[BUFFER_WIDTH] = col;
 							}
+							src++;
 							dst++;
 							width--;
 						}

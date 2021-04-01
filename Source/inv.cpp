@@ -222,7 +222,7 @@ void DrawCursorItemWrapper(int x, int y, int frame, int frameWidth, bool cursorR
 		}
 
 		if (outline) {
-			CelBlitOutline(outlineColor, x, y, celData, frame, frameWidth);
+			CelBlitOutline(outlineColor, x, y, celData, frame, frameWidth, false);
 		}
 
 		if (cursorRender) { //If this rendered as a cursor (as opposed to as inventory icons) then we use different functions
