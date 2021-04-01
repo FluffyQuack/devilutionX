@@ -135,7 +135,7 @@ int ToBlkTbl[NUM_CLASSES] = {
 	30,
 };
 const char *const ClassStrTblOld[] = {
-	"Warrior",
+	"Cow",
 	"Rogue",
 	"Sorceror",
 	"Monk",
@@ -676,6 +676,9 @@ void SetPlrAnims(int pnum)
 			plr[pnum]._pAFNum = 8;
 		}
 	}
+
+	//Fluffy: These are all 12 because cow
+	plr[pnum]._pSFNum = plr[pnum]._pAFNum = plr[pnum]._pBFrames = plr[pnum]._pDFrames = plr[pnum]._pSFrames = plr[pnum]._pHFrames = plr[pnum]._pAFrames = plr[pnum]._pWFrames = plr[pnum]._pNFrames = plr[pnum]._pWFrames_c = plr[pnum]._pNFrames_c = 12;
 }
 
 void ClearPlrRVars(PlayerStruct *p)

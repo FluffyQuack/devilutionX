@@ -1274,11 +1274,26 @@ static int RndSFX(int psfx)
 void PlaySFX(int psfx)
 {
 	psfx = RndSFX(psfx);
+
+	if (psfx >= PS_MAGE1 && psfx <= PS_MONK102) { //Fluffy: Replace player speech with cow sounds
+		if (random_(0, 4) == 1)
+			psfx = TSFX_COWSUT1 + random_(0, 2);
+		else
+			psfx = TSFX_COW1 + random_(0, 2);
+	}
+
 	PlaySFX_priv(&sgSFX[psfx], FALSE, 0, 0);
 }
 
 void PlaySfxLoc(int psfx, int x, int y)
 {
+	if (psfx >= PS_MAGE1 && psfx <= PS_MONK102) { //Fluffy: Replace player speech with cow sounds
+		if (random_(0, 4) == 1)
+			psfx = TSFX_COWSUT1 + random_(0, 2);
+		else
+			psfx = TSFX_COW1 + random_(0, 2);
+	}
+
 	TSnd *pSnd;
 
 	psfx = RndSFX(psfx);

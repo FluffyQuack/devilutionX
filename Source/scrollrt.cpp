@@ -439,6 +439,8 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
 	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+	px -= 16;
+	py += 8;
 	Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
@@ -684,7 +686,7 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	}
 
 	//Fluffy: Render cell as one whole dungeon piece
-	if (1 && nSolidTable[level_piece_id] && options_hwRendering && options_lightmapping) {
+	if (0 && nSolidTable[level_piece_id] && options_hwRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
 		int brightness;
@@ -1148,7 +1150,8 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	}
 
 	PlayerStruct *pPlayer = &plr[p];
-	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
+	//int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
+	int px = sx + pPlayer->_pxoff - 16; //Fluffy: Changed this because cow
 	int py = sy + pPlayer->_pyoff;
 
 
