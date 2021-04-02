@@ -686,10 +686,11 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 	if (1 && nSolidTable[level_piece_id] && options_hwRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
+		textureFrame_s *textureFrame = &textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id];
 		int brightness;
 
-		if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD ||
-			lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) {
+		if (1 && (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD ||
+			lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND)) {
 
 			if (1) { //Render target render
 				//Switch to the intermediate tile render target
@@ -706,27 +707,24 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
 				}
 
-				SDL_Rect dstRect;
-				dstRect.x = 0;
-				dstRect.y = 0;
-				dstRect.w = 2;
-				dstRect.h = 160;
-
-				SDL_Rect srcRect;
+				//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
+				SDL_Rect dstRect, srcRect;
+				dstRect.x = 0; 
+				dstRect.y = textureFrame->cropY1;
+				srcRect.w = dstRect.w = 2;
+				dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
 				srcRect.x = lightx;
 				srcRect.y = lighty;
-				srcRect.w = 2;
 				srcRect.h = 1;
 
-				int width = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].width;
 				SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
-				for (int i = 0; i < width; i += 2) {
+				for (int i = 0; i < textureFrame->width; i += 2) {
 					SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
 					dstRect.x += 2;
 					srcRect.x += 2;
 					if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
-						|| (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
-						|| (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
+					    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < textureFrame->width / 2)
+					    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= textureFrame->width / 2)) {
 						srcRect.y -= 1;
 					} else {
 						srcRect.y += 1;
@@ -747,7 +745,13 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 
 				//Switch render target back to intermediate texture and render final result
 				SDL_SetRenderTarget(renderer, texture_intermediate);
-				Render_Texture_FromBottom(sx - BORDER_LEFT, sy - (BORDER_TOP), TEXTURE_TILE_INTERMEDIATE_PIECE, 0);
+				dstRect.x = sx - BORDER_LEFT;
+				dstRect.y = ((sy - BORDER_TOP) - (textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height - 1)) + textureFrame->cropY1;
+				srcRect.w = dstRect.w = textureFrame->width;
+				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
+				srcRect.x = 0;
+				srcRect.y = textureFrame->cropY1;
+				SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
 			} else { //Render using light info from lightmap in RAM
 				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
 					lightx = lightmap_lightx - (TILE_WIDTH / 2);
@@ -757,20 +761,16 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
 				}
 
-				SDL_Rect dstRect;
+				//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
+				SDL_Rect dstRect, srcRect;
 				dstRect.x = sx - BORDER_LEFT;
-				dstRect.y = (sy - BORDER_TOP) - (160 - 1);
-				dstRect.w = 1;
-				dstRect.h = 160;
+				dstRect.y = ((sy - BORDER_TOP) - (textureFrame->height - 1)) + textureFrame->cropY1;
+				srcRect.w = dstRect.w = 1;
+				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
+				srcRect.x = textureFrame->offsetX;
+				srcRect.y = textureFrame->offsetY + textureFrame->cropY1;
 
-				SDL_Rect srcRect;
-				srcRect.x = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].offsetX;
-				srcRect.y = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].offsetY;
-				srcRect.w = 1;
-				srcRect.h = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height;
-
-				int width = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].width;
-				for (int i = 0; i < width; i++) {
+				for (int i = 0; i < textureFrame->width; i++) {
 					brightness = Lightmap_ReturnBrightness(lightx, lighty);
 					SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
 					SDL_RenderCopy(renderer, tex, &srcRect, &dstRect);
@@ -779,8 +779,8 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 					lightx += 1;
 					if (i > 0 && i % 2 == 0) {
 						if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < width / 2)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= width / 2)) {
+						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < textureFrame->width / 2)
+						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= textureFrame->width / 2)) {
 							lighty -= 1;
 						} else {
 							lighty += 1;
@@ -796,28 +796,29 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 			Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
 			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
 
+			//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
+			//TODO: Handle Y cropping
 			int x = sx - BORDER_LEFT;
-			int y = (sy - BORDER_TOP) - (160 - 1);
-			y += 64;
+			int y = (sy - BORDER_TOP) - (textureFrame->height - 1);
+			y += textureFrame->width;
 			if (x < 0)
 				x = 0;
 			if (y < 0)
 				y = 0;
-			Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, x, y, x + 64, y + 160);
+			Render_Texture_Crop(0, 0, TEXTURE_LIGHT_FRAMEBUFFER, x, y, x + textureFrame->width, y + textureFrame->height);
 
 			//Switch render target back to intermediate texture and render final result
 			SDL_SetRenderTarget(renderer, texture_intermediate);
-			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - (BORDER_TOP), TEXTURE_TILE_INTERMEDIATE_PIECE, 0);
-
-			//Render_Texture(sx - BORDER_LEFT, sy - (BORDER_TOP + 159), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
-
-
+			SDL_Rect srcRect, dstRect;
+			dstRect.x = sx - BORDER_LEFT;
+			dstRect.y = ((sy - BORDER_TOP) - (textureFrame->height - 1)) + textureFrame->cropY1;
+			srcRect.w = dstRect.w = textureFrame->width;
+			srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
+			srcRect.x = 0;
+			srcRect.y = textureFrame->cropY1;
+			SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
 		} else {
-
-
-
-			Render_Texture(sx - BORDER_LEFT, sy - (BORDER_TOP + 159), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
-
+			Render_Texture(sx - BORDER_LEFT, sy - (BORDER_TOP + (textureFrame->height - 1)), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
 		}
 		
 		return;

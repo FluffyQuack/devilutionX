@@ -243,6 +243,10 @@ struct textureFrame_s {
 	int channels;
 	int offsetX; //Offset for texture in the SDL_Texture (this is used for texture atlases)
 	int offsetY;
+	int cropX1; //This and the following are used for textures which have been cropped based on alpha data so they take less memory
+	int cropX2;
+	int cropY1;
+	int cropY2;
 };
 
 struct texture_s {

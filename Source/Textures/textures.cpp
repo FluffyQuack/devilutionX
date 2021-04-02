@@ -90,6 +90,12 @@ static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 			textureFrame->width = loadedSurface->w;
 			textureFrame->height = loadedSurface->h;
 			textureFrame->channels = loadedSurface->format->BytesPerPixel;
+			textureFrame->offsetX = 0;
+			textureFrame->offsetY = 0;
+			textureFrame->cropX1 = 0;
+			textureFrame->cropX2 = 0;
+			textureFrame->cropY1 = 0;
+			textureFrame->cropY2 = 0;
 			if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 				ErrSdl();
 			SDL_FreeSurface(loadedSurface);
@@ -124,6 +130,12 @@ static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
 	textureFrame->channels = alpha ? 4 : 3;
 	textureFrame->width = x;
 	textureFrame->height = y;
+	textureFrame->offsetX = 0;
+	textureFrame->offsetY = 0;
+	textureFrame->cropX1 = 0;
+	textureFrame->cropX2 = 0;
+	textureFrame->cropY1 = 0;
+	textureFrame->cropY2 = 0;
 	texture->frameCount = 1;
 	texture->loaded = true;
 	texture->usesAtlas = false;
