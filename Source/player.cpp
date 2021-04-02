@@ -1382,6 +1382,18 @@ void PM_ChangeOffset(int pnum)
 	plr[pnum]._pVar6 += plr[pnum]._pxvel;
 	plr[pnum]._pVar7 += plr[pnum]._pyvel;
 
+	if (gameSetup_safetyJog) { //Fluffy
+		if (plr[pnum].walking) {
+			plr[pnum]._pVar8++;
+			plr[pnum]._pVar6 += plr[pnum]._pxvel;
+			plr[pnum]._pVar7 += plr[pnum]._pyvel;
+		}
+	} else if (gameSetup_fastWalkInTown && currlevel == 0) {
+		plr[pnum]._pVar8++;
+		plr[pnum]._pVar6 += plr[pnum]._pxvel;
+		plr[pnum]._pVar7 += plr[pnum]._pyvel;
+	}
+
 	//Fluffy: I disabled this since I already have my own implementation of "fast walk"
 	if (0 && gbIsHellfire && currlevel == 0 && jogging_opt) {
 		plr[pnum]._pVar6 += plr[pnum]._pxvel;
@@ -1413,15 +1425,9 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 
 	if (gameSetup_safetyJog) { //Fluffy: Define speed whether or not we're in combat
 		if (plr[pnum].safetyCounter == 0) {
-			xvel *= 2;
-			yvel *= 2;
 			plr[pnum].walking = true;
 		} else
 			plr[pnum].walking = false;
-	}
-	else if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) { //Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
-		xvel *= 2;
-		yvel *= 2;
 	}
 	
 	if ((DWORD)pnum >= MAX_PLRS) {
@@ -2302,14 +2308,7 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 		anim_len = AnimLenFromClass[plr[pnum]._pClass]; //As of now, this always returns 8 as every character has the same walk animation length
 	}
 
-	int moveProgress = plr[pnum]._pVar8;
-	if (gameSetup_safetyJog) { //Fluffy
-		if (plr[pnum].walking)
-			moveProgress *= 2;
-	} else if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown) //Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-		moveProgress *= 2;
-
-	if (moveProgress >= anim_len * gSpeedMod) //Fluffy: Multiply by gSpeedMod to scale tile movement duration
+	if (plr[pnum]._pVar8 >= anim_len * gSpeedMod) //Fluffy: Multiply by gSpeedMod to scale tile movement duration
 		return 1;
 	else
 		return 0;
@@ -2338,6 +2337,18 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 		}
 		if (plr[pnum]._pAnimFrame >= plr[pnum]._pWFrames) {
 			plr[pnum]._pAnimFrame = 0;
+		}
+	}
+
+	if (gameSetup_safetyJog) { //Fluffy: Check if we should change from casual walk to combat walk animation if we've spotted an enemy
+		if (plr[pnum].walking && plr[pnum].safetyCounter > 0) {
+			int animFrame = plr[pnum]._pAnimFrame, animCnt = plr[pnum]._pAnimCnt;
+			NewPlrAnim(pnum, plr[pnum]._pWAnim[plr[pnum]._pdir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+
+			//Fluffy: We change between combat walk and casual walk here. They both have the same animation length, so right now it is safe to retain animation progress
+			plr[pnum]._pAnimFrame = animFrame;
+			plr[pnum]._pAnimCnt = animCnt;
+			plr[pnum].walking = false;
 		}
 	}
 
