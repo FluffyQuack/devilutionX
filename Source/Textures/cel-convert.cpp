@@ -790,7 +790,7 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 		atlas2SizeY += height;
 
 		/*
-		* TODO: In order to optimize usage in texture atlas we should keep an array which matches the quantity of pieces horizontally (atlas2SizeX \ width) and that defines how tall which column is so far
+		* TODO: In order to optimize usage in texture atlas we should keep an array which matches the quantity of pieces horizontally (atlas2SizeX \ width) and that defines how tall each column is so far
 		* With that information, we calculate how tall a dungeon piece is before we copy it, and then copy it to the shortest column. And then repeat until we've processed everything
 		*/
 
