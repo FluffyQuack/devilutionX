@@ -27,7 +27,13 @@ void track_process()
 	//We also scale some of these values using gSpeedMod to further change how often we're allowed to repeatedly walk
 	int moveProgress = plr[myplr]._pVar8;
 	int minWaitForRepeatWalk = ((tick_delay_highResolution / SDL_GetPerformanceFrequency()) * 6) / gSpeedMod;
-	if (gameSetup_fastWalkInTown && currlevel == 0) {
+	if (gameSetup_safetyJog) {
+		if (plr[myplr].walking) {
+			moveProgress *= 2;
+			minWaitForRepeatWalk /= 2;
+		}
+	}
+	else if (gameSetup_fastWalkInTown && currlevel == 0) {
 		moveProgress *= 2;
 		minWaitForRepeatWalk /= 2;
 	}
