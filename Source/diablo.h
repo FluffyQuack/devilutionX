@@ -54,6 +54,7 @@ extern int gMonsterSpeedMod;
 //Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 extern BOOL gameSetup_fastWalkInTown;
 extern BOOL gameSetup_allowAttacksInTown;
+extern BOOL gameSetup_safetyJog;
 extern BOOL options_transparency;
 extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
