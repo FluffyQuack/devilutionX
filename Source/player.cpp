@@ -2345,7 +2345,7 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 			int animFrame = plr[pnum]._pAnimFrame, animCnt = plr[pnum]._pAnimCnt;
 			NewPlrAnim(pnum, plr[pnum]._pWAnim[plr[pnum]._pdir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
 
-			//Fluffy: We change between combat walk and casual walk here. They both have the same animation length, so right now it is safe to retain animation progress
+			//Fluffy: We retain animation progress from casual walk animation when switching to combat walk. Since both animations have the same animation length, this is safe
 			plr[pnum]._pAnimFrame = animFrame;
 			plr[pnum]._pAnimCnt = animCnt;
 			plr[pnum].walking = false;
