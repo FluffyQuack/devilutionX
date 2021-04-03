@@ -65,6 +65,7 @@ void InitControlPan();
 void DrawCtrlPan();
 void DrawCtrlBtns();
 void DoSpeedBook();
+bool IsMouseOnRightSpellIcon(); //Fluffy
 void DoPanBtn();
 void control_check_btn_press();
 void DoAutoMap();

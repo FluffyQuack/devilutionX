@@ -1148,6 +1148,13 @@ void DoSpeedBook()
 	SetCursorPos(X, Y);
 }
 
+bool IsMouseOnRightSpellIcon() //Fluffy
+{
+	if (MouseX >= 565 + PANEL_LEFT && MouseX < 621 + PANEL_LEFT && MouseY >= 64 + PANEL_TOP && MouseY < 120 + PANEL_TOP)
+		return true;
+	return false;
+}
+
 /**
  * Checks if the mouse cursor is within any of the panel buttons and flag it if so.
  */
@@ -1166,7 +1173,7 @@ void DoPanBtn()
 			}
 		}
 	}
-	if (!spselflag && MouseX >= 565 + PANEL_LEFT && MouseX < 621 + PANEL_LEFT && MouseY >= 64 + PANEL_TOP && MouseY < 120 + PANEL_TOP) {
+	if (!spselflag && IsMouseOnRightSpellIcon()) {
 		DoSpeedBook();
 		gamemenu_off();
 	}
