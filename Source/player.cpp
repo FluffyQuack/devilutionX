@@ -2352,8 +2352,6 @@ BOOL PM_DoWalk(int pnum, int variant) //Fluffy: Rewrite of PM_DoWalk1/2/3 so it'
 		}
 	}
 
-	//Fluffy TODO: Should we immediately change to combat walk if we enter combat? Any downside to this?
-
 	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
 	if (newTile) {
 		if (variant == DO_WALK_VARIANT_UP) //Up, upleft, or upright movement
