@@ -64,6 +64,9 @@ extern BOOL options_hwRendering;
 extern BOOL options_lightmapping;
 extern BOOL options_animatedUIFlasks;
 
+extern int lastRightMouseButtonAction;
+extern unsigned long long lastRightMouseButtonTime;
+
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
 void diablo_quit(int exitStatus);

@@ -110,6 +110,9 @@ BOOL options_initLightmapping = false;
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 
+int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
+unsigned long long lastRightMouseButtonTime = 0;
+
 /* rdata */
 
 /**
@@ -822,6 +825,7 @@ static void LeftMouseUp()
 
 static void RightMouseDown()
 {
+	lastRightMouseButtonAction = MOUSEACTION_OTHER;
 	if (!gmenu_is_active() && sgnTimeoutCurs == CURSOR_NONE && PauseMode != 2 && !plr[myplr]._pInvincible) {
 		if (doomflag) {
 			doom_close();
@@ -837,7 +841,7 @@ static void RightMouseDown()
 						plr[myplr]._pRSpell = SPL_INVALID;
 						plr[myplr]._pRSplType = RSPLTYPE_INVALID;
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
-						CheckPlrSpell();
+						CheckPlrSpell(true);
 				} else if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM) {
 					NewCursor(CURSOR_HAND);
 				}
@@ -1554,6 +1558,7 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
+		return;
 	/*case 'e': //Fluffy
 		if (currlevel == 0 && debug_mode_key_w) {
 			GiveGoldCheat();
@@ -1562,6 +1567,7 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return;*/
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
+		lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy
 		if (sgbMouseDown == CLICK_RIGHT) {
 			sgbMouseDown = CLICK_NONE;
 		}

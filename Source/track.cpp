@@ -15,8 +15,25 @@ bool sgbIsWalking;
 
 }
 
+static bool RepeatRightMouseAction() //Fluffy
+{
+	if (!(lastRightMouseButtonAction == MOUSEACTION_SPELL || lastRightMouseButtonAction == MOUSEACTION_ATTACK) || pcurs != CURSOR_HAND || sgbMouseDown != CLICK_RIGHT)
+		return false;
+
+	//Repeat action if it's been X duration since the attack or spell cast
+	unsigned long long currentTime = SDL_GetPerformanceCounter();
+	if (currentTime - lastRightMouseButtonTime > SDL_GetPerformanceFrequency() / 5) { //Check if it's been at least 200ms
+		CheckPlrSpell(true);
+		return true;
+	}
+	return false;
+}
+
 void track_process()
 {
+	if (RepeatRightMouseAction())
+		return;
+
 	if (!sgbIsWalking)
 		return;
 

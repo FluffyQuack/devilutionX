@@ -3447,4 +3447,11 @@ typedef enum do_walk_variants { //Fluffy
 	DO_WALK_VARIANT_HORIZONTAL,
 } do_walk_variants;
 
+enum { //Fluffy
+	MOUSEACTION_NONE,
+	MOUSEACTION_SPELL,
+	MOUSEACTION_ATTACK,
+	MOUSEACTION_OTHER,
+};
+
 DEVILUTION_END_NAMESPACE
