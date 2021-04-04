@@ -22,11 +22,9 @@ static bool RepeatRightMouseAction() //Fluffy
 
 	//Repeat action if it's been X duration since the attack or spell cast
 	unsigned long long currentTime = SDL_GetPerformanceCounter();
-	if (currentTime - lastRightMouseButtonTime > SDL_GetPerformanceFrequency() / 5) { //Check if it's been at least 200ms
+	if (currentTime - lastRightMouseButtonTime > SDL_GetPerformanceFrequency() / 5) //Check if it's been at least 200ms
 		CheckPlrSpell(true);
-		return true;
-	}
-	return false;
+	return true;
 }
 
 void track_process()
