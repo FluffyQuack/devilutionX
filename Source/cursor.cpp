@@ -332,6 +332,14 @@ void CheckCursMove()
 		} else if (pcursplr != -1) {
 			//Fluffy TODO
 		}
+
+		if (pcursmonst == -1 && pcursobj == -1 && pcursitem == -1 && pcursinvitem == -1 && pcursplr == -1) {
+			cursmx = mx;
+			cursmy = my;
+			CheckTrigForce();
+			CheckTown();
+			CheckRportal();
+		}
 		return;
 	}
 
