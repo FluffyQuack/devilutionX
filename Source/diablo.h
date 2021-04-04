@@ -64,7 +64,9 @@ extern BOOL options_hwRendering;
 extern BOOL options_lightmapping;
 extern BOOL options_animatedUIFlasks;
 
+extern int lastLeftMouseButtonAction;
 extern int lastRightMouseButtonAction;
+extern unsigned long long lastLeftMouseButtonTime;
 extern unsigned long long lastRightMouseButtonTime;
 
 void FreeGameMem();

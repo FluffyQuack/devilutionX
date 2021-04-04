@@ -3843,7 +3843,6 @@ void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 				NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
 			if (mouseClick) { //Fluffy
 				lastRightMouseButtonAction = MOUSEACTION_ATTACK;
-				lastRightMouseButtonTime = SDL_GetPerformanceCounter();
 			}
 		} else {
 			if (plr[myplr]._pClass == PC_WARRIOR) {
@@ -3931,7 +3930,6 @@ void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 		}
 		if (mouseClick) { //Fluffy
 			lastRightMouseButtonAction = MOUSEACTION_SPELL;
-			lastRightMouseButtonTime = SDL_GetPerformanceCounter();
 		}
 		return;
 	}

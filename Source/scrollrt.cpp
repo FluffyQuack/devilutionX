@@ -2097,6 +2097,9 @@ static void DrawFPS()
 			snprintf(String, 100, "mouseXY: %i %i", MouseX, MouseY);
 			RenderDebugLine(&x, &y, String);
 
+			snprintf(String, 100, "lastLeftMouseButtonAction: %i", lastLeftMouseButtonAction);
+			RenderDebugLine(&x, &y, String);
+
 			snprintf(String, 100, "lastRightMouseButtonAction: %i", lastRightMouseButtonAction);
 			RenderDebugLine(&x, &y, String);
 
