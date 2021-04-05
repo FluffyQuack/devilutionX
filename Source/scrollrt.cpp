@@ -1923,6 +1923,8 @@ static void DrawFPS(CelOutputBuffer out)
 		int x = 8, y = 10;
 		snprintf(String, 100, "FPS: %d", framerate);
 		RenderDebugLine(out, &x, &y, String);
+
+		//Fluffy: Additional debug output
 		snprintf(String, 100, "gametick delta: %0.2f", frame_gameplayTickDelta);
 		RenderDebugLine(out, &x, &y, String);
 		snprintf(String, 100, "render delta: %0.2f ", frame_renderDelta);
@@ -1956,7 +1958,8 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "sgbMouseDown: %i", sgbMouseDown);
 			RenderDebugLine(out, &x, &y, String);
 
-			//Fluffy TODO: Add safety jog counter here
+			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
+			RenderDebugLine(out, &x, &y, String);
 
 			if (options_initHwRendering) {
 				if (totalTextureSize < 1 << 10)
