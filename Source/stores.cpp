@@ -6,6 +6,8 @@
 #include "all.h"
 #include "options.h"
 #include <algorithm>
+#include "textures/textures.h" //Fluffy
+#include "render/sdl-render.h" //Fluffy: For SDL rendering
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -64,28 +66,49 @@ const char *const talkname[] = {
 
 void DrawSTextBack(CelOutputBuffer out)
 {
+	if (options_hwRendering) { //Fluffy: Draw text box via SDL
+		//Render the black transparent background for the panel
+		SDL_Rect rect;
+		rect.w = textures[TEXTURE_TEXTBOX2].frames[0].width;
+		rect.h = textures[TEXTURE_TEXTBOX2].frames[0].height;
+		rect.x = PANEL_LEFT + 344;
+		rect.y = 327 + UI_OFFSET_Y - rect.h + 1;
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
+		SDL_RenderFillRect(renderer, &rect);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		Render_Texture(rect.x, rect.y, TEXTURE_TEXTBOX2);
+		return;
+	}
 	CelDrawTo(out, PANEL_X + 344, 327 + UI_OFFSET_Y, pSTextBoxCels, 1, 271);
 	DrawHalfTransparentRectTo(out, PANEL_X + 347, UI_OFFSET_Y + 28, 265, 297);
+}
+
+static void DrawSSlider_Render(CelOutputBuffer out, int x, int y, int frameNum)
+{
+	if (options_hwRendering) //Fluffy: SDL render
+		Render_Texture_FromBottom(x, y, TEXTURE_DYNAMICWINDOW, frameNum - 1);
+	else
+		CelDrawTo(out, x, y, pSTextSlidCels, frameNum, 12);
 }
 
 void DrawSSlider(CelOutputBuffer out, int y1, int y2)
 {
 	int yd1, yd2, yd3;
 
+	int renderX = PANEL_LEFT + 601;
 	yd1 = y1 * 12 + 44 + UI_OFFSET_Y;
 	yd2 = y2 * 12 + 44 + UI_OFFSET_Y;
 	if (stextscrlubtn != -1)
-		CelDrawTo(out, PANEL_X + 601, yd1, pSTextSlidCels, 12, 12);
+		DrawSSlider_Render(renderX, yd1, 12);
 	else
-		CelDrawTo(out, PANEL_X + 601, yd1, pSTextSlidCels, 10, 12);
+		DrawSSlider_Render(renderX, yd1, 10);
 	if (stextscrldbtn != -1)
-		CelDrawTo(out, PANEL_X + 601, yd2, pSTextSlidCels, 11, 12);
+		DrawSSlider_Render(renderX, yd2, 11);
 	else
-		CelDrawTo(out, PANEL_X + 601, yd2, pSTextSlidCels, 9, 12);
+		DrawSSlider_Render(renderX, yd2, 9);
 	yd1 += 12;
-	for (yd3 = yd1; yd3 < yd2; yd3 += 12) {
-		CelDrawTo(out, PANEL_X + 601, yd3, pSTextSlidCels, 14, 12);
-	}
+	for (yd3 = yd1; yd3 < yd2; yd3 += 12)
+		DrawSSlider_Render(renderX, yd3, 14);
 	if (stextsel == 22)
 		yd3 = stextlhold;
 	else
@@ -94,7 +117,12 @@ void DrawSSlider(CelOutputBuffer out, int y1, int y2)
 		yd3 = 1000 * (stextsval + ((yd3 - stextup) >> 2)) / (storenumh - 1) * (y2 * 12 - y1 * 12 - 24) / 1000;
 	else
 		yd3 = 0;
-	CelDrawTo(out, PANEL_X + 601, (y1 + 1) * 12 + 44 + UI_OFFSET_Y + yd3, pSTextSlidCels, 13, 12);
+
+	int renderY = (y1 + 1) * 12 + 44 + UI_OFFSET_Y + yd3;
+	if (options_hwRendering) //Fluffy: SDL render
+		Render_Texture_FromBottom(renderX, renderY, TEXTURE_DYNAMICWINDOW, 13 - 1);
+	else
+		CelDrawTo(out, renderX, renderY, pSTextSlidCels, 13, 12);
 }
 
 void AddSLine(int y)
@@ -2296,7 +2324,13 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		sx += k;
 	}
 	if (stextsel == y) {
-		CelDrawTo(out, cjustflag ? xx + x + k - 20 : xx + x - 20, s + 45 + UI_OFFSET_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		int frameNum = PentSpn2Spin();
+		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
+		int renderY = s + 45 + UI_OFFSET_Y;
+		if (options_hwRendering) //Fluffy: Render via SDL
+			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+		else
+			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}
 	for (i = 0; i < len; i++) {
 		c = fontframe[gbFontTransTbl[(BYTE)str[i]]];
@@ -2319,7 +2353,13 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		}
 	}
 	if (stextsel == y) {
-		CelDrawTo(out, cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x), s + 45 + UI_OFFSET_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
+		int frameNum = PentSpn2Spin();
+		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
+		int renderY = s + 45 + UI_OFFSET_Y;
+		if (options_hwRendering) //Fluffy: Render via SDL
+			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+		else
+			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}
 }
 
@@ -2328,6 +2368,25 @@ void DrawSLine(CelOutputBuffer out, int y)
 	const int sy = y * 12;
 	BYTE *src, *dst;
 	int width;
+
+	if (options_hwRendering) { //Fluffy: Render via SDL
+		int x1 = PANEL_LEFT;
+		int x2;
+		int y2 = sy + 38 + UI_OFFSET_Y;
+
+		if (stextsize) {
+			x1 += 26;
+			x2 = 586; // BUGFIX: should be 587, not 586
+		} else {
+			x1 += 346;
+			x2 = 266; // BUGFIX: should be 267, not 266
+		}
+
+		int texture = stextsize ? TEXTURE_TEXTBOX : TEXTURE_TEXTBOX2;
+		Render_Texture_Crop(x1, y2, texture, 2, -1, textures[texture].frames[0].width - 2, 3);
+		return;
+	}
+
 	if (stextsize) {
 		src = out.at(PANEL_LEFT + 26, 25 + UI_OFFSET_Y);
 		dst = out.at(26 + PANEL_X, sy + 38 + UI_OFFSET_Y);
