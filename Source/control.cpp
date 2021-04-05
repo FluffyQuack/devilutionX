@@ -1936,7 +1936,7 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 {
 	if (pItem->_itype == ITYPE_NONE)
 		return x;
-	if (pItem->_iDurability > 5)
+	if (pItem->_iDurability > options_durabilityIconGold)
 		return x;
 	if (c == 0) {
 		if (pItem->_iClass == ICLASS_WEAPON) {
@@ -1961,12 +1961,45 @@ static int DrawDurIcon4Item(ItemStruct *pItem, int x, int c)
 			c = 1;
 		}
 	}
-	if (pItem->_iDurability > 2)
-		c += 8;
-	if (options_hwRendering) //Fluffy: Render via SDL rendering
-		Render_Texture_FromBottom(x - BORDER_LEFT, -17 + PANEL_TOP, TEXTURE_DURABILITYWARNING, c - 1);
-	else
-		CelDraw(x, -17 + PANEL_Y, pDurIcons, c, 32);
+
+	int y = -17 + PANEL_Y;
+
+	//Fluffy: Calculate how much of the icon should be gold and red
+	int height = 32;
+	//int max = (pItem->_iMaxDur > options_durabilityIconGold ? options_durabilityIconGold : pItem->_iMaxDur) - options_durabilityIconRed;
+	int max = options_durabilityIconGold - options_durabilityIconRed;
+	int amount;
+	if (!options_durabilityIconGradualChange) {
+		if (pItem->_iDurability <= options_durabilityIconRed)
+			amount = 0;
+		else
+			amount = height;
+	} else {
+		if (pItem->_iDurability <= options_durabilityIconRed || max <= 0)
+			amount = 0;
+		else {
+			int cur = pItem->_iDurability - options_durabilityIconRed;
+			amount = (height * cur) / max;
+		}
+	}
+
+	if (options_hwRendering) { //Fluffy: Render via SDL rendering
+		int renderX = x - BORDER_LEFT;
+		int renderY = y - (height - 1) - BORDER_TOP;
+		c -= 1;
+		if (amount)
+			Render_Texture_Crop(renderX, renderY + (height - amount), TEXTURE_DURABILITYWARNING, -1, height - amount, -1, -1, c + 8); //Gold icon
+		amount = height - amount;
+		if (amount)
+			Render_Texture_Crop(renderX, renderY, TEXTURE_DURABILITYWARNING, -1, -1, -1, amount, c); //Red icon
+		//TODO: This is more indirectly related, but we should make it so that when equipment is fully destroyed, we should show some kind of icon then as well (we could add a new variable to the player struct which defines if a slot is empty due to item destruction or not, and if true, show a durability icon for that slot)
+	} else {
+		if (amount)
+			CelDraw_CropY(x, y, pDurIcons, c + 8, 32, 0, amount); //Gold icon
+		if (amount != height)
+			CelDraw_CropY(x, y, pDurIcons, c, 32, amount, height); //Red icon
+	}
+
 	return x - 32 - 8;
 }
 

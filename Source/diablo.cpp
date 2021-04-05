@@ -109,6 +109,9 @@ BOOL options_hwRendering = false;               //Fluffy: If true, we render eve
 BOOL options_initLightmapping = false;
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
+BOOL options_durabilityIconGradualChange = true;
+int options_durabilityIconGold = 8;
+int options_durabilityIconRed = 1;
 
 /* rdata */
 
