@@ -170,6 +170,8 @@
 #define NIGHTMARE_AC_BONUS 50
 #define HELL_AC_BONUS      80
 
+#define SAFETYCOUNTMAX 50 //Fluffy: Max for player->safetyCounter. Right now this is equivalent to 2.5 seconds
+
 #define MemFreeDbg(p)       \
 	{                       \
 		void *p__p;         \

@@ -1065,9 +1065,13 @@ void InitPlayer(int pnum, BOOL FirstTime)
 			{
 				NewPlrAnim(pnum, plr[pnum]._pNAnim_c[DIR_S], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth);
 				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames_c - 1) + 1;
+				plr[pnum].walking = true; //Fluffy
+				plr[pnum].safetyCounter = 0; //Fluffy
 			} else {
 				NewPlrAnim(pnum, plr[pnum]._pNAnim[DIR_S], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
 				plr[pnum]._pAnimFrame = random_(2, plr[pnum]._pNFrames - 1) + 1;
+				plr[pnum].walking = false; //Fluffy
+				plr[pnum].safetyCounter = SAFETYCOUNTMAX; //Fluffy
 			}
 			plr[pnum]._pAnimCnt = random_(2, 3) * gSpeedMod; //Fluffy: Scale progress based on gSpeedMod
 		} else {
@@ -1274,11 +1278,21 @@ void StartStand(int pnum, int dir)
 			LoadPlrGFX(pnum, PFILE_STAND_CASUAL);
 		}
 
-		//Fluffy
-		if (leveltype == DTYPE_TOWN)
-			NewPlrAnim(pnum, plr[pnum]._pNAnim_c[dir], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth_c);
-		else
-			NewPlrAnim(pnum, plr[pnum]._pNAnim[dir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+		if (gameSetup_safetyJog) { //Fluffy
+			if (plr[pnum].safetyCounter == 0) {
+				NewPlrAnim(pnum, plr[pnum]._pNAnim_c[dir], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth_c);
+				plr[pnum].walking = true;
+			} else {
+				NewPlrAnim(pnum, plr[pnum]._pNAnim[dir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+				plr[pnum].walking = false;
+			}
+		} else {
+			//Fluffy
+			if (leveltype == DTYPE_TOWN)
+				NewPlrAnim(pnum, plr[pnum]._pNAnim_c[dir], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth_c);
+			else
+				NewPlrAnim(pnum, plr[pnum]._pNAnim[dir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth);
+		}
 
 		plr[pnum]._pmode = PM_STAND;
 		FixPlayerLocation(pnum, dir);
@@ -1368,6 +1382,18 @@ void PM_ChangeOffset(int pnum)
 	plr[pnum]._pVar6 += plr[pnum]._pxvel;
 	plr[pnum]._pVar7 += plr[pnum]._pyvel;
 
+	if (gameSetup_safetyJog) { //Fluffy
+		if (plr[pnum].walking) {
+			plr[pnum]._pVar8++;
+			plr[pnum]._pVar6 += plr[pnum]._pxvel;
+			plr[pnum]._pVar7 += plr[pnum]._pyvel;
+		}
+	} else if (gameSetup_fastWalkInTown && currlevel == 0) {
+		plr[pnum]._pVar8++;
+		plr[pnum]._pVar6 += plr[pnum]._pxvel;
+		plr[pnum]._pVar7 += plr[pnum]._pyvel;
+	}
+
 	//Fluffy: I disabled this since I already have my own implementation of "fast walk"
 	if (0 && gbIsHellfire && currlevel == 0 && jogging_opt) {
 		plr[pnum]._pVar6 += plr[pnum]._pxvel;
@@ -1400,10 +1426,11 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 	If the above theory is correct, then we can simplify this code by making the rendering code do sorting of players and objects before rendering them, and then we can be more freeform with how player position is defined
 	*/
 
-	//Fluffy: Fast walking in town if gameSetup_fastWalkInTown is true
-	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown == true) {
-		xvel *= 2;
-		yvel *= 2;
+	if (gameSetup_safetyJog) { //Fluffy: Define speed whether or not we're in combat
+		if (plr[pnum].safetyCounter == 0) {
+			plr[pnum].walking = true;
+		} else
+			plr[pnum].walking = false;
 	}
 	
 	if ((DWORD)pnum >= MAX_PLRS) {
@@ -1509,13 +1536,20 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		animCnt = plr[pnum]._pAnimCnt;
 	}
 
-	//Start walk animation
-	if (leveltype == DTYPE_TOWN)
-		NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
-	else
-		NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+	if (gameSetup_safetyJog) { //Fluffy
+		if (plr[pnum].walking)
+			NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
+		else
+			NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+	} else {
+		if (leveltype == DTYPE_TOWN)
+			NewPlrAnim(pnum, plr[pnum]._pWAnim_c[EndDir], plr[pnum]._pWFrames_c, 0, plr[pnum]._pWWidth_c);
+		else
+			NewPlrAnim(pnum, plr[pnum]._pWAnim[EndDir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+	}
 
 	if (plr[pnum].walkedLastTick) {
+		//Fluffy: We potentially change between combat walk and casual walk here. They both have the same animation length, so right now this is safe to do
 		plr[pnum]._pAnimFrame = animFrame;
 		plr[pnum]._pAnimCnt = animCnt;
 	}
@@ -1560,6 +1594,8 @@ void StartAttack(int pnum, int d)
 	}
 
 	NewPlrAnim(pnum, plr[pnum]._pAAnim[d], plr[pnum]._pAFrames, 0, plr[pnum]._pAWidth);
+	if (gameSetup_safetyJog) //Fluffy
+		plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 	plr[pnum]._pmode = PM_ATTACK;
 	FixPlayerLocation(pnum, d);
 	SetPlayerOld(pnum);
@@ -1580,6 +1616,8 @@ void StartRangeAttack(int pnum, int d, int cx, int cy)
 		LoadPlrGFX(pnum, PFILE_ATTACK);
 	}
 	NewPlrAnim(pnum, plr[pnum]._pAAnim[d], plr[pnum]._pAFrames, 0, plr[pnum]._pAWidth);
+	if (gameSetup_safetyJog) //Fluffy
+		plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 
 	plr[pnum]._pmode = PM_RATTACK;
 	FixPlayerLocation(pnum, d);
@@ -1605,6 +1643,8 @@ void StartPlrBlock(int pnum, int dir)
 		LoadPlrGFX(pnum, PFILE_BLOCK);
 	}
 	NewPlrAnim(pnum, plr[pnum]._pBAnim[dir], plr[pnum]._pBFrames, 2, plr[pnum]._pBWidth);
+	if (gameSetup_safetyJog) //Fluffy
+		plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 
 	plr[pnum]._pmode = PM_BLOCK;
 	FixPlayerLocation(pnum, dir);
@@ -1642,6 +1682,8 @@ void StartSpell(int pnum, int d, int cx, int cy)
 			NewPlrAnim(pnum, plr[pnum]._pTAnim[d], plr[pnum]._pSFrames, 0, plr[pnum]._pSWidth);
 			break;
 		}
+		if (gameSetup_safetyJog) //Fluffy
+			plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 	}
 
 	PlaySfxLoc(spelldata[plr[pnum]._pSpell].sSFX, plr[pnum]._px, plr[pnum]._py);
@@ -1746,6 +1788,8 @@ void StartPlrHit(int pnum, int dam, BOOL forcehit)
 		LoadPlrGFX(pnum, PFILE_HIT);
 	}
 	NewPlrAnim(pnum, plr[pnum]._pHAnim[pd], plr[pnum]._pHFrames, 0, plr[pnum]._pHWidth);
+	if (gameSetup_safetyJog) //Fluffy
+		plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 
 	plr[pnum]._pmode = PM_GOTHIT;
 	FixPlayerLocation(pnum, pd);
@@ -1868,6 +1912,8 @@ StartPlayerKill(int pnum, int earflag)
 	}
 
 	NewPlrAnim(pnum, p->_pDAnim[p->_pdir], p->_pDFrames, 1, p->_pDWidth);
+	if (gameSetup_safetyJog) //Fluffy
+		plr[pnum].safetyCounter = SAFETYCOUNTMAX;
 
 	p->_pBlockFlag = FALSE;
 	p->_pmode = PM_DEATH;
@@ -2248,6 +2294,20 @@ void StartWarpLvl(int pnum, int pidx)
 
 BOOL PM_DoStand(int pnum)
 {
+	if (gameSetup_safetyJog) { //Fluffy: Check if we should change between combat and casual stand animations
+		if (plr[pnum].walking && plr[pnum].safetyCounter > 0) {
+			if (!(plr[pnum]._pGFXLoad & PFILE_STAND))
+				LoadPlrGFX(pnum, PFILE_STAND);
+			NewPlrAnim(pnum, plr[pnum]._pNAnim[plr[pnum]._pdir], plr[pnum]._pNFrames, 3, plr[pnum]._pNWidth); //Fluffy TODO: Can we replace 3 with a reference?
+			plr[pnum].walking = false;
+		} else if (!plr[pnum].walking && plr[pnum].safetyCounter == 0) {
+			if (!(plr[pnum]._pGFXLoad & PFILE_STAND_CASUAL))
+				LoadPlrGFX(pnum, PFILE_STAND_CASUAL);
+			NewPlrAnim(pnum, plr[pnum]._pNAnim_c[plr[pnum]._pdir], plr[pnum]._pNFrames_c, 3, plr[pnum]._pNWidth_c); //Fluffy TODO: Can we replace 3 with a reference?
+			plr[pnum].walking = true;
+		}
+	}
+
 	return FALSE;
 }
 
@@ -2259,12 +2319,7 @@ static BOOL DidPlayerReachNewTileBasedOnAnimationLength(int pnum)
 		anim_len = AnimLenFromClass[plr[pnum]._pClass]; //As of now, this always returns 8 as every character has the same walk animation length
 	}
 
-	//Fluffy: If in town, we may walk twice as fast (if gameSetup_fastWalkInTown is true) and thus change tile twice as often
-	int moveProgress = plr[pnum]._pVar8;
-	if (leveltype == DTYPE_TOWN && gameSetup_fastWalkInTown)
-		moveProgress *= 2;
-
-	if (moveProgress >= anim_len * gSpeedMod) //Fluffy: Multiply by gSpeedMod to scale tile movement duration
+	if (plr[pnum]._pVar8 >= anim_len * gSpeedMod) //Fluffy: Multiply by gSpeedMod to scale tile movement duration
 		return 1;
 	else
 		return 0;
@@ -2298,7 +2353,18 @@ bool PM_DoWalk(int pnum, int variant)
 		}
 	}
 
-	//Check if we reached new tile
+	if (gameSetup_safetyJog) { //Fluffy: Check if we should change from casual walk to combat walk animation if we've spotted an enemy
+		if (plr[pnum].walking && plr[pnum].safetyCounter > 0) {
+			int animFrame = plr[pnum]._pAnimFrame, animCnt = plr[pnum]._pAnimCnt;
+			NewPlrAnim(pnum, plr[pnum]._pWAnim[plr[pnum]._pdir], plr[pnum]._pWFrames, 0, plr[pnum]._pWWidth);
+
+			//Fluffy: We retain animation progress from casual walk animation when switching to combat walk. Since both animations have the same animation length, this is safe
+			plr[pnum]._pAnimFrame = animFrame;
+			plr[pnum]._pAnimCnt = animCnt;
+			plr[pnum].walking = false;
+		}
+	}
+
 	BOOL newTile = DidPlayerReachNewTileBasedOnAnimationLength(pnum);
 	if (newTile) {
 
@@ -3669,6 +3735,41 @@ void ProcessPlayers()
 				}
 			}
 
+			if (gameSetup_safetyJog && plr[pnum].tickCount == 0) {
+
+				//Check if any enemy is close and within "vision" of player (TODO: We should also check if the "vision" is directly connected to player, and not part of another player's "vision" on the other side of a wall)
+				#define SAFETY_RANGE 12
+				int fromX = plr[pnum]._px - SAFETY_RANGE;
+				int fromY = plr[pnum]._py - SAFETY_RANGE;
+				int toX = plr[pnum]._px + SAFETY_RANGE;
+				int toY = plr[pnum]._py + SAFETY_RANGE;
+				if (fromX < 0)
+					fromX = 0;
+				if (fromY < 0)
+					fromY = 0;
+				if (toX >= MAXDUNX)
+					toX = MAXDUNX - 1;
+				if (toY >= MAXDUNY)
+					toY = MAXDUNY - 1;
+
+				bool enemyInRange = false;
+				for (int x = fromX; x <= toX; x++)
+					for (int y = fromY; y <= toY; y++) {
+						if (dFlags[x][y] & BFLAG_VISIBLE && dMonster[x][y] != 0) {
+							enemyInRange = true;
+							goto endSearch;
+						}
+					}
+			endSearch:
+
+				if (enemyInRange) {
+					plr[pnum].safetyCounter = SAFETYCOUNTMAX;
+				} else {
+					if (plr[pnum].safetyCounter > 0)
+						plr[pnum].safetyCounter--;
+				}
+			}
+
 			tplayer = FALSE;
 			do {
 				switch (plr[pnum]._pmode) {
@@ -3719,6 +3820,11 @@ void ProcessPlayers()
 					plr[pnum]._pAnimFrame = 1;
 				}
 			}
+
+			//Fluffy: Update tickcount for anything which should happen at 50ms intervals
+			plr[pnum].tickCount++;
+			if (plr[pnum].tickCount >= gSpeedMod)
+				plr[pnum].tickCount = 0;
 		}
 	}
 }

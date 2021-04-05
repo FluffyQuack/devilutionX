@@ -38,6 +38,7 @@ void LoadOptionsFromConfig()
 	//Fluffy: Various new config toggles (gameplay-changing ones are updated via network)
 	LoadBoolVariableFromConfig("Fast Walking In Town", &gameSetup_fastWalkInTown);
 	LoadBoolVariableFromConfig("Allow Attacks In Town", &gameSetup_allowAttacksInTown);
+	LoadBoolVariableFromConfig("Jog When Safe", &gameSetup_safetyJog);
 	LoadBoolVariableFromConfig("Transparency", &options_transparency);
 	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
 	LoadBoolVariableFromConfig("Opaque Walls With Blobs", &options_opaqueWallsWithBlobs);
