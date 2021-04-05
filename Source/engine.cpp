@@ -240,8 +240,9 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 	w = nWidth;
 
 	BYTE *importantBuff; //Fluffy: We use this for wall transparency (if certain toggles are turned on)
-	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-		importantBuff = gpBuffer_important + (dst - gpBuffer);
+	//Fluffy TODO Merge: Rewrite this code so it works again
+	/*if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+		importantBuff = gpBuffer_important + (dst - gpBuffer);*/
 
 	for (; src != &pRLEBytes[nDataSize]; dst -= BUFFER_WIDTH + w) {
 		for (i = w; i;) {
@@ -305,8 +306,9 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 					importantBuff += width;
 			}
 		}
-		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-			importantBuff -= BUFFER_WIDTH + w;
+		//Fluffy TODO Merge: Rewrite this code so it works again
+		/*if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+			importantBuff -= BUFFER_WIDTH + w;*/
 	}
 }
 
