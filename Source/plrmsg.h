@@ -6,6 +6,8 @@
 #ifndef __PLRMSG_H__
 #define __PLRMSG_H__
 
+#include "engine.h"
+
 DEVILUTION_BEGIN_NAMESPACE
 
 #ifdef __cplusplus
@@ -19,13 +21,12 @@ typedef struct _plrmsg {
 } _plrmsg;
 
 void plrmsg_delay(BOOL delay);
-char *ErrorPlrMsg(const char *pszMsg);
+void ErrorPlrMsg(const char *pszMsg);
 size_t EventPlrMsg(const char *pszFmt, ...);
 void SendPlrMsg(int pnum, const char *pszStr);
 void ClearPlrMsg();
 void InitPlrMsg();
-void DrawPlrMsg();
-void PrintPlrMsg(DWORD x, DWORD y, DWORD width, const char *str, BYTE col);
+void DrawPlrMsg(CelOutputBuffer out);
 
 #ifdef __cplusplus
 }

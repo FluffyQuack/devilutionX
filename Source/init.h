@@ -20,6 +20,7 @@ extern HANDLE spawn_mpq;
 extern HANDLE diabdat_mpq;
 extern bool gbIsSpawn;
 extern bool gbIsHellfire;
+extern bool gbVanilla;
 extern HANDLE patch_rt_mpq;
 extern HANDLE hfmonk_mpq;
 extern HANDLE hfbard_mpq;
@@ -33,13 +34,13 @@ extern HANDLE devilutionx_mpq;
 void init_cleanup();
 void init_archives();
 void init_create_window();
-void MainWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+void MainWndProc(UINT Msg, WPARAM wParam, LPARAM lParam);
 WNDPROC SetWindowProc(WNDPROC NewProc);
 
 /* data */
 
-extern char gszVersionNumber[260];
-extern char gszProductName[260];
+extern char gszVersionNumber[64];
+extern char gszProductName[64];
 
 #ifdef __cplusplus
 }

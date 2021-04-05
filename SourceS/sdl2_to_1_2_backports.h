@@ -9,6 +9,7 @@
 #include <math.h>
 #include <cstddef>
 
+#include "console.h"
 #include "../SourceX/stubs.h"
 
 #define WINDOW_ICON_NAME 0
@@ -18,6 +19,8 @@
 #define SDL_zero(x) SDL_memset(&(x), 0, sizeof((x)))
 #define SDL_InvalidParamError(param) SDL_SetError("Parameter '%s' is invalid", (param))
 #define SDL_floor floor
+
+#define SDL_MAX_UINT32 ((Uint32)0xFFFFFFFFu)
 
 //== Events handling
 
@@ -53,11 +56,13 @@
 
 inline void SDL_Log(const char *fmt, ...)
 {
+	char message[256];
 	va_list ap;
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	vsprintf(message, fmt, ap);
 	va_end(ap);
-	puts("");
+
+	printInConsole("INFO: %s\n", message);
 }
 
 inline void SDL_StartTextInput()
@@ -114,7 +119,7 @@ inline void SDL_GetWindowPosition(SDL_Window *window, int *x, int *y)
 {
 	*x = window->clip_rect.x;
 	*y = window->clip_rect.x;
-	printf("SDL_GetWindowPosition %d %d", *x, *y);
+	SDL_Log("SDL_GetWindowPosition %d %d", *x, *y);
 }
 
 inline void SDL_SetWindowPosition(SDL_Window *window, int x, int y)
@@ -126,7 +131,7 @@ inline void SDL_GetWindowSize(SDL_Window *window, int *w, int *h)
 {
 	*w = window->clip_rect.w;
 	*h = window->clip_rect.h;
-	printf("SDL_GetWindowSize %d %d", *w, *h);
+	SDL_Log("SDL_GetWindowSize %d %d", *w, *h);
 }
 
 inline void SDL_ShowWindow(SDL_Window *window)
@@ -757,6 +762,10 @@ inline char *SDL_GetBasePath()
 		}
 	}
 #endif
+#if defined(__3DS__)
+	retval = SDL_strdup("file:sdmc:/3ds/devilutionx/");
+	return retval;
+#endif
 
 	/* is a Linux-style /proc filesystem available? */
 	if (!retval && (access("/proc", F_OK) == 0)) {
@@ -822,6 +831,11 @@ inline char *SDL_GetPrefPath(const char *org, const char *app)
 	char *retval = NULL;
 	char *ptr = NULL;
 	size_t len = 0;
+
+#if defined(__3DS__)
+	retval = SDL_strdup("sdmc:/3ds/devilutionx/");
+	return retval;
+#endif
 
 	if (!app) {
 		SDL_InvalidParamError("app");

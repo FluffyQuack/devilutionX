@@ -4,6 +4,7 @@
  * Implementation of general dungeon generation code.
  */
 #include "all.h"
+#include "options.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -29,40 +30,10 @@ BYTE *pSpecialCels;
 BYTE *pMegaTiles;
 BYTE *pLevelPieces;
 BYTE *pDungeonCels;
-BYTE *pSpeedCels;
-/**
- * Returns the frame number of the speed CEL, an in memory decoding
- * of level CEL frames, based on original frame number and light index.
- * Note, given light index 0, the original frame number is returned.
- */
-int SpeedFrameTbl[128][16];
 /**
  * List of transparancy masks to use for dPieces
  */
 char block_lvid[MAXTILES + 1];
-/** Specifies the CEL frame occurrence for each frame of the level CEL (e.g. "levels/l1data/l1.cel"). */
-int level_frame_count[MAXTILES];
-int tile_defs[MAXTILES];
-/**
- * Secifies the CEL frame decoder type for each frame of the
- * level CEL (e.g. "levels/l1data/l1.cel"), Indexed by frame numbers starting at 1.
- * The decoder type may be one of the following.
- *  0x0000 - cel.decodeType0
- *  0x1000 - cel.decodeType1
- *  0x2000 - cel.decodeType2
- *  0x3000 - cel.decodeType3
- *  0x4000 - cel.decodeType4
- *  0x5000 - cel.decodeType5
- *  0x6000 - cel.decodeType6
- */
-WORD level_frame_types[MAXTILES];
-/**
- * Specifies the size of each frame of the level cel (e.g.
- * "levels/l1data/l1.cel"). Indexed by frame numbers starting at 1.
- */
-int level_frame_sizes[MAXTILES];
-/** Specifies the number of frames in the level cel (e.g. "levels/l1data/l1.cel"). */
-int nlevel_frames;
 /**
  * List of light blocking dPieces
  */
@@ -90,13 +61,14 @@ int dmaxx;
 int dmaxy;
 int gnDifficulty;
 /** Specifies the active dungeon type of the current game. */
-BYTE leveltype;
+dungeon_type leveltype;
 /** Specifies the active dungeon level of the current game. */
 BYTE currlevel;
 BOOLEAN setlevel;
 /** Specifies the active quest level of the current game. */
 BYTE setlvlnum;
-char setlvltype;
+/** Level type of the active quest level */
+dungeon_type setlvltype;
 /** Specifies the player viewpoint X-coordinate of the map. */
 int ViewX;
 /** Specifies the player viewpoint Y-coordinate of the map. */
@@ -156,9 +128,8 @@ THEME_LOC themeLoc[MAXTHEMES];
 void FillSolidBlockTbls()
 {
 	BYTE bv;
-	DWORD dwTiles;
+	DWORD i, dwTiles;
 	BYTE *pSBFile, *pTmp;
-	int i;
 
 	memset(nBlockTable, 0, sizeof(nBlockTable));
 	memset(nSolidTable, 0, sizeof(nSolidTable));
@@ -623,11 +594,14 @@ BOOL SkipThemeRoom(int x, int y)
 
 void InitLevels()
 {
-	if (!leveldebug) {
-		currlevel = 0;
-		leveltype = DTYPE_TOWN;
-		setlevel = FALSE;
-	}
+#ifdef _DEBUG
+	if (leveldebug)
+		return;
+#endif
+
+	currlevel = 0;
+	leveltype = DTYPE_TOWN;
+	setlevel = FALSE;
 }
 
 DEVILUTION_END_NAMESPACE

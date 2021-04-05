@@ -13,9 +13,22 @@ extern "C" {
 #endif
 
 void RenderTileViaSDL(int sx, int sy, int lightx = 0, int lighty = 0, int lightType = 0);
-void RenderTile(BYTE *pBuff);
-void world_draw_black_tile(int sx, int sy);
-void trans_rect(int sx, int sy, int width, int height);
+
+/**
+ * @brief Blit current world CEL to the given buffer
+ * @param out Target buffer
+ * @param x Target buffer coordinate
+ * @param y Target buffer coordinate
+ */
+void RenderTile(CelOutputBuffer out, int x, int y);
+
+/**
+ * @brief Render a black tile
+ * @param out Target buffer
+ * @param sx Target buffer coordinate
+ * @param sy Target buffer coordinate
+ */
+void world_draw_black_tile(CelOutputBuffer out, int sx, int sy);
 
 #ifdef __cplusplus
 }

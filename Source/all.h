@@ -7,6 +7,8 @@
 #define __ALL_H__
 
 #include <SDL.h>
+#include <map>
+#include <vector>
 
 #ifdef USE_SDL1
 #include "sdl2_to_1_2_backports.h"
@@ -18,6 +20,8 @@
 
 #include "../types.h"
 
+#include "../SourceX/qol.h"
+
 #include "appfat.h"
 #include "automap.h"
 #include "capture.h"
@@ -25,7 +29,9 @@
 #include "control.h"
 #include "cursor.h"
 #include "dead.h"
+#ifdef _DEBUG
 #include "debug.h"
+#endif
 #include "diablo.h"
 #include "doom.h"
 #include "drlg_l1.h"

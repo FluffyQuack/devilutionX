@@ -48,7 +48,7 @@ DWORD nthread_send_and_recv_turn(DWORD cur_turn, int turn_delta)
 {
 	DWORD new_cur_turn;
 	int turn, turn_tmp;
-	int curTurnsInTransit;
+	DWORD curTurnsInTransit;
 
 	new_cur_turn = cur_turn;
 	if (!SNetGetTurnsInTransit(&curTurnsInTransit)) {
@@ -57,7 +57,7 @@ DWORD nthread_send_and_recv_turn(DWORD cur_turn, int turn_delta)
 	}
 	while (curTurnsInTransit++ < gdwTurnsInTransit) {
 
-		turn_tmp = turn_upper_bit | new_cur_turn & 0x7FFFFFFF;
+		turn_tmp = turn_upper_bit | (new_cur_turn & 0x7FFFFFFF);
 		turn_upper_bit = 0;
 		turn = turn_tmp;
 
@@ -79,7 +79,6 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 	sgbPacketCountdown--;
 	if (sgbPacketCountdown) {
 		last_tick_highResolution += tick_delay_highResolution; //Fluffy
-
 		return TRUE;
 	}
 	sgbSyncCountdown--;
@@ -90,6 +89,9 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 		last_tick_highResolution += tick_delay_highResolution; //Fluffy
 		return TRUE;
 	}
+#ifdef __3DS__
+	return FALSE;
+#else
 	if (!SNetReceiveTurns(0, MAX_PLRS, (char **)glpMsgTbl, gdwMsgLenTbl, (LPDWORD)player_state)) {
 		if (SErrGetLastError() != STORM_ERROR_NO_MESSAGES_WAITING)
 			nthread_terminate_game("SNetReceiveTurns");
@@ -108,6 +110,7 @@ BOOL nthread_recv_turns(BOOL *pfSendAsync)
 		last_tick_highResolution += tick_delay_highResolution; //Fluffy
 		return TRUE;
 	}
+#endif
 }
 
 unsigned int nthread_handler(void* data)
@@ -187,7 +190,7 @@ void nthread_start(BOOL set_turn_upper_bit)
 	}
 	if (gdwNormalMsgSize > largestMsgSize)
 		gdwNormalMsgSize = largestMsgSize;
-	if (gbMaxPlayers > 1) {
+	if (gbIsMultiplayer) {
 		sgbThreadIsRunning = FALSE;
 		sgMemCrit.Enter();
 		nthread_should_run = TRUE;
@@ -226,10 +229,9 @@ void nthread_ignore_mutex(BOOL bStart)
 
 /**
  * @brief Checks if it's time for the logic to advance
- * @param unused
  * @return True if the engine should tick
  */
-BOOL nthread_has_500ms_passed(BOOL unused)
+BOOL nthread_has_500ms_passed()
 {
 	//Fluffy: Rewrote this to use high resolution timer
 	unsigned long long currentTime, elapsedTime;
@@ -238,7 +240,7 @@ BOOL nthread_has_500ms_passed(BOOL unused)
 	if (currentTime < last_tick_highResolution)
 		return false;
 	elapsedTime = currentTime - last_tick_highResolution;
-	if (gbMaxPlayers == 1 && elapsedTime > SDL_GetPerformanceFrequency() / 2) { //Checking if elapsedTimer is over a half second, aka 500ms //TODO: Calculate last part using tick_delay rather than using a hardcoded time
+	if (!gbIsMultiplayer && elapsedTime > SDL_GetPerformanceFrequency() / 2) { //Checking if elapsedTimer is over a half second, aka 500ms //TODO: Calculate last part using tick_delay rather than using a hardcoded time
 		last_tick_highResolution = currentTime;
 		elapsedTime = 0;
 	}

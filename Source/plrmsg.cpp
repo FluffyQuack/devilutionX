@@ -10,8 +10,8 @@ DEVILUTION_BEGIN_NAMESPACE
 static BYTE plr_msg_slot;
 _plrmsg plr_msgs[PMSG_COUNT];
 
-/** Maps from player_num to text colour, as used in chat messages. */
-const char text_color_from_player_num[MAX_PLRS + 1] = { COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_GOLD };
+/** Maps from player_num to text color, as used in chat messages. */
+const text_color text_color_from_player_num[MAX_PLRS + 1] = { COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_GOLD };
 
 void plrmsg_delay(BOOL delay)
 {
@@ -30,16 +30,14 @@ void plrmsg_delay(BOOL delay)
 		pMsg->time += plrmsg_ticks;
 }
 
-char *ErrorPlrMsg(const char *pszMsg)
+void ErrorPlrMsg(const char *pszMsg)
 {
-	char *result;
 	_plrmsg *pMsg = &plr_msgs[plr_msg_slot];
 	plr_msg_slot = (plr_msg_slot + 1) & (PMSG_COUNT - 1);
 	pMsg->player = MAX_PLRS;
 	pMsg->time = SDL_GetTicks();
-	result = strncpy(pMsg->str, pszMsg, sizeof(pMsg->str));
+	strncpy(pMsg->str, pszMsg, sizeof(pMsg->str));
 	pMsg->str[sizeof(pMsg->str) - 1] = '\0';
-	return result;
 }
 
 size_t EventPlrMsg(const char *pszFmt, ...)
@@ -63,8 +61,8 @@ void SendPlrMsg(int pnum, const char *pszStr)
 	plr_msg_slot = (plr_msg_slot + 1) & (PMSG_COUNT - 1);
 	pMsg->player = pnum;
 	pMsg->time = SDL_GetTicks();
-	strlen(plr[pnum]._pName); /* these are used in debug */
-	strlen(pszStr);
+	assert(strlen(plr[pnum]._pName) < PLR_NAME_LEN);
+	assert(strlen(pszStr) < MAX_SEND_STR_LEN);
 	sprintf(pMsg->str, "%s (lvl %d): %s", plr[pnum]._pName, plr[pnum]._pLevel, pszStr);
 }
 
@@ -86,34 +84,7 @@ void InitPlrMsg()
 	plr_msg_slot = 0;
 }
 
-void DrawPlrMsg()
-{
-	int i;
-	DWORD x = 10 + SCREEN_X;
-	DWORD y = 70 + SCREEN_Y;
-	DWORD width = SCREEN_WIDTH - 20;
-	_plrmsg *pMsg;
-
-	if (chrflag || questlog) {
-		x += SPANEL_WIDTH;
-		width -= SPANEL_WIDTH;
-	}
-	if (invflag || sbookflag)
-		width -= SPANEL_WIDTH;
-
-	if (width < 300)
-		return;
-
-	pMsg = plr_msgs;
-	for (i = 0; i < PMSG_COUNT; i++) {
-		if (pMsg->str[0])
-			PrintPlrMsg(x, y, width, pMsg->str, text_color_from_player_num[pMsg->player]);
-		pMsg++;
-		y += 35;
-	}
-}
-
-void PrintPlrMsg(DWORD x, DWORD y, DWORD width, const char *str, BYTE col)
+static void PrintPlrMsg(CelOutputBuffer out, DWORD x, DWORD y, DWORD width, const char *str, text_color col)
 {
 	int line = 0;
 
@@ -143,7 +114,7 @@ void PrintPlrMsg(DWORD x, DWORD y, DWORD width, const char *str, BYTE col)
 			c = gbFontTransTbl[(BYTE)*str++];
 			c = fontframe[c];
 			if (c)
-				PrintChar(sx, y, c, col);
+				PrintChar(out, sx, y, c, col);
 			sx += fontkern[c] + 1;
 		}
 
@@ -151,6 +122,33 @@ void PrintPlrMsg(DWORD x, DWORD y, DWORD width, const char *str, BYTE col)
 		line++;
 		if (line == 3)
 			break;
+	}
+}
+
+void DrawPlrMsg(CelOutputBuffer out)
+{
+	int i;
+	DWORD x = 10;
+	DWORD y = 70;
+	DWORD width = gnScreenWidth - 20;
+	_plrmsg *pMsg;
+
+	if (chrflag || questlog) {
+		x += SPANEL_WIDTH;
+		width -= SPANEL_WIDTH;
+	}
+	if (invflag || sbookflag)
+		width -= SPANEL_WIDTH;
+
+	if (width < 300)
+		return;
+
+	pMsg = plr_msgs;
+	for (i = 0; i < PMSG_COUNT; i++) {
+		if (pMsg->str[0])
+			PrintPlrMsg(out, x, y, width, pMsg->str, text_color_from_player_num[pMsg->player]);
+		pMsg++;
+		y += 35;
 	}
 }
 

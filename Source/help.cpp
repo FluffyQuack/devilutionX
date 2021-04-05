@@ -8,9 +8,7 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 int help_select_line;
-int unused_help;
 BOOL helpflag;
-int displayinghelp[22]; /* check, does nothing? */
 int HelpTop;
 
 const char gszSpawnHelpText[] = {
@@ -34,8 +32,11 @@ const char gszSpawnHelpText[] = {
 	"G:  Increases the brightness of the screen|"
 	"Q:  Opens the Quest log (non-functional in the Shareware version)|"
 	"1 - 8:  Use that item from your Belt|"
-	"F5, F6, F7, F8:  Sets a hot key for a selected skill or spell|"
-	"Shift + Left Click: Use any weapon without moving|"
+	"F5, F6, F7, F8:  Sets a hotkey for a selected skill or spell|"
+	"Shift + Left Mouse Button: Use any weapon without moving|"
+	"Shift + Left Mouse Button (on character screen): Assign all stat points|"
+	"Shift + Left Mouse Button (on inventory): Move item to belt or equip/unequip item|"
+	"Shift + Left Mouse Button (on belt): Move item to inventory|"
 	"|"
 	"|"
 	"$Movement:|"
@@ -197,6 +198,7 @@ const char gszSpawnHelpText[] = {
 	"open a 'Speedbook' menu that also allows you to ready a skill "
 	"or spell for use.  To use a readied skill or spell, simply "
 	"right-click in the main play area.|"
+	"Shift + Left-clicking on the 'select current spell' button will clear the readied spell|"
 	"|"
 	"Skills are the innate abilities of your character. These skills "
 	"are different depending on what class you choose and require no "
@@ -288,9 +290,9 @@ const char gszSpawnHelpText[] = {
 	"health to your character while diminishing his available mana "
 	"and requires no targeting.|"
 	"|"
-	"You can also set a spell or scroll as a Hot Key position for "
+	"You can also set a spell or scroll as a Hotkey position for "
 	"instant selection.  Start by opening the pop-up menu as described "
-	"in the skill section above.  Assign Hot Keys by hitting the "
+	"in the skill section above.  Assign Hotkeys by hitting the "
 	"F5, F6, F7 or F8 keys on your keyboard after scrolling through "
 	"the available spells and highlighting the one you wish to assign. |"
 	"|"
@@ -389,8 +391,11 @@ const char gszHelpText[] = {
 	"Z: Zoom Game Screen|"
 	"+ / -: Zoom Automap|"
 	"1 - 8: Use Belt item|"
-	"F5, F6, F7, F8:     Set hot key for skill or spell|"
-	"Shift + Left Click: Attack without moving|"
+	"F5, F6, F7, F8:     Set hotkey for skill or spell|"
+	"Shift + Left Mouse Button: Attack without moving|"
+	"Shift + Left Mouse Button (on character screen): Assign all stat points|"
+	"Shift + Left Mouse Button (on inventory): Move item to belt or equip/unequip item|"
+	"Shift + Left Mouse Button (on belt): Move item to inventory|"
 	"|"
 	"$Movement:|"
 	"If you hold the mouse button down while moving, the character "
@@ -429,9 +434,10 @@ const char gszHelpText[] = {
 	"which allows you to select a skill or spell for immediate use.  "
 	"To use a readied skill or spell, simply right-click in the main play "
 	"area.|"
+	"Shift + Left-clicking on the 'select current spell' button will clear the readied spell|"
 	"|"
 	"$Setting Spell Hotkeys|"
-	"You can assign up to four Hot Keys for skills, spells or scrolls.  "
+	"You can assign up to four Hotkeys for skills, spells or scrolls.  "
 	"Start by opening the 'speedbook' as described in the section above. "
 	"Press the F5, F6, F7 or F8 keys after highlighting the spell you "
 	"wish to assign.|"
@@ -445,18 +451,16 @@ const char gszHelpText[] = {
 void InitHelp()
 {
 	helpflag = FALSE;
-	unused_help = 0;
-	displayinghelp[0] = 0;
 }
 
-static void DrawHelpLine(int x, int y, char *text, char color)
+static void DrawHelpLine(CelOutputBuffer out, int x, int y, char *text, text_color color)
 {
 	int sx, sy, width;
 	BYTE c;
 
 	width = 0;
 	sx = x + 32 + PANEL_X;
-	sy = y * 12 + 44 + SCREEN_Y + UI_OFFSET_Y;
+	sy = y * 12 + 44 + UI_OFFSET_Y;
 	while (*text) {
 		c = gbFontTransTbl[(BYTE)*text];
 		text++;
@@ -464,25 +468,24 @@ static void DrawHelpLine(int x, int y, char *text, char color)
 		width += fontkern[c] + 1;
 		if (c) {
 			if (width <= 577)
-				PrintChar(sx, sy, c, color);
+				PrintChar(out, sx, sy, c, color);
 		}
 		sx += fontkern[c] + 1;
 	}
 }
 
-void DrawHelp()
+void DrawHelp(CelOutputBuffer out)
 {
 	int i, c, w;
-	char col;
 	const char *s;
 
 	DrawSTextHelp();
-	DrawQTextBack();
+	DrawQTextBack(out);
 	if (gbIsHellfire)
-		PrintSString(0, 2, TRUE, "Hellfire Help", COL_GOLD, 0);
+		PrintSString(out, 0, 2, TRUE, "Hellfire Help", COL_GOLD, 0);
 	else
-		PrintSString(0, 2, TRUE, "Diablo Help", COL_GOLD, 0);
-	DrawSLine(5);
+		PrintSString(out, 0, 2, TRUE, "Diablo Help", COL_GOLD, 0);
+	DrawSLine(out, 5);
 
 	s = &gszHelpText[0];
 	if (gbIsSpawn)
@@ -526,11 +529,10 @@ void DrawHelp()
 		while (*s == '\0') {
 			s++;
 		}
+		text_color col = COL_WHITE;
 		if (*s == '$') {
 			s++;
 			col = COL_RED;
-		} else {
-			col = COL_WHITE;
 		}
 		if (*s == '&') {
 			HelpTop = help_select_line;
@@ -555,14 +557,14 @@ void DrawHelp()
 		}
 		if (c != 0) {
 			tempstr[c] = '\0';
-			DrawHelpLine(0, i, tempstr, col);
+			DrawHelpLine(out, 0, i, tempstr, col);
 		}
 		if (*s == '|') {
 			s++;
 		}
 	}
 
-	PrintSString(0, 23, TRUE, "Press ESC to end or the arrow keys to scroll.", COL_GOLD, 0);
+	PrintSString(out, 0, 23, TRUE, "Press ESC to end or the arrow keys to scroll.", COL_GOLD, 0);
 }
 
 void DisplayHelp()

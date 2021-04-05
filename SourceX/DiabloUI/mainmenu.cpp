@@ -39,8 +39,8 @@ void mainmenu_Load(const char *name, void (*fnSound)(const char *file))
 	vecMenuItems.push_back(new UiListItem("Single Player", MAINMENU_SINGLE_PLAYER));
 	vecMenuItems.push_back(new UiListItem("Multi Player", MAINMENU_MULTIPLAYER));
 	vecMenuItems.push_back(new UiListItem("Replay Intro", MAINMENU_REPLAY_INTRO));
+	vecMenuItems.push_back(new UiListItem("Support", MAINMENU_SHOW_SUPPORT));
 	if (gbIsHellfire) {
-		vecMenuItems.push_back(new UiListItem("Support", MAINMENU_SHOW_SUPPORT));
 		vecMenuItems.push_back(new UiListItem("Credits", MAINMENU_SHOW_CREDITS));
 		vecMenuItems.push_back(new UiListItem("Exit Hellfire", MAINMENU_EXIT_DIABLO));
 	} else {
@@ -61,7 +61,7 @@ void mainmenu_Load(const char *name, void (*fnSound)(const char *file))
 
 	vecMainMenuDialog.push_back(new UiList(vecMenuItems, PANEL_LEFT + 64, (UI_OFFSET_Y + 192), 510, 43, UIS_HUGE | UIS_GOLD | UIS_CENTER));
 
-	SDL_Rect rect = { 17, (SCREEN_HEIGHT - 36), 605, 21 };
+	SDL_Rect rect = { 17, (Sint16)(gnScreenHeight - 36), 605, 21 };
 	vecMainMenuDialog.push_back(new UiArtText(name, rect, UIS_SMALL));
 
 	UiInitList(vecMenuItems.size(), NULL, UiMainMenuSelect, mainmenu_Esc, vecMainMenuDialog, true);

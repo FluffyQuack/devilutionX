@@ -67,21 +67,23 @@ void InitTownTriggers()
 	trigs[numtrigs]._tmsg = WM_DIABNEXTLVL;
 	numtrigs++;
 
-	bool isMultiplayer = gbMaxPlayers != 1;
-
 	for (i = 0; i < sizeof(townwarps) / sizeof(townwarps[0]); i++) {
-		townwarps[i] = isMultiplayer && !gbIsSpawn;
+		townwarps[i] = gbIsMultiplayer && !gbIsSpawn;
 	}
 	if (!gbIsSpawn) {
-		if (isMultiplayer || plr[myplr].pTownWarps & 1 || (gbIsHellfire && plr[myplr]._pLevel >= 10)) {
+		if (gbIsMultiplayer || plr[myplr].pTownWarps & 1 || (gbIsHellfire && plr[myplr]._pLevel >= 10)) {
 			townwarps[0] = TRUE;
 			trigs[numtrigs]._tx = 49;
 			trigs[numtrigs]._ty = 21;
 			trigs[numtrigs]._tmsg = WM_DIABTOWNWARP;
 			trigs[numtrigs]._tlvl = 5;
+#ifdef _DEBUG
+			if (debug_mode_key_j)
+				trigs[numtrigs]._tlvl = debug_mode_key_j;
+#endif
 			numtrigs++;
 		}
-		if (isMultiplayer || plr[myplr].pTownWarps & 2 || (gbIsHellfire && plr[myplr]._pLevel >= 15)) {
+		if (gbIsMultiplayer || plr[myplr].pTownWarps & 2 || (gbIsHellfire && plr[myplr]._pLevel >= 15)) {
 			townwarps[1] = TRUE;
 			trigs[numtrigs]._tx = 17;
 			trigs[numtrigs]._ty = 69;
@@ -89,7 +91,7 @@ void InitTownTriggers()
 			trigs[numtrigs]._tlvl = 9;
 			numtrigs++;
 		}
-		if (isMultiplayer || plr[myplr].pTownWarps & 4 || (gbIsHellfire && plr[myplr]._pLevel >= 20)) {
+		if (gbIsMultiplayer || plr[myplr].pTownWarps & 4 || (gbIsHellfire && plr[myplr]._pLevel >= 20)) {
 			townwarps[2] = TRUE;
 			trigs[numtrigs]._tx = 41;
 			trigs[numtrigs]._ty = 80;
@@ -104,7 +106,7 @@ void InitTownTriggers()
 		trigs[numtrigs]._tmsg = WM_DIABTOWNWARP;
 		trigs[numtrigs]._tlvl = 17;
 		numtrigs++;
-		if (isMultiplayer || quests[Q_GRAVE]._qactive == 3) {
+		if (gbIsMultiplayer || quests[Q_GRAVE]._qactive == 3) {
 			trigs[numtrigs]._tx = 36;
 			trigs[numtrigs]._ty = 24;
 			trigs[numtrigs]._tmsg = WM_DIABTOWNWARP;
@@ -807,6 +809,8 @@ void CheckTrigForce()
 		case DTYPE_HELL:
 			trigflag = ForceL4Trig();
 			break;
+		default:
+			break;
 		}
 		if (leveltype != DTYPE_TOWN && !trigflag) {
 			trigflag = ForceQuests();
@@ -851,21 +855,17 @@ void CheckTriggers()
 				PlaySFX(PS_WARR18);
 				InitDiabloMsg(EMSG_NOT_IN_SHAREWARE);
 			} else {
-				if (pcurs >= CURSOR_FIRSTITEM && DropItemBeforeTrig())
-					return;
 				StartNewLvl(myplr, trigs[i]._tmsg, currlevel + 1);
 			}
 			break;
 		case WM_DIABPREVLVL:
-			if (pcurs >= CURSOR_FIRSTITEM && DropItemBeforeTrig())
-				return;
 			StartNewLvl(myplr, trigs[i]._tmsg, currlevel - 1);
 			break;
 		case WM_DIABRTNLVL:
 			StartNewLvl(myplr, trigs[i]._tmsg, ReturnLvl);
 			break;
 		case WM_DIABTOWNWARP:
-			if (gbMaxPlayers != 1) {
+			if (gbIsMultiplayer) {
 				abort = FALSE;
 
 				if (trigs[i]._tlvl == 5 && plr[myplr]._pLevel < 8) {
@@ -918,7 +918,6 @@ void CheckTriggers()
 			break;
 		default:
 			app_fatal("Unknown trigger msg");
-			break;
 		}
 	}
 }

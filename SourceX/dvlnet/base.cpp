@@ -1,5 +1,4 @@
 #include "dvlnet/base.h"
-#include "../3rdParty/Storm/Source/storm.h"
 
 #include <algorithm>
 #include <cstring>
@@ -249,7 +248,7 @@ bool base::SNetGetOwnerTurnsWaiting(DWORD *turns)
 	return true;
 }
 
-bool base::SNetGetTurnsInTransit(int *turns)
+bool base::SNetGetTurnsInTransit(DWORD *turns)
 {
 	*turns = turn_queue[plr_self].size();
 	return true;

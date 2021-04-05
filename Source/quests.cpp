@@ -4,6 +4,7 @@
  * Implementation of functionality for handling quests.
  */
 #include "all.h"
+#include "options.h"
 #include "textures/textures.h" //Fluffy: For accessing SDL textures
 #include "render/sdl-render.h" //Fluffy: For rendering via SDL
 
@@ -20,7 +21,7 @@ int numqlines;
 int WaterDone;
 int ReturnLvlX;
 int ReturnLvlY;
-int ReturnLvlT;
+dungeon_type ReturnLvlT;
 int ReturnLvl;
 
 /** Contains the data related to each quest_id. */
@@ -100,7 +101,7 @@ void InitQuests()
 	int i, initiatedQuests;
 	DWORD z;
 
-	if (gbMaxPlayers == 1) {
+	if (!gbIsMultiplayer) {
 		for (i = 0; i < MAXQUESTS; i++) {
 			quests[i]._qactive = QUEST_NOTAVAIL;
 		}
@@ -112,17 +113,18 @@ void InitQuests()
 		}
 	}
 
+	Qtalklist[TOWN_HEALER][Q_MUSHROOM] = TEXT_NONE;
+	Qtalklist[TOWN_WITCH][Q_MUSHROOM] = TEXT_MUSH9;
+
 	questlog = FALSE;
 	WaterDone = 0;
 	initiatedQuests = 0;
 
 	for (z = 0; z < MAXQUESTS; z++) {
-		if (!gbIsHellfire && z > 15)
-			break;
-		if (gbMaxPlayers > 1 && !(questlist[z]._qflags & QUEST_ANY))
+		if (gbIsMultiplayer && !(questlist[z]._qflags & QUEST_ANY))
 			continue;
 		quests[z]._qtype = questlist[z]._qdtype;
-		if (gbMaxPlayers > 1) {
+		if (gbIsMultiplayer) {
 			quests[z]._qlevel = questlist[z]._qdmultlvl;
 			if (!delta_quest_inited(initiatedQuests)) {
 				quests[z]._qactive = QUEST_INIT;
@@ -146,7 +148,7 @@ void InitQuests()
 		quests[z]._qmsg = questlist[z]._qdmsg;
 	}
 
-	if (gbMaxPlayers == 1 && !allquests) {
+	if (!gbIsMultiplayer && sgOptions.Gameplay.bRandomizeQuests) {
 		SetRndSeed(glSeedTbl[15]);
 		if (random_(0, 2) != 0)
 			quests[Q_PWATER]._qactive = QUEST_NOTAVAIL;
@@ -174,7 +176,7 @@ void InitQuests()
 	if (quests[Q_ROCK]._qactive == QUEST_NOTAVAIL)
 		quests[Q_ROCK]._qvar2 = 2;
 	quests[Q_LTBANNER]._qvar1 = 1;
-	if (gbMaxPlayers != 1)
+	if (gbIsMultiplayer)
 		quests[Q_BETRAYER]._qvar1 = 2;
 }
 
@@ -185,13 +187,13 @@ void CheckQuests()
 
 	int i, rportx, rporty;
 
-	if (QuestStatus(Q_BETRAYER) && gbMaxPlayers != 1 && quests[Q_BETRAYER]._qvar1 == 2) {
+	if (QuestStatus(Q_BETRAYER) && gbIsMultiplayer && quests[Q_BETRAYER]._qvar1 == 2) {
 		AddObject(OBJ_ALTBOY, 2 * setpc_x + 20, 2 * setpc_y + 22);
 		quests[Q_BETRAYER]._qvar1 = 3;
 		NetSendCmdQuest(TRUE, Q_BETRAYER);
 	}
 
-	if (gbMaxPlayers != 1) {
+	if (gbIsMultiplayer) {
 		return;
 	}
 
@@ -259,7 +261,7 @@ BOOL ForceQuests()
 	if (gbIsSpawn)
 		return FALSE;
 
-	if (gbMaxPlayers != 1) {
+	if (gbIsMultiplayer) {
 		return FALSE;
 	}
 
@@ -292,7 +294,7 @@ BOOL QuestStatus(int i)
 		return FALSE;
 	if (quests[i]._qactive == QUEST_NOTAVAIL)
 		return FALSE;
-	if (gbMaxPlayers != 1 && !(questlist[i]._qflags & QUEST_ANY))
+	if (gbIsMultiplayer && !(questlist[i]._qflags & QUEST_ANY))
 		return FALSE;
 	return TRUE;
 }
@@ -341,7 +343,7 @@ void CheckQuestKill(int m, BOOL sendmsg)
 		}
 		if (sendmsg)
 			NetSendCmdQuest(TRUE, Q_BUTCHER);
-	} else if (monster[m].mName == UniqMonst[UMT_GARBUD].mName) { //"Gharbad the Weak"
+	} else if (monster[m]._uniqtype - 1 == UMT_GARBUD) { //"Gharbad the Weak"
 		quests[Q_GARBUD]._qactive = QUEST_DONE;
 		sfxdelay = 30;
 		if (plr[myplr]._pClass == PC_WARRIOR) {
@@ -357,7 +359,7 @@ void CheckQuestKill(int m, BOOL sendmsg)
 		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
 			sfxdnum = PS_WARR61;
 		}
-	} else if (monster[m].mName == UniqMonst[UMT_ZHAR].mName) { //"Zhar the Mad"
+	} else if (monster[m]._uniqtype - 1 == UMT_ZHAR) { //"Zhar the Mad"
 		quests[Q_ZHAR]._qactive = QUEST_DONE;
 		sfxdelay = 30;
 		if (plr[myplr]._pClass == PC_WARRIOR) {
@@ -373,7 +375,7 @@ void CheckQuestKill(int m, BOOL sendmsg)
 		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
 			sfxdnum = PS_WARR62;
 		}
-	} else if (monster[m].mName == UniqMonst[UMT_LAZURUS].mName && gbMaxPlayers != 1) { //"Arch-Bishop Lazarus"
+	} else if (monster[m]._uniqtype - 1 == UMT_LAZURUS && gbIsMultiplayer) { //"Arch-Bishop Lazarus"
 		quests[Q_BETRAYER]._qactive = QUEST_DONE;
 		quests[Q_BETRAYER]._qvar1 = 7;
 		sfxdelay = 30;
@@ -406,7 +408,7 @@ void CheckQuestKill(int m, BOOL sendmsg)
 			NetSendCmdQuest(TRUE, Q_BETRAYER);
 			NetSendCmdQuest(TRUE, Q_DIABLO);
 		}
-	} else if (monster[m].mName == UniqMonst[UMT_LAZURUS].mName && gbMaxPlayers == 1) { //"Arch-Bishop Lazarus"
+	} else if (monster[m]._uniqtype - 1 == UMT_LAZURUS && !gbIsMultiplayer) { //"Arch-Bishop Lazarus"
 		quests[Q_BETRAYER]._qactive = QUEST_DONE;
 		sfxdelay = 30;
 		InitVPTriggers();
@@ -427,7 +429,7 @@ void CheckQuestKill(int m, BOOL sendmsg)
 		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
 			sfxdnum = PS_WARR83;
 		}
-	} else if (monster[m].mName == UniqMonst[UMT_WARLORD].mName) { //"Warlord of Blood"
+	} else if (monster[m]._uniqtype - 1 == UMT_WARLORD) { //"Warlord of Blood"
 		quests[Q_WARLORD]._qactive = QUEST_DONE;
 		sfxdelay = 30;
 		if (plr[myplr]._pClass == PC_WARRIOR) {
@@ -677,6 +679,17 @@ void GetReturnLvlPos()
 	leveltype = ReturnLvlT;
 }
 
+void LoadPWaterPalette()
+{
+	if (!setlevel || setlvlnum != quests[Q_PWATER]._qslvl || quests[Q_PWATER]._qactive == QUEST_INIT || leveltype != quests[Q_PWATER]._qlvltype)
+		return;
+
+	if (quests[Q_PWATER]._qactive == QUEST_DONE)
+		LoadPalette("Levels\\L3Data\\L3pwater.pal");
+	else
+		LoadPalette("Levels\\L3Data\\L3pfoul.pal");
+}
+
 void ResyncMPQuests()
 {
 	if (gbIsSpawn)
@@ -725,17 +738,6 @@ void ResyncQuests()
 	if (gbIsSpawn)
 		return;
 
-	if (setlevel && setlvlnum == quests[Q_PWATER]._qslvl && quests[Q_PWATER]._qactive != QUEST_INIT && leveltype == quests[Q_PWATER]._qlvltype) {
-
-		if (quests[Q_PWATER]._qactive == QUEST_DONE)
-			LoadPalette("Levels\\L3Data\\L3pwater.pal");
-		else
-			LoadPalette("Levels\\L3Data\\L3pfoul.pal");
-
-		for (i = 0; i <= 32; i++)
-			palette_update_quest_palette(i);
-	}
-
 	if (QuestStatus(Q_LTBANNER)) {
 		if (quests[Q_LTBANNER]._qvar1 == 1)
 			ObjChangeMapResync(
@@ -776,10 +778,10 @@ void ResyncQuests()
 		} else {
 			if (quests[Q_MUSHROOM]._qactive == QUEST_ACTIVE) {
 				if (quests[Q_MUSHROOM]._qvar1 >= QS_MUSHGIVEN) {
-					Qtalklist[TOWN_WITCH]._qblkm = -1;
-					Qtalklist[TOWN_HEALER]._qblkm = TEXT_MUSH3;
+					Qtalklist[TOWN_WITCH][Q_MUSHROOM] = TEXT_NONE;
+					Qtalklist[TOWN_HEALER][Q_MUSHROOM] = TEXT_MUSH3;
 				} else if (quests[Q_MUSHROOM]._qvar1 >= QS_BRAINGIVEN) {
-					Qtalklist[TOWN_HEALER]._qblkm = -1;
+					Qtalklist[TOWN_HEALER][Q_MUSHROOM] = TEXT_NONE;
 				}
 			}
 		}
@@ -806,13 +808,13 @@ void ResyncQuests()
 	}
 }
 
-void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
+static void PrintQLString(CelOutputBuffer out, int x, int y, BOOL cjustflag, const char *str, text_color col)
 {
 	int len, width, i, k, sx, sy;
 	BYTE c;
 
-	sx = x + 32 + SCREEN_X;
-	sy = y * 12 + 44 + SCREEN_Y;
+	sx = x + 32;
+	sy = y * 12 + 44;
 	len = strlen(str);
 	k = 0;
 	if (cjustflag) {
@@ -827,13 +829,13 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 		if (options_hwRendering)
 			Render_Texture_FromBottom(cjustflag ? x + k + 12 : x + 12, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
-			CelDraw(cjustflag ? x + k + 12 + SCREEN_X : x + 12 + SCREEN_X, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
+			CelDrawTo(out, cjustflag ? x + k + 12 : x + 12, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}
 	for (i = 0; i < len; i++) {
 		c = fontframe[gbFontTransTbl[(BYTE)str[i]]];
 		k += fontkern[c] + 1;
 		if (c && k <= 257) {
-			PrintChar(sx, sy, c, col);
+			PrintChar(out, sx, sy, c, col);
 		}
 		sx += fontkern[c] + 1;
 	}
@@ -841,25 +843,25 @@ void PrintQLString(int x, int y, BOOL cjustflag, const char *str, int col)
 		if (options_hwRendering)
 			Render_Texture_FromBottom(cjustflag ? x + k + 36 : 276 - x, sy + 1 - BORDER_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
-			CelDraw(cjustflag ? x + k + 36 + SCREEN_X : 276 + SCREEN_X - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
+			CelDrawTo(out, cjustflag ? x + k + 36 : 276 - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	}
 }
 
-void DrawQuestLog()
+void DrawQuestLog(CelOutputBuffer out)
 {
 	int y, i;
 
-	PrintQLString(0, 2, TRUE, "Quest Log", 3);
+	PrintQLString(out, 0, 2, TRUE, "Quest Log", COL_GOLD);
 	if (options_hwRendering) //Fluffy: Render via SDL
 		Render_Texture(0, 0, TEXTURE_QUESTLOG);
 	else
-		CelDraw(SCREEN_X, SCREEN_Y + 351, pQLogCel, 1, SPANEL_WIDTH);
+		CelDrawTo(out, 0, 351, pQLogCel, 1, SPANEL_WIDTH);
 	y = qtopline;
 	for (i = 0; i < numqlines; i++) {
-		PrintQLString(0, y, TRUE, questlist[qlist[i]]._qlstr, 0);
+		PrintQLString(out, 0, y, TRUE, questlist[qlist[i]]._qlstr, COL_WHITE);
 		y += 2;
 	}
-	PrintQLString(0, 22, TRUE, "Close Quest Log", 0);
+	PrintQLString(out, 0, 22, TRUE, "Close Quest Log", COL_WHITE);
 }
 
 void StartQuestlog()

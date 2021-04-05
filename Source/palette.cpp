@@ -4,6 +4,7 @@
  * Implementation of functions for handling the engines color palette.
  */
 #include "all.h"
+#include "options.h"
 #include "../SourceX/display.h"
 #include "../3rdParty/Storm/Source/storm.h"
 
@@ -12,14 +13,10 @@ DEVILUTION_BEGIN_NAMESPACE
 SDL_Color logical_palette[256];
 SDL_Color system_palette[256];
 SDL_Color orig_palette[256];
-BYTE palette_transparency_lookup[256][256]; //Fluffy
+Uint8 paletteTransparencyLookup[256][256]; //Lookup table for transparency
 
 /* data */
 
-/** Specifies the gamma correction level. */
-int gamma_correction = 100;
-/** Specifies whether colour cycling is enabled. */
-BOOL color_cycling_enabled = TRUE;
 /** Specifies whether the palette has max brightness. */
 BOOLEAN sgbFadedIn = TRUE;
 
@@ -37,7 +34,7 @@ void ApplyGamma(SDL_Color *dst, const SDL_Color *src, int n)
 	int i;
 	double g;
 
-	g = gamma_correction / 100.0;
+	g = sgOptions.Graphics.nGammaCorrection / 100.0;
 
 	for (i = 0; i < n; i++) {
 		dst[i].r = pow(src[i].r / 256.0, g) * 256.0;
@@ -47,30 +44,16 @@ void ApplyGamma(SDL_Color *dst, const SDL_Color *src, int n)
 	force_redraw = 255;
 }
 
-void SaveGamma()
-{
-	SRegSaveValue("Diablo", "Gamma Correction", 0, gamma_correction);
-	SRegSaveValue("Diablo", "Color Cycling", FALSE, color_cycling_enabled);
-}
-
 static void LoadGamma()
 {
-	int gamma_value;
-	int value;
+	int gamma_value = sgOptions.Graphics.nGammaCorrection;
 
-	value = gamma_correction;
-	if (!SRegLoadValue("Diablo", "Gamma Correction", 0, &value))
-		value = 100;
-	gamma_value = value;
-	if (value < 30) {
+	if (gamma_value < 30) {
 		gamma_value = 30;
-	} else if (value > 100) {
+	} else if (gamma_value > 100) {
 		gamma_value = 100;
 	}
-	gamma_correction = gamma_value - gamma_value % 5;
-	if (!SRegLoadValue("Diablo", "Color Cycling", 0, &value))
-		value = 1;
-	color_cycling_enabled = value;
+	sgOptions.Graphics.nGammaCorrection = gamma_value - gamma_value % 5;
 }
 
 void palette_init()
@@ -78,6 +61,58 @@ void palette_init()
 	LoadGamma();
 	memcpy(system_palette, orig_palette, sizeof(orig_palette));
 	InitPalette();
+}
+
+/**
+ * @brief Generate lookup table for transparency
+ *
+ * This is based of the same technique found in Quake2.
+ *
+ * To mimic 50% transparency we figure out what colors in the existing palette are the best match for the combination of any 2 colors.
+ * We save this into a lookup table for use during rendering.
+ *
+ * @param palette The colors to operate on
+ * @param skipFrom Do not use colors between this index and skipTo
+ * @param skipTo Do not use colors between skipFrom and this index
+ * @param toUpdate Only update the first n colors
+ */
+static void GenerateBlendedLookupTable(SDL_Color *palette, int skipFrom, int skipTo, int toUpdate = 256)
+{
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			if (i == j) { // No need to calculate transparency between 2 identical colors
+				paletteTransparencyLookup[i][j] = j;
+				continue;
+			}
+			if (i > j) { // Half the blends will be mirror identical ([i][j] is the same as [j][i]), so simply copy the existing combination.
+				paletteTransparencyLookup[i][j] = paletteTransparencyLookup[j][i];
+				continue;
+			}
+			if (i > toUpdate && j > toUpdate) {
+				continue;
+			}
+
+			Uint8 r = ((int)palette[i].r + (int)palette[j].r) / 2;
+			Uint8 g = ((int)palette[i].g + (int)palette[j].g) / 2;
+			Uint8 b = ((int)palette[i].b + (int)palette[j].b) / 2;
+			Uint8 best;
+			Uint32 bestDiff = SDL_MAX_UINT32;
+			for (int k = 0; k < 256; k++) {
+				if (k >= skipFrom && k <= skipTo)
+					continue;
+				int diffr = palette[k].r - r;
+				int diffg = palette[k].g - g;
+				int diffb = palette[k].b - b;
+				int diff = diffr * diffr + diffg * diffg + diffb * diffb;
+
+				if (bestDiff > diff) {
+					best = k;
+					bestDiff = diff;
+				}
+			}
+			paletteTransparencyLookup[i][j] = best;
+		}
+	}
 }
 
 void LoadPalette(const char *pszFileName)
@@ -101,41 +136,13 @@ void LoadPalette(const char *pszFileName)
 #endif
 	}
 
-	/* Fluffy: Generate lookup table for transparency
-	*
-	* Explanation for how this works: To mimic 50% transparency we figure out what colours in the existing palette are the best match for the combination of any 2 colours.
-	* We save this info in a lookup table we use during rendering for whenever we want this kind of transparency.
-	* 
-	*/
-	if (options_transparency == 1) {
-		for (int i = 0; i < 256; i++) {
-			for (int j = 0; j < 256; j++) {
-				if (i == j) { //No need to calculate transparency between 2 identical colours
-					palette_transparency_lookup[i][j] = j;
-					continue;
-				} else if (i > j) { //Since there's a lot of redundancy ([i][j] will always have the same value as [j][i]), we skip calculating combinations which have already been calculated
-					palette_transparency_lookup[i][j] = palette_transparency_lookup[j][i];
-					continue;
-				}
-
-				Uint8 r = ((int)orig_palette[i].r + (int)orig_palette[j].r) / 2;
-				Uint8 g = ((int)orig_palette[i].g + (int)orig_palette[j].g) / 2;
-				Uint8 b = ((int)orig_palette[i].b + (int)orig_palette[j].b) / 2;
-				BYTE best;
-				int bestDiff = 255 * 3;
-				for (int k = 0; k < 256; k++) {
-					int diffr = orig_palette[k].r - r;
-					int diffg = orig_palette[k].g - g;
-					int diffb = orig_palette[k].b - b;
-					int diff = diffr * diffr + diffg * diffg + diffb * diffb;
-
-					if (k == 0 || bestDiff > diff) {
-						best = k;
-						bestDiff = diff;
-					}
-				}
-				palette_transparency_lookup[i][j] = best;
-			}
+	if (sgOptions.Graphics.bBlendedTransparancy) {
+		if (leveltype == DTYPE_CAVES || leveltype == DTYPE_CRYPT) {
+			GenerateBlendedLookupTable(orig_palette, 1, 31);
+		} else if (leveltype == DTYPE_NEST) {
+			GenerateBlendedLookupTable(orig_palette, 1, 15);
+		} else {
+			GenerateBlendedLookupTable(orig_palette, -1, -1);
 		}
 	}
 }
@@ -154,7 +161,7 @@ void LoadRndLvlPal(int l)
 			sprintf(szFileName, "NLevels\\L5Data\\L5Base.PAL");
 		}
 		if (l == 6) {
-			if (!UseNestArt) {
+			if (!gbNestArt) {
 				rv++;
 			}
 			sprintf(szFileName, "NLevels\\L%iData\\L%iBase%i.PAL", 6, 6, rv);
@@ -169,10 +176,10 @@ void ResetPal()
 
 void IncreaseGamma()
 {
-	if (gamma_correction < 100) {
-		gamma_correction += 5;
-		if (gamma_correction > 100)
-			gamma_correction = 100;
+	if (sgOptions.Graphics.nGammaCorrection < 100) {
+		sgOptions.Graphics.nGammaCorrection += 5;
+		if (sgOptions.Graphics.nGammaCorrection > 100)
+			sgOptions.Graphics.nGammaCorrection = 100;
 		ApplyGamma(system_palette, logical_palette, 256);
 		palette_update();
 	}
@@ -180,10 +187,10 @@ void IncreaseGamma()
 
 void DecreaseGamma()
 {
-	if (gamma_correction > 30) {
-		gamma_correction -= 5;
-		if (gamma_correction < 30)
-			gamma_correction = 30;
+	if (sgOptions.Graphics.nGammaCorrection > 30) {
+		sgOptions.Graphics.nGammaCorrection -= 5;
+		if (sgOptions.Graphics.nGammaCorrection < 30)
+			sgOptions.Graphics.nGammaCorrection = 30;
 		ApplyGamma(system_palette, logical_palette, 256);
 		palette_update();
 	}
@@ -192,12 +199,11 @@ void DecreaseGamma()
 int UpdateGamma(int gamma)
 {
 	if (gamma) {
-		gamma_correction = 130 - gamma;
+		sgOptions.Graphics.nGammaCorrection = 130 - gamma;
 		ApplyGamma(system_palette, logical_palette, 256);
 		palette_update();
 	}
-	SaveGamma();
-	return 130 - gamma_correction;
+	return 130 - sgOptions.Graphics.nGammaCorrection;
 }
 
 void SetFadeLevel(DWORD fadeval)
@@ -263,7 +269,7 @@ void PaletteFadeIn(int fr)
 	DWORD tc = SDL_GetTicks();
 	for (i = 0; i < 256; i = (SDL_GetTicks() - tc) / 2.083) { // 32 frames @ 60hz
 		SetFadeLevel(i);
-		SDL_Rect SrcRect = { SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_Rect SrcRect = { BUFFER_BORDER_LEFT, BUFFER_BORDER_TOP, gnScreenWidth, gnScreenHeight };
 		BltFast(&SrcRect, NULL);
 		RenderPresent();
 	}
@@ -282,7 +288,7 @@ void PaletteFadeOut(int fr)
 		DWORD tc = SDL_GetTicks();
 		for (i = 256; i > 0; i = 256 - (SDL_GetTicks() - tc) / 2.083) { // 32 frames @ 60hz
 			SetFadeLevel(i);
-			SDL_Rect SrcRect = { SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT };
+			SDL_Rect SrcRect = { BUFFER_BORDER_LEFT, BUFFER_BORDER_TOP, gnScreenWidth, gnScreenHeight };
 			BltFast(&SrcRect, NULL);
 			RenderPresent();
 		}
@@ -291,17 +297,73 @@ void PaletteFadeOut(int fr)
 	}
 }
 
-void palette_update_caves()
+/**
+ * @brief Cycle the given range of colors in the palette
+ * @param from First color index of the range
+ * @param to First color index of the range
+ */
+static void CycleColors(int from, int to)
 {
-	int i;
-	SDL_Color col;
-
-	col = system_palette[1];
-	for (i = 1; i < 31; i++) {
+	SDL_Color col = system_palette[from];
+	for (int i = from; i < to; i++) {
 		system_palette[i] = system_palette[i + 1];
 	}
-	system_palette[i] = col;
+	system_palette[to] = col;
 
+	if (!sgOptions.Graphics.bBlendedTransparancy)
+		return;
+
+	for (int i = 0; i < 256; i++) {
+		Uint8 col = paletteTransparencyLookup[i][from];
+		for (int j = from; j < to; j++) {
+			paletteTransparencyLookup[i][j] = paletteTransparencyLookup[i][j + 1];
+		}
+		paletteTransparencyLookup[i][to] = col;
+	}
+
+	Uint8 colRow[256];
+	memcpy(colRow, &paletteTransparencyLookup[from], sizeof(*paletteTransparencyLookup));
+	for (int i = from; i < to; i++) {
+		memcpy(&paletteTransparencyLookup[i], &paletteTransparencyLookup[i + 1], sizeof(*paletteTransparencyLookup));
+	}
+	memcpy(&paletteTransparencyLookup[to], colRow, sizeof(colRow));
+}
+
+/**
+ * @brief Cycle the given range of colors in the palette in reverse direction
+ * @param from First color index of the range
+ * @param to First color index of the range
+ */
+static void CycleColorsReverse(int from, int to)
+{
+	SDL_Color col = system_palette[to];
+	for (int i = to; i > from; i--) {
+		system_palette[i] = system_palette[i - 1];
+	}
+	system_palette[from] = col;
+
+	if (!sgOptions.Graphics.bBlendedTransparancy)
+		return;
+
+	for (int i = 0; i < 256; i++) {
+		Uint8 col = paletteTransparencyLookup[i][to];
+		for (int j = to; j > from; j--) {
+			paletteTransparencyLookup[i][j] = paletteTransparencyLookup[i][j - 1];
+		}
+		paletteTransparencyLookup[i][from] = col;
+	}
+
+	Uint8 colRow[256];
+	memcpy(colRow, &paletteTransparencyLookup[to], sizeof(*paletteTransparencyLookup));
+	for (int i = to; i > from; i--) {
+		memcpy(&paletteTransparencyLookup[i], &paletteTransparencyLookup[i - 1], sizeof(*paletteTransparencyLookup));
+	}
+	memcpy(&paletteTransparencyLookup[from], colRow, sizeof(colRow));
+}
+
+void palette_update_caves()
+{
+	CycleColors(1, 31);
 	palette_update();
 }
 
@@ -313,30 +375,13 @@ void palette_update_crypt()
 	SDL_Color col;
 
 	if (dword_6E2D58 > 1) {
-		col = system_palette[15];
-		for (i = 15; i > 1; i--) {
-			system_palette[i].r = system_palette[i - 1].r;
-			system_palette[i].g = system_palette[i - 1].g;
-			system_palette[i].b = system_palette[i - 1].b;
-		}
-		system_palette[i].r = col.r;
-		system_palette[i].g = col.g;
-		system_palette[i].b = col.b;
-
+		CycleColorsReverse(1, 15);
 		dword_6E2D58 = 0;
 	} else {
 		dword_6E2D58++;
 	}
 	if (dword_6E2D54 > 0) {
-		col = system_palette[31];
-		for (i = 31; i > 16; i--) {
-			system_palette[i].r = system_palette[i - 1].r;
-			system_palette[i].g = system_palette[i - 1].g;
-			system_palette[i].b = system_palette[i - 1].b;
-		}
-		system_palette[i].r = col.r;
-		system_palette[i].g = col.g;
-		system_palette[i].b = col.b;
+		CycleColorsReverse(16, 31);
 		palette_update();
 		dword_6E2D54++;
 	} else {
@@ -352,29 +397,13 @@ void palette_update_hive()
 	SDL_Color col;
 
 	if (dword_6E2D60 == 2) {
-		col = system_palette[8];
-		for (i = 8; i > 1; i--) {
-			system_palette[i].r = system_palette[i - 1].r;
-			system_palette[i].g = system_palette[i - 1].g;
-			system_palette[i].b = system_palette[i - 1].b;
-		}
-		system_palette[i].r = col.r;
-		system_palette[i].g = col.g;
-		system_palette[i].b = col.b;
+		CycleColorsReverse(1, 8);
 		dword_6E2D60 = 0;
 	} else {
 		dword_6E2D60++;
 	}
 	if (dword_6E2D5C == 2) {
-		col = system_palette[15];
-		for (i = 15; i > 9; i--) {
-			system_palette[i].r = system_palette[i - 1].r;
-			system_palette[i].g = system_palette[i - 1].g;
-			system_palette[i].b = system_palette[i - 1].b;
-		}
-		system_palette[i].r = col.r;
-		system_palette[i].g = col.g;
-		system_palette[i].b = col.b;
+		CycleColorsReverse(9, 15);
 		palette_update();
 		dword_6E2D5C = 0;
 	} else {
@@ -391,17 +420,7 @@ void palette_update_quest_palette(int n)
 	}
 	ApplyGamma(system_palette, logical_palette, 32);
 	palette_update();
-}
-
-BOOL palette_get_color_cycling()
-{
-	return color_cycling_enabled;
-}
-
-BOOL palette_set_color_cycling(BOOL enabled)
-{
-	color_cycling_enabled = enabled;
-	return enabled;
+	GenerateBlendedLookupTable(logical_palette, 1, 31, 32 - n); // Possible optimization would be to only update color 0 as only the UI can overlap with transparency in this quest
 }
 
 DEVILUTION_END_NAMESPACE

@@ -17,23 +17,20 @@ typedef struct LightListStruct {
 	int _ly;
 	int _lradius;
 	int _lid;
-	int _ldel;
-	int _lunflag;
-	int field_18;
+	bool _ldel;
+	bool _lunflag;
 	int _lunx;
 	int _luny;
 	int _lunr;
 	int _xoff;
 	int _yoff;
-	int _lflags;
+	bool _lflags;
 } LightListStruct;
 
 extern LightListStruct VisionList[MAXVISION];
 extern BYTE lightactive[MAXLIGHTS];
 extern LightListStruct LightList[MAXLIGHTS];
 extern int numlights;
-extern BYTE lightradius[16][128];
-extern BOOL dovision;
 extern int numvision;
 extern char lightmax;
 extern BOOL dolighting;
@@ -69,8 +66,8 @@ void lighting_color_cycling();
 
 /* rdata */
 
-extern char CrawlTable[2749];
-extern BYTE vCrawlTable[23][30];
+extern const char CrawlTable[2749];
+extern const BYTE vCrawlTable[23][30];
 
 #ifdef __cplusplus
 }

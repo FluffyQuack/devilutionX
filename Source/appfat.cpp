@@ -9,8 +9,6 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-/** Buffer used by GetErrorStr for its return value */
-char sz_error_buf[256];
 /** Set to true when a fatal error is encountered and the application should shut down. */
 BOOL terminating;
 /** Thread id of the last callee to FreeDlg(). */
@@ -41,7 +39,7 @@ static void FreeDlg()
 	terminating = TRUE;
 	cleanup_thread_id = SDL_GetThreadID(NULL);
 
-	if (gbMaxPlayers > 1) {
+	if (gbIsMultiplayer) {
 		if (SNetLeaveGame(3))
 			SDL_Delay(2000);
 	}
@@ -95,7 +93,7 @@ void DrawDlg(const char *pszFmt, ...)
  */
 void assert_fail(int nLineNo, const char *pszFile, const char *pszFail)
 {
-	app_fatal("assertion failed (%d:%s)\n%s", nLineNo, pszFile, pszFail);
+	app_fatal("assertion failed (%s:%d)\n%s", pszFile, nLineNo, pszFail);
 }
 #endif
 

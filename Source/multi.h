@@ -12,13 +12,34 @@ DEVILUTION_BEGIN_NAMESPACE
 extern "C" {
 #endif
 
+typedef struct GameData {
+	Sint32 size;
+	Sint32 dwSeed;
+	Uint32 programid;
+	Uint8 versionMajor;
+	Uint8 versionMinor;
+	Uint8 versionPatch;
+	Uint8 nDifficulty;
+	Uint8 nTickRate;
+	Uint8 bRunInTown;
+	Uint8 bTheoQuest;
+	Uint8 bCowQuest;
+	Uint8 bFriendlyFire;
+} GameData;
+
+typedef struct _SNETPROGRAMDATA {
+	Sint32 size;
+	Uint8 maxplayers;
+	GameData *initdata;
+} _SNETPROGRAMDATA;
+
 extern BOOLEAN gbSomebodyWonGameKludge;
 extern char szPlayerDescript[128];
 extern WORD sgwPackPlrOffsetTbl[MAX_PLRS];
 extern BYTE gbActivePlayers;
 extern BOOLEAN gbGameDestroyed;
 extern BOOLEAN gbSelectProvider;
-extern BYTE gbMaxPlayers;
+extern bool gbIsMultiplayer;
 extern char szPlayerName[128];
 extern BYTE gbDeltaSender;
 extern int player_state[MAX_PLRS];

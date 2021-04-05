@@ -8,17 +8,12 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+CelOutputBuffer GlobalBackBuffer();
 
-extern BYTE *gpBuffer;
-extern BYTE* gpBuffer_important; //Fluffy
-extern SDL_Renderer *renderer;
-extern SDL_Texture *texture_intermediate;
-extern BYTE dx_fade;
+extern BYTE *gpBuffer_important; //Fluffy
+extern SDL_Texture* texture_intermediate;
 
-void dx_init(HWND hWnd);
+void dx_init();
 void lock_buf(BYTE idx);
 void unlock_buf(BYTE idx);
 void dx_cleanup();
@@ -28,10 +23,6 @@ void BltFast(SDL_Rect *src_rect, SDL_Rect *dst_rect);
 void Blit(SDL_Surface *src, SDL_Rect *src_rect, SDL_Rect *dst_rect);
 void RenderPresent();
 void PaletteGetEntries(DWORD dwNumEntries, SDL_Color *lpEntries);
-
-#ifdef __cplusplus
-}
-#endif
 
 DEVILUTION_END_NAMESPACE
 
