@@ -759,6 +759,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 
 		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
 		sgGameInitInfo.allowAttacksInTown = gameSetup_allowAttacksInTown;
+		sgGameInitInfo.safetyJog = gameSetup_safetyJog;
 
 		memset(&ProgramData, 0, sizeof(ProgramData));
 		ProgramData.size = sizeof(ProgramData);
@@ -826,6 +827,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 
 	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
 	gameSetup_allowAttacksInTown = sgGameInitInfo.allowAttacksInTown;
+	gameSetup_safetyJog = sgGameInitInfo.safetyJog;
 
 	for (int i = 0; i < NUMLEVELS; i++) {
 		glSeedTbl[i] = AdvanceRndSeed();

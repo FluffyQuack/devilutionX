@@ -25,6 +25,12 @@ typedef struct GameData {
 	Uint8 bTheoQuest;
 	Uint8 bCowQuest;
 	Uint8 bFriendlyFire;
+
+	//Fluffy
+	Uint8 allowAttacksInTown;
+	Uint8 safetyJog;
+	Sint32 gSpeedMod;
+	Sint32 gMonsterSpeedMod;
 } GameData;
 
 typedef struct _SNETPROGRAMDATA {
