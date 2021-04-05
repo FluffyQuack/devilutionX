@@ -113,6 +113,13 @@ BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI a
 BOOL options_durabilityIconGradualChange = true;
 int options_durabilityIconGold = 8;
 int options_durabilityIconRed = 1;
+BOOL options_noEquippedSpellIsAttack = true;
+BOOL options_holdToAttack = true;
+
+int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
+int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
+unsigned long long lastLeftMouseButtonTime = 0;
+unsigned long long lastRightMouseButtonTime = 0;
 
 /* rdata */
 
@@ -617,6 +624,7 @@ static BOOL LeftMouseCmd(BOOL bShift)
 
 	if (leveltype == DTYPE_TOWN) {
 		if (bShift && gameSetup_allowAttacksInTown) { //Fluffy: Attack if shift is held down and if attacking in town is allowed
+			lastLeftMouseButtonAction = MOUSEACTION_ATTACK;
 			if (plr[myplr]._pwtype == WT_RANGED)
 				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
 			else
@@ -637,14 +645,17 @@ static BOOL LeftMouseCmd(BOOL bShift)
 			NetSendCmdLocParam1(TRUE, pcurs == CURSOR_DISARM ? CMD_DISARMXY : CMD_OPOBJXY, cursmx, cursmy, pcursobj);
 		} else if (plr[myplr]._pwtype == WT_RANGED) {
 			if (bShift) {
+				lastLeftMouseButtonAction = MOUSEACTION_ATTACK; //Fluffy
 				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
 			} else if (pcursmonst != -1) {
 				if (CanTalkToMonst(pcursmonst)) {
 					NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 				} else {
+					lastLeftMouseButtonAction = MOUSEACTION_ATTACK_MONSTERTARGET; //Fluffy
 					NetSendCmdParam1(TRUE, CMD_RATTACKID, pcursmonst);
 				}
 			} else if (pcursplr != -1 && !FriendlyMode) {
+				lastLeftMouseButtonAction = MOUSEACTION_ATTACK_PLAYERTARGET; //Fluffy
 				NetSendCmdParam1(TRUE, CMD_RATTACKPID, pcursplr);
 			}
 		} else {
@@ -653,14 +664,18 @@ static BOOL LeftMouseCmd(BOOL bShift)
 					if (CanTalkToMonst(pcursmonst)) {
 						NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 					} else {
+						lastLeftMouseButtonAction = MOUSEACTION_ATTACK; //Fluffy
 						NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
 					}
 				} else {
+					lastLeftMouseButtonAction = MOUSEACTION_ATTACK; //Fluffy
 					NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
 				}
 			} else if (pcursmonst != -1) {
+				lastLeftMouseButtonAction = MOUSEACTION_ATTACK_MONSTERTARGET; //Fluffy
 				NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
 			} else if (pcursplr != -1 && !FriendlyMode) {
+				lastLeftMouseButtonAction = MOUSEACTION_ATTACK_PLAYERTARGET; //Fluffy
 				NetSendCmdParam1(TRUE, CMD_ATTACKPID, pcursplr);
 			}
 		}
@@ -741,6 +756,8 @@ BOOL TryIconCurs()
 
 static BOOL LeftMouseDown(int wParam)
 {
+	lastLeftMouseButtonAction = MOUSEACTION_OTHER;
+	lastLeftMouseButtonTime = SDL_GetPerformanceCounter();
 	if (gmenu_left_mouse(TRUE))
 		return FALSE;
 
@@ -826,6 +843,8 @@ static void LeftMouseUp()
 
 static void RightMouseDown()
 {
+	lastRightMouseButtonAction = MOUSEACTION_OTHER;
+	lastRightMouseButtonTime = SDL_GetPerformanceCounter();
 	if (!gmenu_is_active() && sgnTimeoutCurs == CURSOR_NONE && PauseMode != 2 && !plr[myplr]._pInvincible) {
 		if (doomflag) {
 			doom_close();
@@ -837,8 +856,11 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
-						CheckPlrSpell();
+					if (options_noEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
+						plr[myplr]._pRSpell = SPL_INVALID;
+						plr[myplr]._pRSplType = RSPLTYPE_INVALID;
+					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
+						CheckPlrSpell(true);
 				} else if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM) {
 					NewCursor(CURSOR_HAND);
 				}
@@ -1543,6 +1565,7 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return;
 	case DVL_WM_LBUTTONUP:
 		GetMousePos(lParam);
+		lastLeftMouseButtonAction = MOUSEACTION_NONE; //Fluffy
 		if (sgbMouseDown == CLICK_LEFT) {
 			sgbMouseDown = CLICK_NONE;
 			LeftMouseUp();
@@ -1555,6 +1578,7 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
+		return;
 	/*case 'e': //Fluffy
 		if (currlevel == 0 && debug_mode_key_w) {
 			GiveGoldCheat();
@@ -1563,6 +1587,7 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return;*/
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
+		lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy
 		if (sgbMouseDown == CLICK_RIGHT) {
 			sgbMouseDown = CLICK_NONE;
 		}

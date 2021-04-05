@@ -2097,6 +2097,18 @@ static void DrawFPS()
 			snprintf(String, 100, "mouseXY: %i %i", MouseX, MouseY);
 			RenderDebugLine(&x, &y, String);
 
+			snprintf(String, 100, "lastLeftMouseButtonAction: %i", lastLeftMouseButtonAction);
+			RenderDebugLine(&x, &y, String);
+
+			snprintf(String, 100, "lastRightMouseButtonAction: %i", lastRightMouseButtonAction);
+			RenderDebugLine(&x, &y, String);
+
+			snprintf(String, 100, "pcurs: %i", pcurs);
+			RenderDebugLine(&x, &y, String);
+
+			snprintf(String, 100, "sgbMouseDown: %i", sgbMouseDown);
+			RenderDebugLine(&x, &y, String);
+
 			if (options_initHwRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);

@@ -316,6 +316,33 @@ void CheckCursMove()
 		my = MAXDUNY - 1;
 	}
 
+	if (sgbMouseDown == CLICK_LEFT) { //Fluffy: While holding down left click we should keep target (but potentially lose it if it dies or goes out of view)
+		if (pcursmonst != -1) {
+			if (monster[pcursmonst]._mDelFlag || monster[pcursmonst]._mhitpoints >> 6 <= 0 || !(dFlags[monster[pcursmonst]._mx][monster[pcursmonst]._my] & BFLAG_VISIBLE))
+				//Fluffy TODO: In DeleteMonster() we should check if selected monster is deleted and remove selection there as well as a fail safe
+				pcursmonst = -1;
+		} else if (pcursobj != -1) {
+			if (object[pcursobj]._oSelFlag < 1)
+				pcursobj = -1;
+			//Fluffy TODO: Check if object has been deleted?
+		} else if (pcursitem != -1) {
+			//Fluffy TODO
+		} else if (pcursinvitem != -1) {
+			//Fluffy TODO
+		} else if (pcursplr != -1) {
+			//Fluffy TODO
+		}
+
+		if (pcursmonst == -1 && pcursobj == -1 && pcursitem == -1 && pcursinvitem == -1 && pcursplr == -1) {
+			cursmx = mx;
+			cursmy = my;
+			CheckTrigForce();
+			CheckTown();
+			CheckRportal();
+		}
+		return;
+	}
+
 	flipflag = flipy && flipx || (flipy || flipx) && px < TILE_WIDTH / 2;
 
 	pcurstemp = pcursmonst;

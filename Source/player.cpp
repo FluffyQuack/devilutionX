@@ -3948,7 +3948,7 @@ void MakePlrPath(int pnum, int xx, int yy, BOOL endspace)
 	plr[pnum].walkpath[path] = WALK_NONE;
 }
 
-void CheckPlrSpell()
+void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 {
 	BOOL addflag = FALSE;
 	int rspell, sd, sl;
@@ -3958,19 +3958,29 @@ void CheckPlrSpell()
 	}
 
 	rspell = plr[myplr]._pRSpell;
-	if (rspell == SPL_INVALID) {
-		if (plr[myplr]._pClass == PC_WARRIOR) {
-			PlaySFX(PS_WARR34);
-		} else if (plr[myplr]._pClass == PC_ROGUE) {
-			PlaySFX(PS_ROGUE34);
-		} else if (plr[myplr]._pClass == PC_SORCERER) {
-			PlaySFX(PS_MAGE34);
-		} else if (plr[myplr]._pClass == PC_MONK) {
-			PlaySFX(PS_MONK34);
-		} else if (plr[myplr]._pClass == PC_BARD) {
-			PlaySFX(PS_ROGUE34);
-		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
-			PlaySFX(PS_WARR34);
+	if (rspell == SPL_INVALID && options_noEquippedSpellIsAttack) { //Fluffy: If no spell is selected, then default to an attack
+		if (gameSetup_allowAttacksInTown || leveltype != DTYPE_TOWN) {
+			if(plr[myplr]._pwtype == WT_RANGED)
+				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
+			else
+				NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
+			if (mouseClick) { //Fluffy
+				lastRightMouseButtonAction = MOUSEACTION_ATTACK;
+			}
+		} else {
+			if (plr[myplr]._pClass == PC_WARRIOR) {
+				PlaySFX(PS_WARR34);
+			} else if (plr[myplr]._pClass == PC_ROGUE) {
+				PlaySFX(PS_ROGUE34);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE34);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK34);
+			} else if (plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE34);
+			} else if (plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR34);
+			}
 		}
 		return;
 	}
@@ -4040,6 +4050,9 @@ void CheckPlrSpell()
 		} else { //145
 			sl = GetSpellLevel(myplr, plr[myplr]._pRSpell);
 			NetSendCmdLocParam2(TRUE, CMD_SPELLXY, cursmx, cursmy, plr[myplr]._pRSpell, sl);
+		}
+		if (mouseClick) { //Fluffy
+			lastRightMouseButtonAction = MOUSEACTION_SPELL;
 		}
 		return;
 	}

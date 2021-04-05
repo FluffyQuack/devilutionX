@@ -61,6 +61,9 @@ void LoadOptionsFromConfig()
 	if (!SRegLoadValue("devilutionx", "Durability Icon Red Value", 0, &options_durabilityIconRed)) {
 		options_durabilityIconRed = 2;
 	}
+	
+	LoadBoolVariableFromConfig("No Equipped Spell Is Attack", &options_noEquippedSpellIsAttack);
+	LoadBoolVariableFromConfig("Hold To Attack", &options_holdToAttack);
 }
 
 DEVILUTION_END_NAMESPACE

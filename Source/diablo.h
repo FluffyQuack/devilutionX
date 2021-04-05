@@ -67,6 +67,13 @@ extern BOOL options_animatedUIFlasks;
 extern BOOL options_durabilityIconGradualChange;
 extern int options_durabilityIconGold;
 extern int options_durabilityIconRed;
+extern BOOL options_noEquippedSpellIsAttack;
+extern BOOL options_holdToAttack;
+
+extern int lastLeftMouseButtonAction;
+extern int lastRightMouseButtonAction;
+extern unsigned long long lastLeftMouseButtonTime;
+extern unsigned long long lastRightMouseButtonTime;
 
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
