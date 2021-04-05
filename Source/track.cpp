@@ -57,11 +57,13 @@ static bool RepeatRightMouseAction() //Fluffy
 
 void track_process()
 {
-	if (RepeatLeftMouseAttackAction())
-		return;
+	if (options_holdToAttack) { //Fluffy
+		if (RepeatLeftMouseAttackAction())
+			return;
 
-	if (RepeatRightMouseAction())
-		return;
+		if (RepeatRightMouseAction())
+			return;
+	} 
 
 	if (!sgbIsWalking)
 		return;

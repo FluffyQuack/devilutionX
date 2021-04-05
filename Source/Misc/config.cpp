@@ -52,6 +52,8 @@ void LoadOptionsFromConfig()
 	}
 	options_hwRendering = 0; //Fluffy TODO: Remove this once we've fully replaced all UI rendering with hw rendering
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
+	LoadBoolVariableFromConfig("No Equipped Spell Is Attack", &options_noEquippedSpellIsAttack);
+	LoadBoolVariableFromConfig("Hold To Attack", &options_holdToAttack);
 }
 
 DEVILUTION_END_NAMESPACE

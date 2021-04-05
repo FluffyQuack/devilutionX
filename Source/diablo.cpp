@@ -109,6 +109,8 @@ BOOL options_hwRendering = false;               //Fluffy: If true, we render eve
 BOOL options_initLightmapping = false;
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
+BOOL options_noEquippedSpellIsAttack = true;
+BOOL options_holdToAttack = true;
 
 int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
 int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
@@ -850,7 +852,7 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
+					if (options_noEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
 						plr[myplr]._pRSpell = SPL_INVALID;
 						plr[myplr]._pRSplType = RSPLTYPE_INVALID;
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
