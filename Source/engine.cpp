@@ -310,13 +310,6 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 	}
 }
 
-/**
- * @brief Same as CelBlitLightSafe, with transparancy applied
- * @param pDecodeTo The output buffer
- * @param pRLEBytes CEL pixel stream (run-length encoded)
- * @param nDataSize Size of CEL in bytes
- * @param nWidth Width of sprite
- */
 void CelBlitLightTransSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
 {
 	int w;
@@ -397,14 +390,6 @@ void CelBlitLightTransSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int 
 	}
 }
 
-/**
- * @brief Same as CelBlitLightSafe, with blended transparancy applied
- * @param out The output buffer
- * @param pRLEBytes CEL pixel stream (run-length encoded)
- * @param nDataSize Size of CEL in bytes
- * @param nWidth Width of sprite
- * @param tbl Palette translation table
- */
 static void CelBlitLightBlendedSafeTo(CelOutputBuffer out, int sx, int sy, BYTE *pRLEBytes, int nDataSize, int nWidth, BYTE *tbl)
 {
 	int i, w;
@@ -614,7 +599,9 @@ inline static void DrawImportantAsEllipse_DrawHorizontalLine(BYTE *dst, BYTE *bu
 
 static void DrawImportantAsEllipse(int sx, int sy, int height, int width, double scale)
 {
-	//Draw ellipse
+	//Fluffy TODO Merge: Do changes to this code so it works again
+
+	/*//Draw ellipse
 	BYTE *dst = &gpBuffer_important[sx + BUFFER_WIDTH * sy] + -(BUFFER_WIDTH * (height / 2)) + (width / 2); //Calculate middle position of sprite which is our origin position for the ellipse
 	BYTE *buffEnd = gpBuffer_important + (gpBufEnd - gpBuffer);
 	BYTE *buffStart = gpBuffer_important + (gpBufStart - gpBuffer);
@@ -655,13 +642,15 @@ static void DrawImportantAsEllipse(int sx, int sy, int height, int width, double
 		dstBeg = &dst[(-y * BUFFER_WIDTH) - x];
 		length = (x * 2) + 1;
 		DrawImportantAsEllipse_DrawHorizontalLine(dstBeg, buffStart, buffEnd, length);
-	}
+	}*/
 }
 
 //Fluffy: Draw an ellipse shape to the important buffer
 void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
-	int nDataSize, w;
+	//Fluffy TODO Merge: Do changes to this code so it works again
+
+	/*int nDataSize, w;
 	BYTE *src, *dst, *end;
 	BYTE width;
 
@@ -689,13 +678,15 @@ void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nW
 		}
 	}
 
-	DrawImportantAsEllipse(sx, sy, height, nWidth, 2.5);
+	DrawImportantAsEllipse(sx, sy, height, nWidth, 2.5);*/
 }
 
 //Fluffy: Draw a cel as solid colour (with or without outline) to the "important buffer" (used for wall rendering)
 void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline)
 {
-	int nDataSize, w;
+	//Fluffy TODO Merge: Do changes to this code so it works again
+
+	/*int nDataSize, w;
 	BYTE *src, *end;
 	BYTE width;
 
@@ -752,7 +743,7 @@ void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int 
 				w -= width;
 			}
 		}
-	}
+	}*/
 }
 
 //Fluffy: Same as CelBlitOutline() but it only draws pixels for the outline and nothing else
@@ -845,15 +836,6 @@ void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, 
 	//TODO: We can greatly optimize this function by making it more similar to the CelBlitOutline() function but keeping the previous horizontal line as a buffer so we can compare against that as we process line by line
 }
 
-/**
- * @brief Blit a solid colder shape one pixel larger then the given sprite shape, to the back buffer at the given coordianates
- * @param col Color index from current palette
- * @param sx Back buffer coordinate
- * @param sy Back buffer coordinate
- * @param pCelBuff CEL buffer
- * @param nCel CEL frame number
- * @param nWidth Width of sprite
- */
 void CelBlitOutlineTo(CelOutputBuffer out, BYTE col, int sx, int sy, BYTE* pCelBuff, int nCel, int nWidth, bool skipColorIndexZero)
 {
 	int nDataSize, w;
