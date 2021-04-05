@@ -1584,12 +1584,12 @@ static void MY_PlrStringXY(CelOutputBuffer out, int x, int y, int endX, const ch
 	}
 }
 
-static void RenderLevelupIconOnStatWindow(int x, int y, int frame)
+static void RenderLevelupIconOnStatWindow(CelOutputBuffer out, int x, int y, int frame) //Fluffy
 {
 	if (options_hwRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(x, y, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
 	else
-		CelDraw(x + SCREEN_X, y + SCREEN_Y, pChrButtons, frame, 41); //Fluffy TODO Merge: Make this use updated draw code
+		CelDrawTo(out, x, y, pChrButtons, frame, 41);
 }
 
 void DrawChr(CelOutputBuffer out)
@@ -1779,13 +1779,13 @@ void DrawChr(CelOutputBuffer out)
 		//Fluffy: Draw the level-up icon in the character stat window
 		int xCoord = 137;
 		if (plr[myplr]._pBaseStr < MaxStats[pc][ATTRIB_STR])
-			RenderLevelupIconOnStatWindow(xCoord, 159, chrbtn[ATTRIB_STR] + 2);
+			RenderLevelupIconOnStatWindow(out, xCoord, 159, chrbtn[ATTRIB_STR] + 2);
 		if (plr[myplr]._pBaseMag < MaxStats[pc][ATTRIB_MAG])
-			RenderLevelupIconOnStatWindow(xCoord, 187, chrbtn[ATTRIB_MAG] + 4);
+			RenderLevelupIconOnStatWindow(out, xCoord, 187, chrbtn[ATTRIB_MAG] + 4);
 		if (plr[myplr]._pBaseDex < MaxStats[pc][ATTRIB_DEX])
-			RenderLevelupIconOnStatWindow(xCoord, 216, chrbtn[ATTRIB_DEX] + 6);
+			RenderLevelupIconOnStatWindow(out, xCoord, 216, chrbtn[ATTRIB_DEX] + 6);
 		if (plr[myplr]._pBaseVit < MaxStats[pc][ATTRIB_VIT])
-			RenderLevelupIconOnStatWindow(xCoord, 244, chrbtn[ATTRIB_VIT] + 8);
+			RenderLevelupIconOnStatWindow(out, xCoord, 244, chrbtn[ATTRIB_VIT] + 8);
 	}
 
 	if (plr[myplr]._pMaxHP > plr[myplr]._pMaxHPBase)
