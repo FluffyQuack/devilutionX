@@ -1037,19 +1037,19 @@ void DrawCtrlPan(CelOutputBuffer out)
 	DrawInfoBox(out);
 }
 
-static void DrawCtrlButton(int x, int y, BYTE *celData, int width, int frame, int texture)
+static void DrawCtrlButton(CelOutputBuffer out, int x, int y, BYTE *celData, int width, int frame, int texture) //Fluffy
 {
 	if (options_hwRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(x + PANEL_LEFT, y + PANEL_TOP, texture, frame - 1);
 	else
-		CelDraw(x + PANEL_X, y + PANEL_Y, celData, frame, width);
+		CelDrawTo(out, x + PANEL_X, y + PANEL_Y, celData, frame, width);
 }
 
 /**
  * Draws the control panel buttons in their current state. If the button is in the default
  * state draw it from the panel cel(extract its sub-rect). Else draw it from the buttons cel.
  */
-void DrawCtrlBtns()
+void DrawCtrlBtns(CelOutputBuffer out)
 {
 	int i;
 
@@ -1058,18 +1058,10 @@ void DrawCtrlBtns()
 			DrawPanelBox(out, PanBtnPos[i][0], PanBtnPos[i][1] + 16, 71, 20, PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y);
 		else
 			DrawCtrlButton(PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS);
-		//CelDrawTo(out, PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y + 18, pPanelButtons, i + 1, 71); //Fluffy TODO merge: This is from the latest DevX repo
 	}
 	if (numpanbtns == 8) {
 		DrawCtrlButton(87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);
 		DrawCtrlButton(527, 122, pMultiBtns, 33, FriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS);
-
-		/* //Fluffy TODO merge: These are from the latest main DevX repo
-		CelDrawTo(out, 87 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[6] + 1, 33);
-		if (gbFriendlyMode)
-			CelDrawTo(out, 527 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[7] + 3, 33);
-		else
-			CelDrawTo(out, 527 + PANEL_X, 122 + PANEL_Y, pMultiBtns, panbtn[7] + 5, 33);*/
 	}
 }
 
