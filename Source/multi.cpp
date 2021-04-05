@@ -758,7 +758,6 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 		sgGameInitInfo.gMonsterSpeedMod = gMonsterSpeedMod;
 
 		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
-		sgGameInitInfo.fastWalkInTown = gameSetup_fastWalkInTown;
 		sgGameInitInfo.allowAttacksInTown = gameSetup_allowAttacksInTown;
 
 		memset(&ProgramData, 0, sizeof(ProgramData));
@@ -826,7 +825,6 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
 
 	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
-	gameSetup_fastWalkInTown = sgGameInitInfo.fastWalkInTown;
 	gameSetup_allowAttacksInTown = sgGameInitInfo.allowAttacksInTown;
 
 	for (int i = 0; i < NUMLEVELS; i++) {

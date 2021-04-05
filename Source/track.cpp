@@ -80,8 +80,7 @@ void track_process()
 			moveProgress *= 2;
 			minWaitForRepeatWalk /= 2;
 		}
-	}
-	else if (gameSetup_fastWalkInTown && currlevel == 0) {
+	} else if (gbRunInTown && currlevel == 0) {
 		moveProgress *= 2;
 		minWaitForRepeatWalk /= 2;
 	}
