@@ -25,10 +25,10 @@ void LoadOptionsFromConfig()
 
 	//Fluffy: Load speed modifiers from config, but if they don't exist, then we calculate based on the tick rate
 	if (!SRegLoadValue("devilutionx", "Game Simulation Speed Modifier", 0, &gSpeedMod)) {
-		gSpeedMod = ticks_per_sec / 20;
+		gSpeedMod = gnTickRate / 20;
 	}
 	if (!SRegLoadValue("devilutionx", "Monster Speed Modifier", 0, &gMonsterSpeedMod)) {
-		gMonsterSpeedMod = ticks_per_sec / 20;
+		gMonsterSpeedMod = gnTickRate / 20;
 	}
 	if (gSpeedMod < 1)
 		gSpeedMod = 1;
