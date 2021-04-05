@@ -11,6 +11,7 @@ DEVILUTION_BEGIN_NAMESPACE
 CelOutputBuffer GlobalBackBuffer();
 
 extern BYTE *gpBuffer_important; //Fluffy
+extern SDL_Renderer *renderer;
 extern SDL_Texture* texture_intermediate;
 
 void dx_init();
