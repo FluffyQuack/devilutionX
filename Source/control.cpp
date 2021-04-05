@@ -1996,10 +1996,14 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 			Render_Texture_Crop(renderX, renderY, TEXTURE_DURABILITYWARNING, -1, -1, -1, amount, c); //Red icon
 		//TODO: This is more indirectly related, but we should make it so that when equipment is fully destroyed, we should show some kind of icon then as well (we could add a new variable to the player struct which defines if a slot is empty due to item destruction or not, and if true, show a durability icon for that slot)
 	} else {
-		if (amount)
-			CelDraw_CropY(x, y, pDurIcons, c + 8, 32, 0, amount); //Gold icon
-		if (amount != height)
-			CelDraw_CropY(x, y, pDurIcons, c, 32, amount, height); //Red icon
+		if (amount > 0) {
+			CelOutputBuffer stenciledBuffer = out.subregionY(y - partition, partition);
+			CelDrawTo(stenciledBuffer, x, partition, pDurIcons, c + 8, 32); // Gold icon
+		}
+		if (amount != height) {
+			CelOutputBuffer stenciledBuffer = out.subregionY(y - height, height - partition);
+			CelDrawTo(stenciledBuffer, x, height, pDurIcons, c, 32); // Red icon
+		}
 	}
 
 	return x - 32 - 8;
