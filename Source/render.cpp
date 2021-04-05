@@ -440,8 +440,10 @@ void foreach_set_bit(DWORD mask, const F &f)
 inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 {
 	BYTE* importantBuff; //Fluffy: For wall transparency. (Only used if certain toggles are on)
+	//Fluffy TODO Merge: Rewrite importantBuff code so it works again
+	/*
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-		importantBuff = gpBuffer_important + ((*dst) - gpBuffer);
+		importantBuff = gpBuffer_important + ((*dst) - gpBuffer);*/
 	if (mask == 0xFFFFFFFF) {                // Opaque line
 		if (light_table_index == lightmax) { // Complete darkness
 			memset(dst, 0, n);
