@@ -41,7 +41,7 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Transparency", &options_transparency);
 	LoadBoolVariableFromConfig("Nonobscuring Walls Are Opaque", &options_opaqueWallsUnlessObscuring);
 	LoadBoolVariableFromConfig("Opaque Walls With Blobs", &options_opaqueWallsWithBlobs);
-	LoadBoolVariableFromConfig("Opaque Walls With Silhouttes", &options_opaqueWallsWithSilhouette);
+	LoadBoolVariableFromConfig("Opaque Walls With Silhouettes", &options_opaqueWallsWithSilhouette);
 }
 
 DEVILUTION_END_NAMESPACE
