@@ -4,6 +4,8 @@
  * Implementation of functionality for rendering the dungeons, monsters and calling other render routines.
  */
 #include "all.h"
+#include "textures/textures.h" //Fluffy: For rendering 32-bit textures
+#include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -142,7 +144,7 @@ static void scrollrt_draw_cursor_back_buffer()
  */
 static void scrollrt_draw_cursor_item()
 {
-	int i, mx, my, col;
+	int i, mx, my, col = 0;
 	BYTE *src, *dst;
 
 	assert(!sgdwCursWdt);
@@ -168,31 +170,33 @@ static void scrollrt_draw_cursor_item()
 		return;
 	}
 
-	sgdwCursX = mx;
-	sgdwCursWdt = sgdwCursX + cursW + 1;
-	if (sgdwCursWdt > SCREEN_WIDTH - 1) {
-		sgdwCursWdt = SCREEN_WIDTH - 1;
-	}
-	sgdwCursX &= ~3;
-	sgdwCursWdt |= 3;
-	sgdwCursWdt -= sgdwCursX;
-	sgdwCursWdt++;
+	if (!options_hwRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+		sgdwCursX = mx;
+		sgdwCursWdt = sgdwCursX + cursW + 1;
+		if (sgdwCursWdt > SCREEN_WIDTH - 1) {
+			sgdwCursWdt = SCREEN_WIDTH - 1;
+		}
+		sgdwCursX &= ~3;
+		sgdwCursWdt |= 3;
+		sgdwCursWdt -= sgdwCursX;
+		sgdwCursWdt++;
 
-	sgdwCursY = my;
-	sgdwCursHgt = sgdwCursY + cursH + 1;
-	if (sgdwCursHgt > SCREEN_HEIGHT - 1) {
-		sgdwCursHgt = SCREEN_HEIGHT - 1;
-	}
-	sgdwCursHgt -= sgdwCursY;
-	sgdwCursHgt++;
+		sgdwCursY = my;
+		sgdwCursHgt = sgdwCursY + cursH + 1;
+		if (sgdwCursHgt > SCREEN_HEIGHT - 1) {
+			sgdwCursHgt = SCREEN_HEIGHT - 1;
+		}
+		sgdwCursHgt -= sgdwCursY;
+		sgdwCursHgt++;
 
-	assert(sgdwCursWdt * sgdwCursHgt < sizeof sgSaveBack);
-	assert(gpBuffer);
-	dst = sgSaveBack;
-	src = &gpBuffer[SCREENXY(sgdwCursX, sgdwCursY)];
+		assert(sgdwCursWdt * sgdwCursHgt < sizeof sgSaveBack);
+		assert(gpBuffer);
+		dst = sgSaveBack;
+		src = &gpBuffer[SCREENXY(sgdwCursX, sgdwCursY)];
 
-	for (i = sgdwCursHgt; i != 0; i--, dst += sgdwCursWdt, src += BUFFER_WIDTH) {
-		memcpy(dst, src, sgdwCursWdt);
+		for (i = sgdwCursHgt; i != 0; i--, dst += sgdwCursWdt, src += BUFFER_WIDTH) {
+			memcpy(dst, src, sgdwCursWdt);
+		}
 	}
 
 	mx++;
@@ -200,31 +204,15 @@ static void scrollrt_draw_cursor_item()
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y) - cursW - 2];
 
 	if (pcurs >= CURSOR_FIRSTITEM) {
-		col = PAL16_YELLOW + 5;
+		col = ICOL_WHITE;
 		if (plr[myplr].HoldItem._iMagical != 0) {
-			col = PAL16_BLUE + 5;
+			col = ICOL_BLUE;
 		}
 		if (!plr[myplr].HoldItem._iStatFlag) {
-			col = PAL16_RED + 5;
+			col = ICOL_RED;
 		}
-		if (pcurs <= 179) {
-			CelBlitOutline(col, mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
-			if (col != PAL16_RED + 5) {
-				CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
-			} else {
-				CelDrawLightRedSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW, 1);
-			}
-		} else {
-			CelBlitOutline(col, mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW);
-			if (col != PAL16_RED + 5) {
-				CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW);
-			} else {
-				CelDrawLightRedSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels2, pcurs - 179, cursW, 0);
-			}
-		}
-	} else {
-		CelClippedDrawSafe(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pCursCels, pcurs, cursW);
 	}
+	DrawCursorItemWrapper(mx + SCREEN_X, my + cursH + SCREEN_Y - 1, pcurs, cursW, 1, col == ICOL_RED, pcurs >= CURSOR_FIRSTITEM, col);
 }
 
 /**
@@ -242,19 +230,71 @@ void DrawMissilePrivate(MissileStruct *m, int sx, int sy, BOOL pre)
 	if (m->_miPreFlag != pre || !m->_miDrawFlag)
 		return;
 
+	mx = sx + m->_mixoff - m->_miAnimWidth2;
+	my = sy + m->_miyoff;
+
 	pCelBuff = m->_miAnimData;
 	if (!pCelBuff) {
 		// app_fatal("Draw Missile 2 type %d: NULL Cel Buffer", m->_mitype);
 		return;
 	}
+
+	if (options_hwRendering) { //Fluffy: Render missile via SDL
+
+		//Figure out what texture to use for this missile
+		int textureNum = -1;
+		int frameNum = m->_miAnimFrame - 1;
+		if (m->_mitype == MIS_RHINO) { //Some missiles will actually use a monster's texture (ie, Rhino's charge move)
+			CMonster *mon = monster[m->_misource].MType;
+			int monType = monster[m->_misource]._mMTidx;
+			int anim;
+			if (mon->mtype >= MT_HORNED && mon->mtype <= MT_OBLORD) {
+				anim = MA_SPECIAL;
+			} else {
+				if (mon->mtype >= MT_NSNAKE && mon->mtype <= MT_GSNAKE)
+					anim = MA_ATTACK;
+				else
+					anim = MA_WALK;
+			}
+			textureNum = TEXTURE_MONSTERS + (monType * MA_NUM) + anim;
+
+			//Cycle through directions to find matching animation data
+			for (int j = 0; j < 8; j++)
+				if (m->_miAnimData == mon->Anims[anim].Data[j]) {
+					frameNum += j * m->_miAnimLen; //TODO: Are we using the right animation length here?
+					goto foundTexture;
+				}
+		}
+		for (int j = 0; j < 16; j++) { //Missile texture
+			if (m->_miAnimData == misfiledata[m->_miAnimType].mAnimData[j]) {
+				textureNum = TEXTURE_MISSILES + (m->_miAnimType * 16) + j;
+				goto foundTexture;
+			}
+		}
+		assert(textureNum != -1);
+	foundTexture:
+
+		//Render missile
+		int brightness;
+		if (m->_miLightFlag)
+			brightness = 255;
+		else
+			brightness = Render_IndexLightToBrightness();
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(mx - BORDER_LEFT, my - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		//TODO: Handle m->_miUniqTrans
+		return;
+	}
+	
 	nCel = m->_miAnimFrame;
 	frames = SDL_SwapLE32(*(DWORD *)pCelBuff);
 	if (nCel < 1 || frames > 50 || nCel > frames) {
 		// app_fatal("Draw Missile 2: frame %d of %d, missile type==%d", nCel, frames, m->_mitype);
 		return;
 	}
-	mx = sx + m->_mixoff - m->_miAnimWidth2;
-	my = sy + m->_miyoff;
 	if (m->_miUniqTrans)
 		Cl2DrawLightTbl(mx, my, m->_miAnimData, m->_miAnimFrame, m->_miAnimWidth, m->_miUniqTrans + 3);
 	else if (m->_miLightFlag)
@@ -352,6 +392,56 @@ static void DrawMonster(int x, int y, int mx, int my, int m)
 		else
 			Cl2DrawLight(mx, my, monster[m]._mAnimData, monster[m]._mAnimFrame, monster[m].MType->width);
 	}
+}
+
+static void DrawPlayer_SDL(int p, int x, int y, int px, int py)
+{
+	if (!(dFlags[x][y] & BFLAG_LIT || plr[myplr]._pInfraFlag || !setlevel && currlevel == 0))
+		return;
+
+	PlayerStruct *pPlayer = &plr[p];
+	//Figure out what animation the player is in
+	int textureNum = TEXTURE_PLAYERS + (p * PLAYERANIM_NUM), brightness, facing = 0;
+	if (p == myplr)
+		brightness = 255;
+	else
+		brightness = Render_IndexLightToBrightness();
+	for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
+		facing = i;
+		if (pPlayer->_pAnimData == pPlayer->_pNAnim[i])
+			textureNum += PLAYERANIM_STAND;
+		else if (pPlayer->_pAnimData == pPlayer->_pWAnim[i])
+			textureNum += PLAYERANIM_WALK;
+		else if (pPlayer->_pAnimData == pPlayer->_pAAnim[i])
+			textureNum += PLAYERANIM_ATTACK;
+		else if (pPlayer->_pAnimData == pPlayer->_pLAnim[i])
+			textureNum += PLAYERANIM_SPELL_LIGHTNING;
+		else if (pPlayer->_pAnimData == pPlayer->_pFAnim[i])
+			textureNum += PLAYERANIM_SPELL_FIRE;
+		else if (pPlayer->_pAnimData == pPlayer->_pTAnim[i])
+			textureNum += PLAYERANIM_SPELL_GENERIC;
+		else if (pPlayer->_pAnimData == pPlayer->_pHAnim[i])
+			textureNum += PLAYERANIM_GETHIT;
+		else if (pPlayer->_pAnimData == pPlayer->_pDAnim[i])
+			textureNum += PLAYERANIM_DEATH;
+		else if (pPlayer->_pAnimData == pPlayer->_pBAnim[i])
+			textureNum += PLAYERANIM_BLOCK;
+		else if (pPlayer->_pAnimData == pPlayer->_pNAnim_c[i])
+			textureNum += PLAYERANIM_STAND_CASUAL;
+		else if (pPlayer->_pAnimData == pPlayer->_pWAnim_c[i])
+			textureNum += PLAYERANIM_WALK_CASUAL;
+		else
+			continue;
+		break;
+	}
+	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+	Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+	//TODO: Render outline (if player is selected) and Mana Shield if it's on
 }
 
 /**
@@ -452,7 +542,10 @@ void DrawDeadPlayer(int x, int y, int sx, int sy)
 			px = sx + p->_pxoff - p->_pAnimWidth2;
 			py = sy + p->_pyoff;
 
-			DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
+			if (options_hwRendering)
+				DrawPlayer_SDL(i, x, y, px, py);
+			else
+				DrawPlayer(i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
 		}
 	}
 }
@@ -505,8 +598,31 @@ static void DrawObject(int x, int y, int ox, int oy, BOOL pre)
 		return;
 	}
 
+	if (options_hwRendering) { //Fluffy: Render object via SDL
+		int brightness;
+		if (!object[bv]._oLight)
+			brightness = 255;
+		else
+			brightness = Render_IndexLightToBrightness();
+		int objectType = object[bv]._otype;
+		int textureNum = TEXTURE_OBJECTS + AllObjects[objectType].ofindex;
+		int frameNum = nCel - 1;
+		if (!object[bv]._oLight)
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_ADD);
+		if (bv == pcursobj)
+			Render_TextureOutline_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		if (!object[bv]._oLight)
+			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
+		return;
+	}
+
 	if (bv == pcursobj) {
-		CelBlitOutline(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
+		CelBlitOutline(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, true);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, true);
 	}
@@ -556,14 +672,21 @@ static void drawCell(int x, int y, int sx, int sy, bool importantObjectNearby)
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
-			RenderTile(dst);
+			if (options_hwRendering) //Fluffy
+				RenderTileViaSDL(sx, sy);
+			else
+				RenderTile(dst);
 		}
 		level_cel_block = pMap->mt[2 * i + 1];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
-			RenderTile(dst + TILE_WIDTH / 2);
+			if (options_hwRendering) //Fluffy
+				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+			else
+				RenderTile(dst + TILE_WIDTH / 2);
 		}
 		dst -= BUFFER_WIDTH * TILE_HEIGHT;
+		sy -= TILE_HEIGHT; //Fluffy
 	}
 	cel_foliage_active = false;
 }
@@ -584,12 +707,18 @@ static void drawFloor(int x, int y, int sx, int sy)
 	arch_draw_type = 1; // Left
 	level_cel_block = dpiece_defs_map_2[x][y].mt[0];
 	if (level_cel_block != 0) {
-		RenderTile(dst);
+		if (options_hwRendering) //Fluffy
+			RenderTileViaSDL(sx, sy);
+		else
+			RenderTile(dst);
 	}
 	arch_draw_type = 2; // Right
 	level_cel_block = dpiece_defs_map_2[x][y].mt[1];
 	if (level_cel_block != 0) {
-		RenderTile(dst + TILE_WIDTH / 2);
+		if (options_hwRendering) //Fluffy
+			RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
+		else
+			RenderTile(dst + TILE_WIDTH / 2);
 	}
 }
 
@@ -630,8 +759,23 @@ static void DrawItem(int x, int y, int sx, int sy, BOOL pre)
 		return;
 	}
 	int px = sx - pItem->_iAnimWidth2;
+
+	if (options_hwRendering) { //Fluffy: Render item via SDL
+		int textureNum = TEXTURE_ITEMS + ItemCAnimTbl[pItem->_iCurs];
+		int frameNum = nCel - 1;
+		if (bItem - 1 == pcursitem || AutoMapShowItems)
+			Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 121, 127, 160, textureNum, frameNum);
+		int brightness = Render_IndexLightToBrightness();
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		return;
+	}
+
 	if (bItem - 1 == pcursitem || AutoMapShowItems) {
-		CelBlitOutline(181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
+		CelBlitOutline(181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth, true);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(181, px, sy, pItem->_iAnimData, nCel, pItem->_iAnimWidth, true);
 	}
@@ -660,8 +804,67 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 
 	if (leveltype == DTYPE_TOWN) {
 		px = sx - towner[mi]._tAnimWidth2;
+
+		if (options_hwRendering) { //Fluffy: Render NPC via SDL
+			int textureNum = TEXTURE_SMITH;
+			switch (towner[mi]._ttype) {
+			case TOWN_SMITH:
+				textureNum = TEXTURE_SMITH;
+				break;
+			case TOWN_HEALER:
+				textureNum = TEXTURE_HEALER;
+				break;
+			case TOWN_DEADGUY:
+				textureNum = TEXTURE_DEADGUY;
+				break;
+			case TOWN_TAVERN:
+				textureNum = TEXTURE_BAROWNER;
+				break;
+			case TOWN_WITCH:
+				textureNum = TEXTURE_WITCH;
+				break;
+			case TOWN_STORY:
+				textureNum = TEXTURE_STORYTELLER;
+				break;
+			case TOWN_DRUNK:
+				textureNum = TEXTURE_DRUNK;
+				break;
+			case TOWN_BMAID:
+				textureNum = TEXTURE_BARMAID;
+				break;
+			case TOWN_PEGBOY:
+				textureNum = TEXTURE_BOY;
+				break;
+			case TOWN_COW:
+				textureNum = TEXTURE_COWS;
+				break;
+			case TOWN_FARMER:
+				textureNum = TEXTURE_FARMER;
+				break;
+			case TOWN_GIRL:
+				textureNum = TEXTURE_GIRL;
+				break;
+			case TOWN_COWFARM:
+				textureNum = TEXTURE_COWFARMER;
+				break;
+			case TOWN_PRIEST:
+				break;
+			}
+			int frameNum = towner[mi]._tAnimFrame - 1;
+			if (towner[mi]._ttype == TOWN_COW) {
+				for (int j = 0; j < 8; j++) //Figure out facing for the cow
+					if (towner[mi]._tAnimData == towner[mi]._tNAnim[j]) {
+						frameNum += towner[mi]._tAnimLen * j;
+						break;
+					}
+			}
+			if (mi == pcursmonst)
+				Render_TextureOutline_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, 165, 90, 90, textureNum, frameNum);
+			Render_Texture_FromBottom(px - BORDER_LEFT, sy - BORDER_TOP, textureNum, frameNum);
+			return;
+		}
 		if (mi == pcursmonst) {
-			CelBlitOutline(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
+			CelBlitOutline(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, true);
 			if (options_opaqueWallsWithSilhouette) //Fluffy
 				CelDrawToImportant(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, true);
 		}
@@ -694,6 +897,33 @@ static void DrawMonsterHelper(int x, int y, int oy, int sx, int sy)
 
 	px = sx + pMonster->_mxoff - pMonster->MType->width2;
 	py = sy + pMonster->_myoff;
+
+	if (options_hwRendering) { //Fluffy: Render monster via SDL
+		int brightness = Render_IndexLightToBrightness();
+		int textureNum = TEXTURE_MONSTERS + (pMonster->_mMTidx * MA_NUM);
+		int facing = -1;
+		for (int i = 0; i < MA_NUM; i++) {
+			for (int j = 0; j < 8; j++)
+				if (pMonster->_mAnimData == pMonster->MType->Anims[i].Data[j]) {
+					facing = j;
+					textureNum += i;
+					goto foundAnim;
+				}
+		}
+		assert(facing != -1);
+		foundAnim:
+		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
+		if (mi == pcursmonst)
+			Render_TextureOutline_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, 147, 30, 30, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(px - BORDER_LEFT, py - BORDER_TOP, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		//TODO: Do rendering differently if trans is non-zero
+		return;
+	}
+
 	if (mi == pcursmonst) {
 		Cl2DrawOutline(233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
 		if (options_opaqueWallsWithSilhouette) //Fluffy
@@ -728,11 +958,31 @@ static void DrawPlayerHelper(int x, int y, int oy, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
+	if (options_hwRendering) { //Fluffy: Render player via SDL
+		DrawPlayer_SDL(p, x, y, px, py);
+		return;
+	}
+
 	DrawPlayer(p, x, y + oy, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 	if (options_opaqueWallsWithBlobs) //Fluffy
 		Cl2DrawToImportant_Ellipse(px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
 	else if (options_opaqueWallsWithSilhouette) //Fluffy
 		Cl2DrawToImportant(165, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth, false);
+}
+
+static void RenderArchViaSDL(int x, int y, int archNum, bool transparent)
+{
+	archNum -= 1;
+	int brightness = Render_IndexLightToBrightness();
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
+	if (transparent)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 127);
+	Render_Texture_FromBottom(x - BORDER_LEFT, y - BORDER_TOP, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
+	if (brightness < 255)
+		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255, 255, 255);
+	if (transparent)
+		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255);
 }
 
 /**
@@ -810,6 +1060,30 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 			pDeadGuy = &dead[(bDead & 0x1F) - 1];
 			dd = (bDead >> 5) & 7;
 			px = dx - pDeadGuy->_deadWidth2;
+
+			if (options_hwRendering) { //Render dead enemy via SDL
+				//Figure out which monster in the Monsters array this body belongs to
+				int textureNum = -1;
+				int frameNum = -1;
+				for (int i = 0; i < nummtypes; i++) {
+					if (pDeadGuy->_deadData[0] == Monsters[i].Anims[MA_DEATH].Data[0]) {
+						textureNum = TEXTURE_MONSTERS + (i * MA_NUM) + MA_DEATH;
+						frameNum = (pDeadGuy->_deadFrame - 1) + (dd * Monsters[i].Anims[MA_DEATH].Frames);
+						break;
+					}
+				}
+				assert(textureNum != -1);
+
+				//Render
+				int brightness = Render_IndexLightToBrightness();
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+				Render_Texture_FromBottom(px - BORDER_LEFT, dy - BORDER_TOP, textureNum, frameNum);
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				//TODO: Do rendering differently if pDeadGuy->_deadtrans is non-zero
+				break;
+			}
 			pCelBuff = pDeadGuy->_deadData[dd];
 			assert(pCelBuff != NULL);
 			if (pCelBuff == NULL)
@@ -851,11 +1125,12 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 
 	if (leveltype != DTYPE_TOWN) {
 		bArch = dSpecial[sx][sy];
+
 		if (bArch != 0) {
+
 			if (options_opaqueWallsUnlessObscuring && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette && !importantObjectNearby) //Fluffy: Make this opaque if nothing important is nearby
 				cel_transparency_active = 0;
-			else
-			{
+			else {
 				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) //Fluffy
 					cel_transparency_active = true;
 				else
@@ -866,16 +1141,24 @@ static void scrollrt_draw_dungeon(int sx, int sy, int dx, int dy)
 				cel_transparency_active = 0; //Fluffy: Turn transparency off here for debugging
 			}
 #endif
-			CelClippedBlitLightTrans(&gpBuffer[dx + BUFFER_WIDTH * dy], pSpecialCels, bArch, 64);
+
+			if (options_hwRendering) //Fluffy: Render via SDL
+				RenderArchViaSDL(dx, dy, bArch, cel_transparency_active != 0);
+			else
+				CelClippedBlitLightTrans(&gpBuffer[dx + BUFFER_WIDTH * dy], pSpecialCels, bArch, 64);
 		}
 	} else {
 		// Tree leaves should always cover player when entering or leaving the tile,
 		// So delay the rendering until after the next row is being drawn.
 		// This could probably have been better solved by sprites in screen space.
+
 		if (sx > 0 && sy > 0 && dy > TILE_HEIGHT + SCREEN_Y) {
 			bArch = dSpecial[sx - 1][sy - 1];
 			if (bArch != 0) {
-				CelBlitFrame(&gpBuffer[dx + BUFFER_WIDTH * (dy - TILE_HEIGHT)], pSpecialCels, bArch, 64);
+				if (options_hwRendering) //Fluffy: Render via SDL
+					RenderArchViaSDL(dx, dy - TILE_HEIGHT, bArch, 0);
+				else
+					CelBlitFrame(&gpBuffer[dx + BUFFER_WIDTH * (dy - TILE_HEIGHT)], pSpecialCels, bArch, 64);
 			}
 		}
 	}
@@ -1261,6 +1544,18 @@ static void DrawGame(int x, int y)
 	scrollrt_drawFloor(x, y, sx, sy, rows, columns);
 	scrollrt_draw(x, y, sx, sy, rows, columns);
 
+	if (options_hwRendering && !zoomflag) { //Fluffy: Scale up the render if we're zooming in. TODO: Implement integer scaling for this?
+		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
+		SDL_Rect rect;
+		rect.x = 0;
+		rect.y = 0;
+		rect.w = SCREEN_WIDTH / 2;
+		rect.h = SCREEN_HEIGHT / 2;
+		SDL_RenderCopy(renderer, texture_intermediate, &rect, NULL);
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame, NULL, NULL);
+	}
+
 	// Allow rendering to the whole screen
 	gpBufEnd = &gpBuffer[BUFFER_WIDTH * (SCREEN_HEIGHT + SCREEN_Y)];
 
@@ -1355,6 +1650,15 @@ void ClearScreenBuffer()
 	SDL_FillRect(pal_surface, &SrcRect, 0);
 
 	unlock_buf(3);
+
+	if (options_hwRendering) //Fluffy: Also clear the intermediate texture
+	{
+		//I'm pretty sure this function is only called outside of ingame rendering, so it should be fine to switch to and from render-to-texture
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+		SDL_RenderClear(renderer);
+		SDL_SetRenderTarget(renderer, NULL);
+	}
 }
 
 #ifdef _DEBUG
@@ -1484,25 +1788,35 @@ static void DrawFPS()
 		RenderDebugLine(&x, &y, String);
 
 		if (myplr == 0) {
-			snprintf(String, 100, "offsetX: %i", plr[myplr]._pxoff);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "offsetY: %i", plr[myplr]._pyoff);
+			snprintf(String, 100, "playerXY: %i %i", plr[myplr]._px, plr[myplr]._py);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "x %i", plr[myplr]._px);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "y %i", plr[myplr]._py);
+			snprintf(String, 100, "playerOffsetXY: %i %i", plr[myplr]._pxoff, plr[myplr]._pyoff);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "cameraOffsetX %i", ScrollInfo._sxoff / gSpeedMod);
-			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "cameraOffsetY %i", ScrollInfo._syoff / gSpeedMod);
+			snprintf(String, 100, "cameraXY: %i %i", ViewX, ViewY);
 			RenderDebugLine(&x, &y, String);
 
-			snprintf(String, 100, "ViewX %i", ViewX);
+			snprintf(String, 100, "cameraOffsetXY: %i %i", ScrollInfo._sxoff / gSpeedMod, ScrollInfo._syoff / gSpeedMod);
 			RenderDebugLine(&x, &y, String);
-			snprintf(String, 100, "ViewY %i", ViewY);
+
+			snprintf(String, 100, "mouseXY: %i %i", MouseX, MouseY);
 			RenderDebugLine(&x, &y, String);
+
+			if (options_initHwRendering) {
+				if (totalTextureSize < 1 << 10)
+					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
+				else if (totalTextureSize < (1 << 20) * 10)
+					snprintf(String, 100, "loadedTextures: %uKB", totalTextureSize >> 10);
+				else if (totalTextureSize < (1 << 30) * 10)
+					snprintf(String, 100, "loadedTextures: %uMB", totalTextureSize >> 20);
+				else
+					snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
+				RenderDebugLine(&x, &y, String);
+			
+				snprintf(String, 100, "hwRendering: %s", options_hwRendering ? "ON" : "OFF");
+				RenderDebugLine(&x, &y, String);
+			}
 		}
 	}
 }
@@ -1613,9 +1927,11 @@ void scrollrt_draw_game_screen(BOOL draw_cursor)
 	DrawMain(hgt, FALSE, FALSE, FALSE, FALSE, FALSE);
 
 	if (draw_cursor) {
-		lock_buf(0);
-		scrollrt_draw_cursor_back_buffer();
-		unlock_buf(0);
+		if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+			lock_buf(0);
+			scrollrt_draw_cursor_back_buffer();
+			unlock_buf(0);
+		}
 	}
 	RenderPresent();
 }
@@ -1630,6 +1946,15 @@ void DrawAndBlit()
 
 	if (!gbRunGame) {
 		return;
+	}
+
+	if (options_hwRendering) //Fluffy: Change render target to texture
+	{
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+
+		//Clear the render target
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
+		SDL_RenderClear(renderer);
 	}
 
 	if (SCREEN_WIDTH > PANEL_WIDTH || SCREEN_HEIGHT > VIEWPORT_HEIGHT + PANEL_HEIGHT || force_redraw == 255) {
@@ -1677,9 +2002,17 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	lock_buf(0);
-	scrollrt_draw_cursor_back_buffer();
-	unlock_buf(0);
+	if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+		lock_buf(0);
+		scrollrt_draw_cursor_back_buffer();
+		unlock_buf(0);
+	}
+
+	if (options_hwRendering) //Fluffy: Reset render target
+	{
+		SDL_SetRenderTarget(renderer, NULL);
+	}
+
 	RenderPresent();
 
 	drawhpflag = FALSE;

@@ -13,7 +13,10 @@ extern "C" {
 #endif
 
 extern BYTE *gpBuffer;
-extern BYTE *gpBuffer_important; //Fluffy
+extern BYTE* gpBuffer_important; //Fluffy
+extern SDL_Renderer *renderer;
+extern SDL_Texture *texture_intermediate;
+extern BYTE dx_fade;
 
 void dx_init(HWND hWnd);
 void lock_buf(BYTE idx);

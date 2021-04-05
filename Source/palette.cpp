@@ -217,8 +217,46 @@ void BlackPalette()
 	SetFadeLevel(0);
 }
 
+static void PaletteFade(bool fadeIn)
+{
+	if (!fadeIn && !sgbFadedIn)
+		return;
+
+	if (fadeIn)
+		ApplyGamma(logical_palette, orig_palette, 256);
+	DWORD tc = SDL_GetTicks();
+	int i = fadeIn ? 0 : 256;
+	SDL_Rect SrcRect = { SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT };
+	if (options_hwRendering) {
+		SetFadeLevel(256);
+		BltFast(&SrcRect, NULL);
+	}
+	while ((fadeIn && i < 256) || (!fadeIn && i > 0)) {
+		if (options_hwRendering) //Fluffy: We apply fading differently if we're doing hardware rendering
+			dx_fade = 256 - (i == 0 ? 1 : i); //Fluffy: We prevent i from being 0 in this calculation as it can range from 0 to 256 which is invalid. And speaking of which, TODO, we should double check if all of the values defined as 256 here should actually be 256. I find it weird i could ever range from 0 to 256
+		else {
+			SetFadeLevel(i);
+			BltFast(&SrcRect, NULL);
+		}
+		RenderPresent();
+
+		i = (SDL_GetTicks() - tc) / 2.083;
+		if (!fadeIn)
+			i = 256 - i;
+	}
+
+	SetFadeLevel(fadeIn ? 256 : 0);
+	if (options_hwRendering)
+		dx_fade = fadeIn ? 0 : 255;
+	if (fadeIn)
+		memcpy(logical_palette, orig_palette, sizeof(orig_palette));
+	sgbFadedIn = fadeIn;
+}
+
 void PaletteFadeIn(int fr)
 {
+	PaletteFade(true);
+	return;
 	int i;
 
 	ApplyGamma(logical_palette, orig_palette, 256);
@@ -236,6 +274,8 @@ void PaletteFadeIn(int fr)
 
 void PaletteFadeOut(int fr)
 {
+	PaletteFade(false);
+	return;
 	int i;
 
 	if (sgbFadedIn) {

@@ -5,6 +5,8 @@
  */
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
+#include "textures/textures.h" //Fluffy: For loading SDL textures
+#include "textures/cel-convert.h" //Fluffy: For loading SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -330,8 +332,14 @@ void InitMonsterGFX(int monst)
 			celBuf = LoadFileInMem(strBuff, NULL);
 			Monsters[monst].Anims[anim].CMem = celBuf;
 
-			if (Monsters[monst].mtype != MT_GOLEM || (animletter[anim] != 's' && animletter[anim] != 'd')) {
+			if (options_initHwRendering) { //Fluffy: Load monster CL2 as SDL textures
+				int groupNum = 8;
+				if (Monsters[monst].mtype == MT_GOLEM && (animletter[anim] == 's' || animletter[anim] == 'd')) //Some monster CL2 files have only one group
+					groupNum = 1;
+				Texture_ConvertCL2_MultipleFrames(celBuf, TEXTURE_MONSTERS + (MA_NUM * monst) + anim, groupNum);
+			}
 
+			if (Monsters[monst].mtype != MT_GOLEM || (animletter[anim] != 's' && animletter[anim] != 'd')) {
 				for (i = 0; i < 8; i++) {
 					Monsters[monst].Anims[anim].Data[i] = CelGetFrameStart(celBuf, i);
 				}
@@ -4881,6 +4889,10 @@ void FreeMonsters()
 		for (j = 0; j < 6; j++) {
 			if (animletter[j] != 's' || monsterdata[mtype].has_special) {
 				MemFreeDbg(Monsters[i].Anims[j].CMem);
+			}
+
+			if (options_initHwRendering) { //Fluffy: Free SDL texture variants
+				Texture_UnloadTexture(TEXTURE_MONSTERS + (MA_NUM * i) + j);
 			}
 		}
 	}

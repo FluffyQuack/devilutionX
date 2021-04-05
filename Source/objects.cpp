@@ -4,6 +4,9 @@
  * Implementation of object functionality, interaction, spawning, loading, etc.
  */
 #include "all.h"
+#include "textures/textures.h"    //Fluffy: For loading CELs as SDL textures
+#include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -206,6 +209,24 @@ int StoryText[3][3] = {
 	{ TEXT_BOOK31, TEXT_BOOK32, TEXT_BOOK33 }
 };
 
+static void LoadObjectAsTexture(int objNum, int loadListNum) //Fluffy
+{
+	//Find the object's entry in AllObjects array
+	int objectInfoNum = 0;
+	bool found = false;
+	while (AllObjects[objectInfoNum].oload != -1) {
+		if (AllObjects[objectInfoNum].ofindex == loadListNum) {
+			found = true;
+			break;
+		}
+		objectInfoNum++;
+	}
+	assert(found);
+	assert(AllObjects[objectInfoNum].oAnimWidth);
+
+	Texture_ConvertCEL_MultipleFrames(pObjCels[objNum], TEXTURE_OBJECTS + loadListNum, AllObjects[objectInfoNum].oAnimWidth, -1, true);
+}
+
 void InitObjectGFX()
 {
 	BOOLEAN fileload[56];
@@ -247,6 +268,11 @@ void InitObjectGFX()
 			else if (currlevel >= 21)
 				sprintf(filestr, "Objects\\%s.CEL", ObjCryptLoadList[i]);
 			pObjCels[numobjfiles] = LoadFileInMem(filestr, NULL);
+
+			if (options_initHwRendering) { //Fluffy: Load CEL as SDL texture
+				LoadObjectAsTexture(numobjfiles, i);
+			}
+
 			numobjfiles++;
 		}
 	}
@@ -260,6 +286,11 @@ void FreeObjectGFX()
 		MemFreeDbg(pObjCels[i]);
 	}
 	numobjfiles = 0;
+
+	if (options_initHwRendering) { //Fluffy: Unload object SDL textures
+		for (int i = TEXTURE_OBJECTS; i <= TEXTURE_OBJECTS_LAST; i++)
+			Texture_UnloadTexture(i);
+	}
 }
 
 bool RndLocOk(int xp, int yp)
@@ -1145,6 +1176,11 @@ void SetMapObjects(BYTE *pMap, int startx, int starty)
 		ObjFileList[numobjfiles] = i;
 		sprintf(filestr, "Objects\\%s.CEL", ObjMasterLoadList[i]);
 		pObjCels[numobjfiles] = LoadFileInMem(filestr, NULL);
+
+		if (options_initHwRendering) { //Fluffy: Load as SDL textures
+			LoadObjectAsTexture(numobjfiles, i);
+		}
+
 		numobjfiles++;
 	}
 

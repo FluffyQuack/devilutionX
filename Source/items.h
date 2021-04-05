@@ -25,6 +25,7 @@ extern int itemavail[MAXITEMS];
 extern ItemGetRecordStruct itemrecord[MAXITEMS];
 extern ItemStruct item[MAXITEMS + 1];
 extern CornerStoneStruct CornerStone;
+extern BYTE *itemanims[ITEMTYPES]; //Fluffy: Needed for diablo.cpp to load item CELs as SDL textures
 extern BOOL UniqueItemFlag[128];
 extern int auricGold;
 extern int numitems;

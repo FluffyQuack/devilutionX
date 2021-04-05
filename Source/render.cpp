@@ -4,6 +4,8 @@
  * Implementation of functionality for rendering the level tiles.
  */
 #include "all.h"
+#include "textures/textures.h" //Fluffy: For SDL textures
+#include "render/sdl-render.h" //Fluffy: For rendering SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -315,6 +317,66 @@ inline static void RenderLine(BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD ma
 skip:
 	(*src) += n;
 	(*dst) += n;
+}
+
+void RenderTileViaSDL(int sx, int sy)
+{
+	int frame = (level_cel_block & 0xFFF) - 1;
+	int brightness = Render_IndexLightToBrightness();
+	int tile = (level_cel_block & 0x7000) >> 12;
+	int overlayTexture = -1;
+	SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES].frames[0].frame;
+
+#ifndef _DEBUG
+	if (cel_transparency_active) {
+#else
+	if (cel_transparency_active && !(GetAsyncKeyState(DVL_VK_MENU) & 0x8000)) {
+		if (arch_draw_type && cel_foliage_active && tile != RT_TRANSPARENT) {
+			return;
+		}
+#endif
+		if (arch_draw_type == 0)
+			SDL_SetTextureAlphaMod(tex, 127);
+		else if (arch_draw_type == 1 && tile != RT_LTRIANGLE) {
+			overlayTexture = TEXTURE_TILE_LEFTMASK;
+		} else if (arch_draw_type == 2 && tile != RT_RTRIANGLE) {
+			overlayTexture = TEXTURE_TILE_RIGHTMASK;
+		}
+	} else if (arch_draw_type && cel_foliage_active) {
+		if (tile != RT_TRANSPARENT) {
+			return;
+		}
+		if (arch_draw_type == 1) {
+			overlayTexture = TEXTURE_TILE_LEFTFOLIAGEMASK;
+		} else if (arch_draw_type == 2) {
+			overlayTexture = TEXTURE_TILE_RIGHTFOLIAGEMASK;
+		}
+	}
+
+	int textureNum = TEXTURE_DUNGEONTILES;
+	if (overlayTexture != -1) {
+		//Switch to the intermediate tile render target
+		SDL_Texture *intermediateTex = textures[TEXTURE_TILE_INTERMEDIATE].frames[0].frame;
+		SDL_SetRenderTarget(renderer, intermediateTex);
+
+		//Render normal texture and the alpha mask texture
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
+		Render_Texture(0, 0, TEXTURE_DUNGEONTILES, frame);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+		Render_Texture(0, 0, overlayTexture);
+
+		//Switch render target back to intermediate texture
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		textureNum = TEXTURE_TILE_INTERMEDIATE;
+		tex = intermediateTex;
+		frame = 0;
+	}
+
+	SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
+	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
+	SDL_SetTextureColorMod(tex, 255, 255, 255);
+	if (textureNum == TEXTURE_DUNGEONTILES && arch_draw_type == 0 && cel_transparency_active)
+		SDL_SetTextureAlphaMod(tex, 255);
 }
 
 #if defined(__clang__) || defined(__GNUC__)

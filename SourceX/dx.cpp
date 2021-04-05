@@ -8,11 +8,15 @@
 #include "display.h"
 #include <SDL.h>
 
+//Fluffy debug
+#include "../Source/textures/textures.h"
+#include "../Source/render/sdl-render.h"
+
 namespace dvl {
 
 int sgdwLockCount;
 BYTE *gpBuffer;
-BYTE *gpBuffer_important = 0; //Fluffy: Used for wall transparency
+BYTE* gpBuffer_important = 0; //Fluffy: Used for wall transparency
 #ifdef _DEBUG
 int locktbl[256];
 #endif
@@ -33,6 +37,9 @@ SDL_Surface *renderer_texture_surface = NULL;
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
 
+SDL_Texture *texture_intermediate = 0; //Fluffy: Game renders to this texture, and then this texture gets presented to the final screen
+BYTE dx_fade = 0.0f;                   //Fluffy: If above 0, we apply fading by rendering a black rectangle
+
 static void dx_create_back_buffer()
 {
 	pal_surface = SDL_CreateRGBSurfaceWithFormat(0, BUFFER_WIDTH, BUFFER_HEIGHT, 8, SDL_PIXELFORMAT_INDEX8);
@@ -43,6 +50,10 @@ static void dx_create_back_buffer()
 	gpBuffer = (BYTE *)pal_surface->pixels;
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
 		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
+	}
+	if (options_initHwRendering) {
+		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT); //Fluffy: Create the texture we use for rendering game graphics
+		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
 	}
 
 #ifndef USE_SDL1
@@ -133,6 +144,9 @@ void dx_cleanup()
 {
 	if (gpBuffer_important)
 		delete[] gpBuffer_important; //Fluffy
+
+	if (texture_intermediate)
+	    SDL_DestroyTexture(texture_intermediate); //Fluffy
 
 	if (ghMainWnd)
 		SDL_HideWindow(ghMainWnd);
@@ -276,22 +290,52 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
-		if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
-			ErrSdl();
+		if (!options_hwRendering) {
+			if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
+				ErrSdl();
+			}
+
+			// Clear buffer to avoid artifacts in case the window was resized
+			if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
+				ErrSdl();
+			}
+
+			if (SDL_RenderClear(renderer) <= -1) {
+				ErrSdl();
+			}
+
+			if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
+				ErrSdl();
+			}
+		} else {
+			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
+				ErrSdl();
+			}
+
+			if (dx_fade > 0) { //Fluffy: Render a black rectangle with dx_fadeStatus as alpha value
+				if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, dx_fade) < 0)
+					ErrSdl();
+				if (SDL_RenderFillRect(renderer, NULL) < 0)
+					ErrSdl();
+			}
+
+			//Fluffy debug
+			if (0 && textures[TEXTURE_DUNGEONTILES].frames) {
+				if (SDL_RenderClear(renderer) <= -1) {
+					ErrSdl();
+				}
+				int i = 0;
+				for (int y = 0; y < 80; y++)
+					for (int x = 0; x < 60; x++) {
+						if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
+							Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
+						i++;
+					}
+			}
 		}
 
-		// Clear buffer to avoid artifacts in case the window was resized
-		if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
-			ErrSdl();
-		}
-
-		if (SDL_RenderClear(renderer) <= -1) {
-			ErrSdl();
-		}
-
-		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
-			ErrSdl();
-		}
+		
+		
 		SDL_RenderPresent(renderer);
 
 		if (!vsyncEnabled) {

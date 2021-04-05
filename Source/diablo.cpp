@@ -9,6 +9,8 @@
 #include "../DiabloUI/diabloui.h"
 #include <config.h>
 #include "misc/config.h" //Fluffy: For reading options from config during startup
+#include "textures/textures.h" //Fluffy: For texture init and deinit
+#include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -56,6 +58,8 @@ char sgbMouseDown;
 int color_cycle_timer;
 int ticks_per_sec = 60;
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
+unsigned int gameplayTickCount = 0; ///Fluffy: How many gameplay ticks have elapsed in total. We use for animating the new UI flasks
+unsigned int gameplayTickCount_progress = 0; //Fluffy: Progress towards the above gameplayTickCount (related to gSpeedMod)
 
 /*
   Fluffy: This value modifies the speed of the game (it's supposed to be used in tandem with ticks_per_sec so we can increase framerate while also changing game simulation speed by a corresponding value)
@@ -99,6 +103,9 @@ BOOL options_transparency = false; //Fluffy: Replaces dithering with proper tran
 BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
+BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
+BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
+BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 
 /* rdata */
 
@@ -286,6 +293,12 @@ void FreeGameMem()
 	FreeObjectGFX();
 	FreeMonsterSnd();
 	FreeTownerGFX();
+
+	//Fluffy: Also delete equivalent SDL textures
+	if (options_initHwRendering) {
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
+	}
 }
 
 static void start_game(unsigned int uMsg)
@@ -304,6 +317,19 @@ static void start_game(unsigned int uMsg)
 	sgnTimeoutCurs = CURSOR_NONE;
 	sgbMouseDown = CLICK_NONE;
 	track_repeat_walk(FALSE);
+
+	//Fluffy: Load various CELs as SDL textures here
+	if (options_initHwRendering) {
+		//Cursors
+		if (!textures[TEXTURE_CURSOR].loaded) {
+			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
+			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels, TEXTURE_CURSOR_OUTLINE, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
+		}
+		if (!textures[TEXTURE_CURSOR2].loaded && gbIsHellfire) {
+			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels2, TEXTURE_CURSOR2, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180], true);
+			Texture_ConvertCEL_MultipleFrames_Outlined_VariableResolution(pCursCels2, TEXTURE_CURSOR2_OUTLINE, (int *)&InvItemWidth[180], (int *)&InvItemHeight[180], true);
+		}
+	}
 }
 
 static void free_game()
@@ -406,6 +432,8 @@ static void run_game_loop(unsigned int uMsg)
 	PaletteFadeOut(8);
 	NewCursor(CURSOR_NONE);
 	ClearScreenBuffer();
+	if (options_hwRendering) //Fluffy: dx_face would be 255 here after a fade out, but we're not doing a fade back in, so we set it to 0 here
+		dx_fade = 0;
 	force_redraw = 255;
 	scrollrt_draw_game_screen(TRUE);
 	saveProc = SetWindowProc(saveProc);
@@ -474,6 +502,7 @@ static void diablo_init_screen()
 static void diablo_init()
 {
 	init_create_window();
+	Textures_Init(); //Fluffy: Load textures here since SDL has finished its init
 	was_window_init = true;
 
 	SFileEnableDirectAccess(TRUE);
@@ -529,8 +558,11 @@ static void diablo_deinit()
 		UiDestroy();
 	if (was_archives_init)
 		init_cleanup();
-	if (was_window_init)
+	
+	if (was_window_init) {
+		Textures_Deinit(); //Fluffy: Unload SDL textures
 		dx_cleanup(); // Cleanup SDL surfaces stuff, so we have to do it before SDL_Quit().
+	}
 	if (was_fonts_init)
 		FontsCleanup();
 	if (SDL_WasInit(SDL_INIT_EVERYTHING & ~SDL_INIT_HAPTIC))
@@ -1352,6 +1384,10 @@ static void PressChar(WPARAM vkey)
 		}
 		return;
 #endif
+	case 'h': //Fluffy: Toggle between normal and SDL rendering
+		if (options_initHwRendering)
+			options_hwRendering = !options_hwRendering;
+		return;
 	}
 }
 
@@ -1450,12 +1486,6 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
-	case 'e': //Fluffy
-		if (currlevel == 0 && debug_mode_key_w) {
-			GiveGoldCheat();
-			SetAllSpellsCheat();
-		}
-		return;
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_RIGHT) {
@@ -1870,6 +1900,26 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 
 	if (gbIsSpawn && setlevel && setlvlnum == SL_SKELKING && quests[Q_SKELKING]._qactive == QUEST_ACTIVE)
 		PlaySFX(USFX_SKING1);
+
+	//Fluffy: Load various CELs as SDL textures here
+	if (options_initHwRendering) { 
+		if (firstflag) {
+			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
+			LoadQuestDialogueTextures();
+			Texture_ConvertCEL_SingleFrame(pSTextBoxCels, TEXTURE_TEXTBOX2, 271); //Narrow version of text box 2
+			Texture_ConvertCEL_MultipleFrames(pSPentSpn2Cels, TEXTURE_SPINNINGPENTAGRAM2, 12); //Tiny spinning pentagram
+			Texture_ConvertCEL_MultipleFrames(pSTextSlidCels, TEXTURE_DYNAMICWINDOW, 12); //Textures for dynamic window creation
+
+			//Item textures
+			int itemTypes = gbIsHellfire ? ITEMTYPES : 35;
+			for (int i = 0; i < itemTypes; i++) {
+				Texture_ConvertCEL_MultipleFrames(itemanims[i], TEXTURE_ITEMS + i, 96, -1, true);
+			}
+		}
+
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
+		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , currlevel == 0 ? false: true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
+	}
 }
 
 // Controller support:
@@ -1916,6 +1966,13 @@ static void game_logic()
 	pfile_update(FALSE);
 
 	plrctrls_after_game_logic();
+
+	//Fluffy: Update gameplayTickCount and its progress value
+	gameplayTickCount_progress++;
+	if (gameplayTickCount_progress >= gSpeedMod) {
+		gameplayTickCount++;
+		gameplayTickCount_progress = 0;
+	}
 }
 
 static void timeout_cursor(BOOL bTimeout)

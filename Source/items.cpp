@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "all.h"
 #include "../3rdParty/Storm/Source/storm.h"
+#include "textures/textures.h" //Fluffy: For unloading item textures
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -1041,9 +1042,9 @@ void CalcPlrItemVals(int p, BOOL Loadgfx)
 	if (plr[p]._pgfxnum != g && Loadgfx) {
 		plr[p]._pgfxnum = g;
 		plr[p]._pGFXLoad = 0;
+		SetPlrAnims(p);
 		LoadPlrGFX(p, PFILE_STAND);
 		LoadPlrGFX(p, PFILE_STAND_CASUAL); //Fluffy: Load casual stand animation
-		SetPlrAnims(p);
 
 		d = plr[p]._pdir;
 
@@ -3327,6 +3328,11 @@ void FreeItemGFX()
 {
 	for (int i = 0; i < ITEMTYPES; i++) {
 		MemFreeDbg(itemanims[i]);
+	}
+
+	if (options_initHwRendering) { //Fluffy: Unload item SDL textures
+		for (int i = TEXTURE_ITEMS; i <= TEXTURE_ITEMS_LAST; i++)
+			Texture_UnloadTexture(i);
 	}
 }
 
