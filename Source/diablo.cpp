@@ -999,8 +999,7 @@ static void RightMouseDown()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
 					if (options_noEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
-						plr[myplr]._pRSpell = SPL_INVALID;
-						plr[myplr]._pRSplType = RSPLTYPE_INVALID;
+						ClearReadiedSpell(plr[myplr]);
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
 						CheckPlrSpell(true);
 				} else if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM) {
