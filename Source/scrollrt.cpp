@@ -59,7 +59,7 @@ int frames;
 BOOL frameflag;
 int frameend;
 int framerate;
-int framestart;
+unsigned long long framestart; //Fluffy: Gave this higher precision ( //Fluffy TODO merge: Should be deleted?)
 
 /* data */
 

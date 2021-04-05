@@ -135,10 +135,6 @@ bool debug_mode_key_i = false;
 int debug_mode_key_j = 0;
 int arrowdebug = 0;
 #endif
-int frameflag; //Fluffy TODO merge: Should be deleted?
-int frameend; //Fluffy TODO merge: Should be deleted?
-int framerate; //Fluffy TODO merge: Should be deleted?
-unsigned long long framestart; //Fluffy: Gave this higher precision ( //Fluffy TODO merge: Should be deleted?)
 unsigned long long frame_timeOfPreviousGamePlayTick = 0; //Fluffy: For tracking gameplay tick deltas
 unsigned long long frame_timeOfPreviousFrameRender = 0; //Fluffy For tracking frame render deltas
 double frame_gameplayTickDelta = 0; //Fluffy

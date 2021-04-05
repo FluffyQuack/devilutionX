@@ -108,10 +108,6 @@ extern bool debug_mode_key_d;
 extern bool debug_mode_key_i;
 extern int debug_mode_key_j;
 #endif
-extern int frameflag;
-extern int frameend;
-extern int framerate;
-extern unsigned long long framestart; //Fluffy: Gave this higher precision
 extern unsigned long long frame_timeOfPreviousGamePlayTick; //Fluffy
 extern unsigned long long frame_timeOfPreviousFrameRender; //Fluffy
 extern double frame_gameplayTickDelta; //Fluffy
