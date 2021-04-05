@@ -430,8 +430,8 @@ void DrawSpellList(CelOutputBuffer out)
 			}
 
 			DrawSpellCel(out, x, y, SpellITbl[j], trans, false);
-			lx = x - BORDER_LEFT;
-			ly = y - BORDER_TOP - SPLICONLENGTH;
+			lx = x;
+			ly = y - SPLICONLENGTH;
 			if (MouseX >= lx && MouseX < lx + SPLICONLENGTH && MouseY >= ly && MouseY < ly + SPLICONLENGTH) {
 				pSpell = (spell_id)j;
 				pSplType = (spell_type)i;
