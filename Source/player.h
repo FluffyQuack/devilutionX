@@ -54,6 +54,7 @@ typedef enum player_weapon_type {
 typedef struct PlayerStruct {
 	PLR_MODE _pmode;
 	Sint8 walkpath[MAX_PATH_LENGTH];
+	bool walkedLastTick; //Fluffy: If true, this player moved last tick (this is used for keeping animation frame when resuming walk animation)
 	bool plractive;
 	action_id destAction;
 	Sint32 destParam1;
@@ -179,6 +180,15 @@ typedef struct PlayerStruct {
 	Uint8 *_pBAnim[8]; // Block animations
 	Sint32 _pBFrames;
 	Sint32 _pBWidth;
+
+	//Fluffy
+	unsigned char *_pNAnim_c[8]; //Casual standing animation
+	int _pNFrames_c;
+	int _pNWidth_c;
+	unsigned char *_pWAnim_c[8]; //Casual walking animation
+	int _pWFrames_c;
+	int _pWWidth_c;
+
 	ItemStruct InvBody[NUM_INVLOC];
 	ItemStruct InvList[NUM_INV_GRID_ELEM];
 	Sint32 _pNumInv;
@@ -225,6 +235,8 @@ typedef struct PlayerStruct {
 	Uint8 *_pHData;
 	Uint8 *_pDData;
 	Uint8 *_pBData;
+	Uint8 *_pNData_c;         //Fluffy: Standing casually
+	Uint8 *_pWData_c; //Fluffy: Walking casually
 
 	/**
 	 * @brief Gets the base value of the player's specified attribute.

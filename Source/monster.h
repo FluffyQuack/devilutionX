@@ -146,6 +146,7 @@ typedef struct MonsterStruct { // note: missing field _mAFNum
 	const char *mName;
 	CMonster *MType;
 	const MonsterData *MData;
+	int tickCount; //Fluffy: For making some variables always update at the same rate as the original game when gMonsterSpeedMod is in play
 } MonsterStruct;
 
 extern int monstkills[MAXMONSTERS];

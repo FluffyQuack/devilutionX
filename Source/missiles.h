@@ -87,6 +87,7 @@ typedef struct MissileStruct {
 	Sint32 _miVar6;
 	Sint32 _miVar7;
 	Sint32 _miVar8;
+	int tickCount; //Fluffy: Used for updating _mirange and _midist at the same rate as the base game when gSpeedMod is in play
 } MissileStruct;
 
 extern int missileactive[MAXMISSILES];

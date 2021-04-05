@@ -69,6 +69,7 @@ typedef struct ItemStruct {
 	Sint32 _iy;
 	bool _iAnimFlag;
 	Uint8 *_iAnimData;  // PSX name -> ItemFrame
+	int iAnimCnt;       //Fluffy: Added this so we can slow down the animation using gSpeedMod
 	Sint32 _iAnimLen;   // Number of frames in current animation
 	Sint32 _iAnimFrame; // Current frame of animation.
 	Sint32 _iAnimWidth;
