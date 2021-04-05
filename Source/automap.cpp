@@ -319,8 +319,8 @@ void DrawAutomapPlr(CelOutputBuffer out, int pnum)
 	py = y - 2 * AutoMapYOfs - ViewY;
 
 	if (pnum == myplr) {
-		x = (ScrollInfo.pxoffDiff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + SCREEN_WIDTH / 2 + SCREEN_X; //Fluffy: Fixed legacy bug which caused player arrow to shake up and down whenever player moved diagonally
-		y = (ScrollInfo.pyoffDiff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (SCREEN_HEIGHT - PANEL_HEIGHT) / 2 + SCREEN_Y;
+		x = (ScrollInfo.pxoffDiff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + gnScreenWidth / 2; //Fluffy: Fixed legacy bug which caused player arrow to shake up and down whenever player moved diagonally
+		y = (ScrollInfo.pyoffDiff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (gnScreenHeight - PANEL_HEIGHT) / 2;
 	}
 	else {
 		x = (plr[pnum]._pxoff * AutoMapScale / 100 >> 1) + (ScrollInfo._sxoff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + gnScreenWidth / 2;
