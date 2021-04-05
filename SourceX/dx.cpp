@@ -324,17 +324,57 @@ void RenderPresent()
 				if (SDL_RenderClear(renderer) <= -1) {
 					ErrSdl();
 				}
-				int i = 0;
+				SDL_Rect rect;
+				rect.x = 0;
+				rect.y = 0;
+				rect.w = textures[TEXTURE_DUNGEONTILES].atlasSizeX;
+				rect.h = textures[TEXTURE_DUNGEONTILES].atlasSizeY;
+				SDL_RenderCopy(renderer, textures[TEXTURE_DUNGEONTILES].frames[0].frame, NULL, &rect);
+				/*int i = 0;
 				for (int y = 0; y < 80; y++)
 					for (int x = 0; x < 60; x++) {
 						if (i < textures[TEXTURE_DUNGEONTILES].frameCount)
 							Render_Texture(x * 32, y * 32, TEXTURE_DUNGEONTILES, i);
 						i++;
+					}*/
+			}
+			if (0 && textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].loaded) {
+				if (SDL_RenderClear(renderer) <= -1) {
+					ErrSdl();
+				}
+				int i = 0;
+				for (int y = 0; y < 6; y++)
+					for (int x = 0; x < 30; x++) {
+						if (i < textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frameCount)
+							Render_Texture(x * 64, y * 160, TEXTURE_DUNGEONTILES_DUNGEONPIECES, i);
+						i++;
 					}
 			}
-		}
+			if(0) {
+				int tex = TEXTURE_DUNGEONTILES;
+				if (textures[tex].frames) {
+					if (SDL_RenderClear(renderer) <= -1) {
+						ErrSdl();
+					}
+					SDL_Rect rect;
 
-		
+					rect.x = 0;
+					rect.y = 0;
+					rect.w = 32;
+					rect.h = 32;
+
+					SDL_Rect srcR;
+					int frame = 1470;
+					srcR.x = textures[tex].frames[frame].offsetX;
+					srcR.y = textures[tex].frames[frame].offsetY;
+					srcR.w = 32;
+					srcR.h = 32;
+
+					SDL_SetTextureBlendMode(textures[tex].frames[0].frame, SDL_BLENDMODE_BLEND);
+					SDL_RenderCopy(renderer, textures[tex].frames[0].frame, &srcR, &rect);
+				}
+			}
+		}
 		
 		SDL_RenderPresent(renderer);
 

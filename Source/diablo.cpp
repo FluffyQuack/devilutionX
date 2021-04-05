@@ -11,6 +11,7 @@
 #include "misc/config.h" //Fluffy: For reading options from config during startup
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "render/lightmap.h" //Fluffy: For lightmap debugging
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -105,6 +106,8 @@ BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always o
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
 BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
 BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
+BOOL options_initLightmapping = false;
+BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 
 /* rdata */
@@ -294,10 +297,24 @@ void FreeGameMem()
 	FreeMonsterSnd();
 	FreeTownerGFX();
 
+	if (options_initLightmapping) //Fluffy: Unload lighting information for subtiles
+		Lightmap_UnloadSubtileData();
+
 	//Fluffy: Also delete equivalent SDL textures
 	if (options_initHwRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
+
+		//Fluffy debug: Testing optimization
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASK);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASK);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_DUNGEONPIECES);
 	}
 }
 
@@ -1148,6 +1165,46 @@ static void PressChar(WPARAM vkey)
 	}
 
 	switch (vkey) {
+
+	//Fluffy: For lightmap debugging
+#ifdef LIGHTMAP_SUBTILE_EDITOR
+	case 'w':
+		if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000)
+			subtileSelection -= 100;
+		else if (GetAsyncKeyState(DVL_VK_CONTROL) & 0x8000)
+			subtileSelection -= 10;
+		else
+			subtileSelection--;
+		if (subtileSelection < 0)
+			subtileSelection = 0;
+		break;
+	case 'e': {
+		if (GetAsyncKeyState(DVL_VK_MENU) & 0x8000)
+			subtileSelection += 100;
+		else if (GetAsyncKeyState(DVL_VK_CONTROL) & 0x8000)
+			subtileSelection += 10;
+		else
+			subtileSelection++;
+		if (subtileSelection >= lightInfo_subTilesSize)
+			subtileSelection = lightInfo_subTilesSize - 1;
+		break;
+	}
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+		if (lightInfo_subTiles)
+			lightInfo_subTiles[subtileSelection] = vkey - '1';
+		break;
+	case 'S':
+	case 's':
+		Lightmap_SaveSubtileData();
+		break;
+#endif
+
 	case 'G':
 	case 'g':
 		DecreaseGamma();
@@ -1204,6 +1261,7 @@ static void PressChar(WPARAM vkey)
 		zoomflag = !zoomflag;
 		CalcViewportGeometry();
 		return;
+#ifndef LIGHTMAP_SUBTILE_EDITOR
 	case 'S':
 	case 's':
 		if (stextflag == STORE_NONE) {
@@ -1216,6 +1274,7 @@ static void PressChar(WPARAM vkey)
 			track_repeat_walk(FALSE);
 		}
 		return;
+#endif
 	case 'B':
 	case 'b':
 		if (stextflag == STORE_NONE) {
@@ -1247,6 +1306,7 @@ static void PressChar(WPARAM vkey)
 	case 'V':
 		NetSendCmdString(1 << myplr, gszVersionNumber);
 		return;
+#ifndef LIGHTMAP_SUBTILE_EDITOR
 	case '!':
 	case '1':
 		if (plr[myplr].SpdList[0]._itype != ITYPE_NONE && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
@@ -1301,6 +1361,7 @@ static void PressChar(WPARAM vkey)
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 7);
 		}
 		return;
+#endif
 #ifdef _DEBUG
 	case ')':
 	case '0':
@@ -1387,6 +1448,10 @@ static void PressChar(WPARAM vkey)
 	case 'h': //Fluffy: Toggle between normal and SDL rendering
 		if (options_initHwRendering)
 			options_hwRendering = !options_hwRendering;
+		return;
+	case 'j': //Fluffy: Toggle between normal and lightmap lighting
+		if (options_initLightmapping)
+			options_lightmapping = !options_lightmapping;
 		return;
 	}
 }
@@ -1486,6 +1551,12 @@ void GM_Game(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown();
 		}
+	/*case 'e': //Fluffy
+		if (currlevel == 0 && debug_mode_key_w) {
+			GiveGoldCheat();
+			SetAllSpellsCheat();
+		}
+		return;*/
 	case DVL_WM_RBUTTONUP:
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_RIGHT) {
@@ -1850,6 +1921,9 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		IncProgress();
 	}
 
+	if (options_initLightmapping) //Fluffy: Load subtile data
+		Lightmap_LoadSubtileData();
+
 	SyncPortals();
 
 	for (i = 0; i < MAX_PLRS; i++) {
@@ -1917,8 +1991,19 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			}
 		}
 
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES, TEXTURE_DUNGEONTILES_DUNGEONPIECES, pLevelPieces);
+		//Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
 		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , currlevel == 0 ? false: true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
+
+		//Fluffy debug: Testing optimization
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASK);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASK);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
+		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
 	}
 }
 

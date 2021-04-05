@@ -16,6 +16,8 @@ enum {
 	//CELDATAFORMAT_TYPE5,
 };
 
+static SDL_Surface *mask1 = 0; //Fluffy debug: Mask for modifying textures we're loading
+
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
 	unsigned char width;
@@ -109,6 +111,12 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 	textureFrame->width = frameWidth + 2;
 	textureFrame->height = frameHeight + 2;
 	textureFrame->channels = 4; //TODO: We could figure out if there's any transparency in the CEL, and then store it as 24-bit instead
+	textureFrame->offsetX = 0;
+	textureFrame->offsetY = 0;
+	textureFrame->cropX1 = 0;
+	textureFrame->cropX2 = 0;
+	textureFrame->cropY1 = 0;
+	textureFrame->cropY2 = 0;
 
 	//Write sprite to buffer (we only care about what pixels are opaque or not, so we don't add the real colour values. We're treating this as a 1-bit buffer)
 	BYTE *buffer = new BYTE[frameWidth * frameHeight];
@@ -334,6 +342,12 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	textureFrame->width = frameWidth;
 	textureFrame->height = frameHeight;
 	textureFrame->channels = 4; //TODO: We could figure out if there's any transparency in the CEL, and then store it as 24-bit instead
+	textureFrame->offsetX = 0;
+	textureFrame->offsetY = 0;
+	textureFrame->cropX1 = 0;
+	textureFrame->cropX2 = 0;
+	textureFrame->cropY1 = 0;
+	textureFrame->cropY2 = 0;
 
 	//Create buffer
 	unsigned char *imgData = new unsigned char[textureFrame->width * textureFrame->height * textureFrame->channels];
@@ -460,6 +474,27 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 		}
 	}
 
+	//Fluffy debug: Use mask for ceiling tiles
+	unsigned char *pixels = 0;
+	if (mask1) {
+		pixels = (unsigned char *)mask1->pixels;
+
+		unsigned int pos = 0;
+		while (pos < textureFrame->width * textureFrame->height * textureFrame->channels) {
+			if (imgData[pos + 0] > 0) {
+				if (pixels[pos + 0] == 0) {
+					imgData[pos + 0] = 0;
+					imgData[pos + 1] = 0;
+					imgData[pos + 2] = 0;
+					imgData[pos + 3] = 0;
+				} else if (pixels[pos + 3] < 255) {
+					imgData[pos + 0] = pixels[pos + 3];
+				}
+			}
+			pos += 4;
+		}
+	}
+
 	if (rtrnImgData != 0) { //Return image data rather than making an SDL texture
 		*rtrnImgData = imgData;
 		return;
@@ -554,33 +589,84 @@ void Texture_ConvertCEL_SingleFrame(BYTE *celData, int textureNum, int frameWidt
 	texture->usesAtlas = false;
 }
 
-#define TILE_SIZE 32
-#define ATLAS_SIZE 4096
-static void CopyImgData(unsigned char *from, unsigned char *to, int toX, int toY)
-{
-	unsigned int fromPos = 0;
-	unsigned int toPos = ((toY * ATLAS_SIZE) + toX) * 4;
-	for (int i = 0; i < TILE_SIZE; i++) {
-		memcpy(&to[toPos], &from[fromPos], TILE_SIZE * 4);
-		fromPos += TILE_SIZE * 4;
-		toPos += ATLAS_SIZE * 4;
-	}
-}
-
 unsigned char *atlasImgData = 0;
 unsigned int atlasCurPosX = 0;
 unsigned int atlasCurPosY = 0;
-void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
+unsigned int atlasSizeX = 0;
+unsigned int atlasSizeY = 0;
+#define TILE_SIZE 32
+static void CopyImgData(unsigned char *from, unsigned char *to, int fromX, int fromY, int fromStride, int toX, int toY, int toStride, int horSize, int verSize)
+{
+	unsigned int fromPos = ((fromY * fromStride) + fromX) * 4;
+	unsigned int toPos = ((toY * toStride) + toX) * 4;
+	for (int i = 0; i < verSize; i++) {
+		memcpy(&to[toPos], &from[fromPos], horSize * 4);
+		fromPos += fromStride * 4;
+		toPos += toStride * 4;
+	}
+}
+
+static void SaveAsTGA(int sizeX, int sizeY, unsigned char *imgData, char *name)
+{
+	//Create TGA header
+	struct TargaHeader {
+		BYTE IDLength;
+		BYTE ColormapType;
+		BYTE ImageType;
+		BYTE ColormapSpecification[5];
+		WORD XOrigin;
+		WORD YOrigin;
+		WORD ImageWidth;
+		WORD ImageHeight;
+		BYTE PixelDepth;
+		BYTE ImageDescriptor;
+	} tgaHeader;
+	memset(&tgaHeader, 0, sizeof(tgaHeader));
+	tgaHeader.IDLength = 0;
+	tgaHeader.ImageType = 2;
+	tgaHeader.ImageWidth = sizeX;
+	tgaHeader.ImageHeight = sizeY;
+	tgaHeader.PixelDepth = 32;
+	tgaHeader.ImageDescriptor = 0x28;
+
+	unsigned char *tgaData = new unsigned char[sizeX * sizeY * 4];
+	for (unsigned int i = 0; i < sizeX * sizeY * 4; i += 4) {
+		tgaData[i + 3] = imgData[i + 0];
+		tgaData[i + 0] = imgData[i + 1];
+		tgaData[i + 1] = imgData[i + 2];
+		tgaData[i + 2] = imgData[i + 3];
+	}
+
+	FILE *file;
+	fopen_s(&file, name, "wb");
+	fwrite(&tgaHeader, sizeof(TargaHeader), 1, file);
+	fwrite(tgaData, 1, sizeX * sizeY * 4, file);
+	fclose(file);
+	delete[] tgaData;
+}
+
+void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureNumDungeonPieces, unsigned char *dungeonPieceInfo)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
-	//Create image data for compositing texture atlas
-	if (atlasImgData == 0) {
-		atlasImgData = new unsigned char[4096 * 4096 * 4];
-		atlasCurPosX = 0;
-		atlasCurPosY = 0;
-	}
+	//Fluffy debug: Load masks
+	if (textureNum == TEXTURE_DUNGEONTILES_LEFTFOLIAGE)
+		mask1 = IMG_Load("data/textures/tiles/LeftFoliageMask.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTFOLIAGE)
+		mask1 = IMG_Load("data/textures/tiles/RightFoliageMask.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASK)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskTransparent.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASK)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskTransparent.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKINVERTED)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls-Invert.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE)
+		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls.png");
+	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
+		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -588,6 +674,25 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 	texture->frameCount = frameCount;
 	unsigned int celDataOffsetPos = 4;
 	int width = 32, height = 32; //All frames in a dungeon CELs are 32x32
+
+	//Create image data for compositing texture atlas
+	if (atlasImgData == 0) {
+
+		//Calculate resolution needed for atlas
+		unsigned long long totalPixels = frameCount * width * height;
+		atlasSizeX = (unsigned int) sqrt(totalPixels);
+		//Pad resolution so it's divisible by 32
+		if (atlasSizeX % TILE_SIZE != 0) {
+			atlasSizeX += TILE_SIZE - (atlasSizeX % TILE_SIZE);
+		}
+		atlasSizeY = atlasSizeX;
+		atlasSizeY += TILE_SIZE;
+
+		atlasImgData = new unsigned char[atlasSizeX * atlasSizeY * 4];
+		atlasCurPosX = 0;
+		atlasCurPosY = 0;
+	}
+
 	for (int j = 0; j < frameCount; j++) {
 		//Do the conversion
 		textureFrame_s *textureFrame = &texture->frames[j];
@@ -613,37 +718,219 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum)
 		celDataOffsetPos += 4;
 
 		//Copy image data to texture atlas
-		CopyImgData(imgData, atlasImgData, atlasCurPosX, atlasCurPosY);
+		CopyImgData(imgData, atlasImgData, 0, 0, TILE_SIZE, atlasCurPosX, atlasCurPosY, atlasSizeX, TILE_SIZE, TILE_SIZE);
 		textureFrame->offsetX = atlasCurPosX;
 		textureFrame->offsetY = atlasCurPosY;
+		textureFrame->cropX1 = 0;
+		textureFrame->cropX2 = 0;
+		textureFrame->cropY1 = 0;
+		textureFrame->cropY2 = 0;
 		atlasCurPosX += TILE_SIZE;
-		if (atlasCurPosX >= ATLAS_SIZE) {
+		if (atlasCurPosX >= atlasSizeX) {
 			atlasCurPosX = 0;
 			atlasCurPosY += TILE_SIZE;
-			if (atlasCurPosY >= ATLAS_SIZE)
+			if (atlasCurPosY >= atlasSizeY)
 				atlasCurPosY = atlasCurPosY;
 		}
 		delete[] imgData;
 	}
+
+	//Debug: Output micro-tile atlas as TGA
+	if (mask1 == 0 && 0)
+		SaveAsTGA(atlasSizeX, atlasSizeY, atlasImgData, "MicroTiles.tga");
+
+	//Fluffy debug: Unload masks
+	if (mask1)
+		SDL_FreeSurface(mask1);
+	mask1 = 0;
+
 	texture->loaded = true;
 	texture->usesAtlas = true;
 
-	//Turn rest of texture atlas into zero data
-	unsigned int toPos = ((atlasCurPosX * ATLAS_SIZE) + atlasCurPosY) * 4;
-	unsigned int toEnd = ATLAS_SIZE * ATLAS_SIZE * 4;
-	memset(&atlasImgData[toPos], 0, toEnd - toPos);
-
 	//Turn atlas into an SDL texture
-	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, ATLAS_SIZE, ATLAS_SIZE);
+	texture->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, atlasSizeX, atlasSizeY);
 	if (texture->frames[0].frame == 0)
 		ErrSdl();
-	if (SDL_UpdateTexture(texture->frames[0].frame, NULL, atlasImgData, ATLAS_SIZE * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
+	if (SDL_UpdateTexture(texture->frames[0].frame, NULL, atlasImgData, atlasSizeX * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
 		ErrSdl();
-	delete[] atlasImgData;
-	atlasImgData = 0;
 	if (SDL_SetTextureBlendMode(texture->frames[0].frame, SDL_BLENDMODE_BLEND) < 0)
 		ErrSdl();
-	totalTextureSize += ATLAS_SIZE * ATLAS_SIZE * 4;
+	totalTextureSize += atlasSizeX * atlasSizeY * 4;
+	texture->atlasSizeX = atlasSizeX;
+	texture->atlasSizeY = atlasSizeY;
+
+	if (dungeonPieceInfo && textureNumDungeonPieces) { //If these are true, then we also create a texture containing all of the tiles as dungeon pieces which are 64x160
+
+		//Define basic size info
+		width = 64;
+		int frame2Count = 452;
+		if (leveltype == DTYPE_TOWN)
+			frame2Count = 1257;
+		else if (leveltype == DTYPE_CATHEDRAL && currlevel < 21)
+			frame2Count = 452;
+		else if (leveltype == DTYPE_CATACOMBS)
+			frame2Count = 558;
+		else if (leveltype == DTYPE_CAVES && currlevel < 17)
+			frame2Count = 559;
+		else if (leveltype == DTYPE_HELL)
+			frame2Count = 455;
+		else if (leveltype == DTYPE_CAVES) //Nest
+			frame2Count = 605;
+		else if (leveltype == DTYPE_CATHEDRAL) //Crypt
+			frame2Count = 649;
+		frame2Count += 1;
+
+		//Define height of dungeon pieces based on tileset
+		int subTileSize;
+		if (leveltype == DTYPE_TOWN || leveltype == DTYPE_HELL) {
+			subTileSize = 16;
+			height = 256;
+		} else {
+			subTileSize = 10;
+			height = 160;
+		}
+
+		//Calculate resolution needed for atlas
+		unsigned long long totalPixels = frame2Count * width * height;
+		unsigned int atlas2SizeX = (unsigned int)sqrt(totalPixels);
+		unsigned int atlas2SizeY = atlas2SizeX;
+		//Pad atlas resolution so it's divisible by tile resolution
+		if (atlas2SizeX % width != 0) {
+			atlas2SizeX += width - (atlas2SizeX % width);
+		}
+		if (atlas2SizeY % height != 0) {
+			atlas2SizeY += height - (atlas2SizeY % height);
+		}
+		atlas2SizeY += height;
+
+		/*
+		* In order to optimize usage in texture atlas we keep an array which matches the quantity of pieces horizontally (atlas2SizeX / width) and that defines how tall each column is so far
+		* With that information, we calculate how tall a dungeon piece is before we copy it, and then copy it to the shortest column. And then repeat until we've processed everything
+		*/
+		int columnCount = atlas2SizeX / width;
+		assert(columnCount > 0);
+		int *columnHeights = new int[columnCount];
+		memset(columnHeights, 0, sizeof(int) * columnCount);
+		int tallestColumn = 0;
+
+		unsigned char *atlas2ImgData = new unsigned char[atlas2SizeX * atlas2SizeY * 4];
+		unsigned int atlas2CurPosX = 0;
+		unsigned int atlas2CurPosY = 0;
+		memset(atlas2ImgData, 0, atlas2SizeX * atlas2SizeY * 4);
+
+		//Texture pointer
+		texture_s *texture2 = &textures[textureNumDungeonPieces];
+		Texture_UnloadTexture(textureNumDungeonPieces); //Unload if it's already loaded
+
+		//Create textureFrame_s pointer array
+		texture2->frames = new textureFrame_s[frame2Count];
+		texture2->frameCount = frame2Count;
+		
+		for (int i = 0; i < frame2Count; i++) {
+			textureFrame_s *textureFrame = &texture2->frames[i];
+
+			//Find column of shortest height on atlas
+			int curColumn = 0;
+			{
+				int shortest = columnHeights[0];
+				for (int j = 1; j < columnCount; j++) {
+					if (columnHeights[j] < shortest) {
+						curColumn = j;
+						shortest = columnHeights[j];
+					}
+				}
+				atlas2CurPosX = curColumn * width;
+				atlas2CurPosY = shortest;
+			}
+
+			//Old functionality where each dungeon pieces in the texture atlas is always 64x160
+			/*if (i) {
+				atlas2CurPosX += width;
+				if (atlas2CurPosX >= atlas2SizeX) {
+					atlas2CurPosX = 0;
+					atlas2CurPosY += height;
+					if (atlas2CurPosY >= atlas2SizeY)
+						atlas2CurPosY = atlas2CurPosY;
+				}
+			}*/
+
+			//Calculate size of this dungeon piece and update its Y position on atlas
+			int startY = height;
+			int endY = 0;
+			bool empty = true;
+			{
+				int curPosY = 0;
+				for (int j = 0; j < subTileSize; j++) {
+					if (j > 1 && j % 2 == 0)
+						curPosY += TILE_SIZE;
+					unsigned short piece = (unsigned short &)pLevelPieces[(i * subTileSize * 2) + (j * 2)];
+					if (piece != 0) {
+						empty = false;
+						if (curPosY < startY)
+							startY = curPosY;
+						endY = curPosY + TILE_SIZE;
+					}
+				}
+			}
+			if (empty) { //TODO: I'm not sure how to handle empty dungeon pieces. For now we treat it as a 64x32 tile and it doesn't get any image data copied
+				startY = 0;
+				endY = 32;
+			}
+
+			textureFrame->channels = 4;
+			textureFrame->height = height;
+			textureFrame->width = width;
+			textureFrame->offsetX = atlas2CurPosX;
+			textureFrame->offsetY = atlas2CurPosY;
+			textureFrame->cropX1 = 0;
+			textureFrame->cropX2 = 0;
+			textureFrame->cropY1 = startY;
+			textureFrame->cropY2 = height - endY;
+			columnHeights[curColumn] += height - (textureFrame->cropY2 + startY);
+			if (columnHeights[curColumn] > tallestColumn)
+				tallestColumn = columnHeights[curColumn];
+
+			int curPosY = -startY;
+			for (int j = 0; j < subTileSize; j++) {
+				if (j > 1 && j % 2 == 0)
+					curPosY += TILE_SIZE;
+				unsigned short piece = (unsigned short &)pLevelPieces[(i * subTileSize * 2) + (j * 2)];
+				if (piece != 0) {
+					assert(curPosY >= 0);
+					int frame = (piece & 0xFFF) - 1;
+					assert(frame < frameCount);
+					CopyImgData(atlasImgData, atlas2ImgData, texture->frames[frame].offsetX, texture->frames[frame].offsetY, atlasSizeX, atlas2CurPosX + (j % 2 != 0 ? TILE_SIZE : 0), atlas2CurPosY + curPosY, atlas2SizeX, TILE_SIZE, TILE_SIZE);
+				}
+			}
+		}
+
+		delete[]columnHeights;
+
+		//Debug: Output dungeon piece atlas as TGA
+		if (0)
+			SaveAsTGA(atlas2SizeX, atlas2SizeY, atlas2ImgData, "DungeonPieces.tga");
+
+		//Turn atlas into an SDL texture
+		texture2->frames[0].frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, atlas2SizeX, tallestColumn);
+		if (texture2->frames[0].frame == 0)
+			ErrSdl();
+		if (SDL_UpdateTexture(texture2->frames[0].frame, NULL, atlas2ImgData, atlas2SizeX * 4) < 0) //TODO: We probably need to make sure the pitch is divisible by 4. Which is easy enough as long the texture is 32-bit
+			ErrSdl();
+		if (SDL_SetTextureBlendMode(texture2->frames[0].frame, SDL_BLENDMODE_BLEND) < 0)
+			ErrSdl();
+
+		texture2->loaded = true;
+		texture2->usesAtlas = true;
+
+		totalTextureSize += atlas2SizeX * tallestColumn * 4;
+		texture2->atlasSizeX = atlas2SizeX;
+		texture2->atlasSizeY = tallestColumn;
+		delete[] atlas2ImgData;
+		atlas2ImgData = 0;
+	}
+
+	delete[] atlasImgData;
+	atlasImgData = 0;
 }
 
 static int GetCL2PixelCount(unsigned char *src, unsigned char *dataEnd)
@@ -692,6 +979,12 @@ static void ConvertCL2toSDL(textureFrame_s *textureFrame, unsigned char *celData
 	textureFrame->width = frameWidth;
 	textureFrame->height = frameHeight;
 	textureFrame->channels = 4; //TODO: We could figure out if there's any transparency in the CEL, and then store it as 24-bit instead
+	textureFrame->offsetX = 0;
+	textureFrame->offsetY = 0;
+	textureFrame->cropX1 = 0;
+	textureFrame->cropX2 = 0;
+	textureFrame->cropY1 = 0;
+	textureFrame->cropY2 = 0;
 
 	//Create buffer
 	unsigned char *imgData = new unsigned char[textureFrame->width * textureFrame->height * textureFrame->channels];

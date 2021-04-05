@@ -2,6 +2,7 @@
 
 #include "../all.h"
 #include "textures.h"
+#include "../render/lightmap.h"
 #include <sdl_image.h>
 
 DEVILUTION_BEGIN_NAMESPACE
@@ -18,7 +19,7 @@ void Texture_UnloadTexture(int textureNum) //Unloads all frames for one texture
 
 	if (texture->usesAtlas) { //This is stored as a texture atlas so we handle it differently
 		SDL_DestroyTexture(texture->frames[0].frame);
-		totalTextureSize -= 4096 * 4096 * 4;
+		totalTextureSize -= texture->atlasSizeX * texture->atlasSizeY * 4;
 		texture->loaded = false;
 		texture->usesAtlas = false;
 		delete[] texture->frames;
@@ -89,6 +90,12 @@ static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
 			textureFrame->width = loadedSurface->w;
 			textureFrame->height = loadedSurface->h;
 			textureFrame->channels = loadedSurface->format->BytesPerPixel;
+			textureFrame->offsetX = 0;
+			textureFrame->offsetY = 0;
+			textureFrame->cropX1 = 0;
+			textureFrame->cropX2 = 0;
+			textureFrame->cropY1 = 0;
+			textureFrame->cropY2 = 0;
 			if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 				ErrSdl();
 			SDL_FreeSurface(loadedSurface);
@@ -123,6 +130,12 @@ static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
 	textureFrame->channels = alpha ? 4 : 3;
 	textureFrame->width = x;
 	textureFrame->height = y;
+	textureFrame->offsetX = 0;
+	textureFrame->offsetY = 0;
+	textureFrame->cropX1 = 0;
+	textureFrame->cropX2 = 0;
+	textureFrame->cropY1 = 0;
+	textureFrame->cropY2 = 0;
 	texture->frameCount = 1;
 	texture->loaded = true;
 	texture->usesAtlas = false;
@@ -134,6 +147,9 @@ static void GenerateRenderTarget(int textureNum, int x, int y, bool alpha)
 //Load textures
 void Textures_Init()
 {
+	//TODO: Use this for figuring out maxiumum texture size:
+	//https://wiki.libsdl.org/SDL_RendererInfo
+
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
 	if (!options_initHwRendering)
@@ -146,19 +162,49 @@ void Textures_Init()
 	}
 
 	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
+	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha) 
 	LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
 	LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
 	LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
 	LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
-	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha) 
+	if (options_initLightmapping) {
+		LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
+		LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
+		LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
+		LoadTexture(TEXTURE_TILE_RIGHTMASK_OPAQUE, "data/textures/tiles/RightMaskNulls.png");
+
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK_OPAQUE].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK_OPAQUE].frames[0].frame, blendMode);
+	}
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTFOLIAGEMASK].frames[0].frame, blendMode);
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTFOLIAGEMASK].frames[0].frame, blendMode);
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK].frames[0].frame, blendMode);
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
 
+	if (options_initLightmapping) {
+		LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
+		LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
+		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD); //Basically normal blending
+		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD); //Same as normal additive blending
+		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM);
+		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_HALFGRADIENT_HALFGREY].frames[0].frame, blendMode);
+	}
+
 	//Generate tile intermediate render target
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
+	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, SCREEN_WIDTH, SCREEN_HEIGHT, true);
+
+	if (options_initLightmapping) {
+		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH + LIGHTMAP_APPEND_X, SCREEN_HEIGHT + LIGHTMAP_APPEND_Y, true);
+		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
+		lightmap_imgData = new unsigned char[(SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4];
+		memset(lightmap_imgData, 0, (SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4);
+	}
 }
 
 //Unload all textures
@@ -167,6 +213,9 @@ void Textures_Deinit()
 	for (int i = 0; i < TEXTURE_NUM; i++) {
 		Texture_UnloadTexture(i);
 	}
+	if (lightmap_imgData)
+		delete[] lightmap_imgData;
+	lightmap_imgData = 0;
 }
 
 DEVILUTION_END_NAMESPACE

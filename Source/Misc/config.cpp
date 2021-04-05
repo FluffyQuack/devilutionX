@@ -44,6 +44,12 @@ void LoadOptionsFromConfig()
 	LoadBoolVariableFromConfig("Opaque Walls With Silhouettes", &options_opaqueWallsWithSilhouette);
 	LoadBoolVariableFromConfig("Hardware Rendering", &options_initHwRendering);
 	options_hwRendering = options_initHwRendering;
+	LoadBoolVariableFromConfig("Lightmapping", &options_initLightmapping);
+	options_lightmapping = options_initLightmapping;
+	if (!options_initHwRendering) {
+		options_initLightmapping = false;
+		options_lightmapping = false;
+	}
 	options_hwRendering = 0; //Fluffy TODO: Remove this once we've fully replaced all UI rendering with hw rendering
 	LoadBoolVariableFromConfig("Animated UI Flasks", &options_animatedUIFlasks);
 }

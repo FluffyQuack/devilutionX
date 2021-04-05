@@ -3,6 +3,7 @@
 #include "../all.h"
 #include "../textures/textures.h"
 #include "sdl-render.h"
+#include "lightmap.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -10,6 +11,8 @@ static unsigned char brightnessValues[16] = {255, 230, 210, 180, 140, 120, 100, 
 
 int Render_IndexLightToBrightness()
 {
+	if (0 && options_lightmapping && lightmap_lightx != -1 && lightmap_lighty != -1)
+		return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * lightmap_lighty) + (4 * lightmap_lightx)];
 	int brightness;
 	brightness = 255 - ((light_table_index * 255) / lightmax);
 	if (lightmax == 15) {
@@ -118,6 +121,9 @@ void Render_Texture_ScaleAndCrop(int x, int y, int textureNum, int width, int he
 	srcR.y = startY;
 	srcR.w = endX - startX;
 	srcR.h = endY - startY;
+
+	//TODO: Change above rectangles using cropX1 and other crop values
+
 	SDL_RenderCopy(renderer, textureFrame->frame, &srcR, &dstR);
 }
 
@@ -134,6 +140,8 @@ void Render_Texture_Scale(int x, int y, int textureNum, int width, int height, i
 	dstR.y = y;
 	dstR.w = width;
 	dstR.h = height;
+
+	//TODO: Change above rectangles using cropX1 and other crop values
 
 	SDL_RenderCopy(renderer, textureFrame->frame, NULL, &dstR);
 }
@@ -161,6 +169,9 @@ void Render_Texture_Crop(int x, int y, int textureNum, int startX, int startY, i
 	srcR.y = startY;
 	srcR.w = endX - startX;
 	srcR.h = endY - startY;
+
+	//TODO: Change above rectangles using cropX1 and other crop values
+
 	SDL_RenderCopy(renderer, textureFrame->frame, &srcR, &dstR);
 }
 
@@ -179,24 +190,21 @@ void Render_Texture(int x, int y, int textureNum, int frameNum)
 	}
 
 	textureFrame_s *textureFrame = &textures[textureNum].frames[frameNum];
-	SDL_Rect dstR;
-	dstR.x = x;
-	dstR.y = y;
-	dstR.w = textureFrame->width;
-	dstR.h = textureFrame->height;
-
-	SDL_Rect srcR;
-	SDL_Rect *srcR_ptr = 0;
+	SDL_Rect dstR, srcR;
+	dstR.x = x + textureFrame->cropX1;
+	dstR.y = y + textureFrame->cropY1;
+	srcR.w = dstR.w = textureFrame->width - (textureFrame->cropX1 + textureFrame->cropX2);
+	srcR.h = dstR.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
 	if (textures[textureNum].usesAtlas == true) {
 		srcR.x = textureFrame->offsetX;
 		srcR.y = textureFrame->offsetY;
-		srcR.w = textureFrame->width;
-		srcR.h = textureFrame->height;
 		textureFrame = &textures[textureNum].frames[0];
-		srcR_ptr = &srcR;
+	} else {
+		srcR.x = 0;
+		srcR.y = 0;
 	}
 
-	SDL_RenderCopy(renderer, textureFrame->frame, srcR_ptr, &dstR);
+	SDL_RenderCopy(renderer, textureFrame->frame, &srcR, &dstR);
 }
 
 DEVILUTION_END_NAMESPACE

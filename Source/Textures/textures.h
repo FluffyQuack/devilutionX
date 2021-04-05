@@ -4,6 +4,9 @@ DEVILUTION_BEGIN_NAMESPACE
 
 //#define MAXCELPATH 260
 
+#define LIGHTMAP_APPEND_X 32
+#define LIGHTMAP_APPEND_Y 160 //Should be 224 for town
+
 //Player animation types
 enum {
 	PLAYERANIM_STAND,
@@ -141,6 +144,17 @@ enum {
 	TEXTURE_DUNGEONTILES, //Texture for current town/dungeon tileset (ie, levels\l1data\l1.cel)
 	TEXTURE_DUNGEONTILES_SPECIAL, //Texture for current "special" town/dungeon tileset (ie, levels\l1data\l1s.cel)
 
+	TEXTURE_DUNGEONTILES_LEFTFOLIAGE, //Fluffy debug
+	TEXTURE_DUNGEONTILES_RIGHTFOLIAGE,
+	TEXTURE_DUNGEONTILES_LEFTMASK,
+	TEXTURE_DUNGEONTILES_RIGHTMASK,
+	TEXTURE_DUNGEONTILES_LEFTMASKINVERTED,
+	TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED,
+	TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE,
+	TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE,
+
+	TEXTURE_DUNGEONTILES_DUNGEONPIECES, //Tiles loaded as 64x160 "dungeon pieces"
+
 	//Player textures from CEL data
 	TEXTURE_PLAYERS,
 	TEXTURE_PLAYERS_LAST = TEXTURE_PLAYERS + (PLAYERANIM_NUM * MAX_PLRS),
@@ -176,19 +190,29 @@ enum {
 	TEXTURE_COWFARMER, //Towners\\Farmer\\cfrmrn2.CEL (or mfrmrn2.CEL)
 	TEXTURE_GIRL, //Towners\\Girl\\Girlw1.CEL (or Girls1.CEL)
 
-	//Texture versions of various masks in render.cpp
+	//Texture versions of various masks
 	TEXTURE_TILE_LEFTFOLIAGEMASK,
 	TEXTURE_TILE_RIGHTFOLIAGEMASK,
 	TEXTURE_TILE_LEFTMASK,
 	TEXTURE_TILE_RIGHTMASK,
+	TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, //This and the following three are for separating ceiling tiles from wall tiles
+	TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE,
+	TEXTURE_TILE_LEFTMASK_OPAQUE,
+	TEXTURE_TILE_RIGHTMASK_OPAQUE,
 
-	//This is used for multiple render passes for tiles needing a different alpha mask
+	//This is used for multiple render passes
 	TEXTURE_TILE_INTERMEDIATE, //32x32
+	TEXTURE_TILE_INTERMEDIATE_PIECE, //64x160
 	TEXTURE_TILE_INTERMEDIATE_BIG, //SCREEN_WIDTH * SCREEN_HEIGHT
+	TEXTURE_LIGHT_FRAMEBUFFER, //Lightmap to apply to entire screen
 
 	//BillieJoe's animated HUD flasks
 	TEXTURE_HEALTHFLASK,
 	TEXTURE_MANAFLASK,
+
+	//Lights for lightmap generation
+	TEXTURE_LIGHT_SMOOTHGRADIENT,
+	TEXTURE_LIGHT_HALFGRADIENT_HALFGREY,
 
 	TEXTURE_NUM
 };
@@ -219,6 +243,10 @@ struct textureFrame_s {
 	int channels;
 	int offsetX; //Offset for texture in the SDL_Texture (this is used for texture atlases)
 	int offsetY;
+	int cropX1; //This and the following are used for textures which have been cropped based on alpha data so they take less memory
+	int cropX2;
+	int cropY1;
+	int cropY2;
 };
 
 struct texture_s {
@@ -226,6 +254,8 @@ struct texture_s {
 	textureFrame_s *frames;
 	int frameCount; //Quantity of frames (imgData is an array of this length)
 	bool usesAtlas;
+	int atlasSizeX;
+	int atlasSizeY;
 };
 
 //extern celInfo_s celInfo[CEL_NUM];
