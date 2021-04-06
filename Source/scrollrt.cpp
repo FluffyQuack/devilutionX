@@ -1327,20 +1327,45 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 			DeadStruct *pDeadGuy = &dead[(bDead & 0x1F) - 1];
 			char dd = (bDead >> 5) & 7;
 			int px = dx - pDeadGuy->_deadWidth2;
-			BYTE *pCelBuff = pDeadGuy->_deadData[dd];
-			assert(pCelBuff != NULL);
-			if (pCelBuff == NULL)
+
+			if (options_hwRendering) { //Render dead enemy via SDL
+				//Figure out which monster in the Monsters array this body belongs to
+				int textureNum = -1;
+				int frameNum = -1;
+				for (int i = 0; i < nummtypes; i++) {
+					if (pDeadGuy->_deadData[0] == Monsters[i].Anims[MA_DEATH].Data[0]) {
+						textureNum = TEXTURE_MONSTERS + (i * MA_NUM) + MA_DEATH;
+						frameNum = (pDeadGuy->_deadFrame - 1) + (dd * Monsters[i].Anims[MA_DEATH].Frames);
+						break;
+					}
+				}
+				assert(textureNum != -1);
+
+				//Render
+				int brightness = Render_IndexLightToBrightness();
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+				Render_Texture_FromBottom(px, dy, textureNum, frameNum);
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				//TODO: Do rendering differently if pDeadGuy->_deadtrans is non-zero
 				break;
-			int frames = SDL_SwapLE32(*(DWORD *)pCelBuff);
-			int nCel = pDeadGuy->_deadFrame;
-			if (nCel < 1 || frames > 50 || nCel > frames) {
-				SDL_Log("Unclipped dead: frame %d of %d, deadnum==%d", nCel, frames, (bDead & 0x1F) - 1);
-				break;
-			}
-			if (pDeadGuy->_deadtrans != 0) {
-				Cl2DrawLightTbl(out, px, dy, pCelBuff, nCel, pDeadGuy->_deadWidth, pDeadGuy->_deadtrans);
 			} else {
-				Cl2DrawLight(out, px, dy, pCelBuff, nCel, pDeadGuy->_deadWidth);
+				BYTE *pCelBuff = pDeadGuy->_deadData[dd];
+				assert(pCelBuff != NULL);
+				if (pCelBuff == NULL)
+					break;
+				int frames = SDL_SwapLE32(*(DWORD *)pCelBuff);
+				int nCel = pDeadGuy->_deadFrame;
+				if (nCel < 1 || frames > 50 || nCel > frames) {
+					SDL_Log("Unclipped dead: frame %d of %d, deadnum==%d", nCel, frames, (bDead & 0x1F) - 1);
+					break;
+				}
+				if (pDeadGuy->_deadtrans != 0) {
+					Cl2DrawLightTbl(out, px, dy, pCelBuff, nCel, pDeadGuy->_deadWidth, pDeadGuy->_deadtrans);
+				} else {
+					Cl2DrawLight(out, px, dy, pCelBuff, nCel, pDeadGuy->_deadWidth);
+				}
 			}
 		} while (0);
 	}
