@@ -2,15 +2,6 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
-/*
-* Fluffy TODO: Add these:
-
-extern BOOL options_opaqueWallsUnlessObscuring;
-extern BOOL options_opaqueWallsWithBlobs;
-extern BOOL options_opaqueWallsWithSilhouette;
-
-*/
-
 struct DiabloOptions {
 	/** @brief Play game intro video on startup. */
 	bool bIntro;
@@ -60,6 +51,9 @@ struct GraphicsOptions {
 	/** @brief Enable FPS Limit. */
 	bool bFPSLimit;
 
+	bool bOpaqueWallsUnlessObscuring; //Fluffy: If true, walls are always opaque unless there's something important nearby
+	bool bOpaqueWallsWithBlobs;       //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
+	bool bOpaqueWallsWithSilhouette;  //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
 	bool bInitHwRendering; //Fluffy
 	bool bInitLightmapping; //Fluffy
 	bool bAnimatedUIFlasks; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
@@ -108,8 +102,8 @@ struct GameplayOptions {
 	/** @brief Indicates whether or not monster type (Animal, Demon, Undead) is shown along with other monster information. */
 	bool bShowMonsterType;
 
-	bool bAllowAttacksInTown; //Fluffy: This needs to be in sync between network players
-	bool bSafetyJog; //Fluffy: This needs to be in sync between network players
+	bool bAllowAttacksInTown; //Fluffy: Allow attacking in town (this needs to be in sync between network players)
+	bool bSafetyJog; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown) (this needs to be in sync between network players)
 	bool bNoEquippedSpellIsAttack; //Fluffy
 	bool bHoldToAttack; //Fluffy
 };

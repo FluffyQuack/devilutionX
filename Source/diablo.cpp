@@ -95,16 +95,12 @@ int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 //Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 BOOL gameSetup_allowAttacksInTown = false; //Fluffy: Allow attacking in town
 BOOL gameSetup_safetyJog = false; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown)
-BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
-BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
-BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
 BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
 int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
 unsigned long long lastLeftMouseButtonTime = 0;
 unsigned long long lastRightMouseButtonTime = 0;
-
 
 /* rdata */
 
@@ -526,6 +522,9 @@ static void SaveOptions()
 	setIniInt("Graphics", "FPS Limiter", sgOptions.Graphics.bFPSLimit);
 
 	//Fluffy
+	setIniInt("Graphics", "Nonobscuring Walls Are Opaque", sgOptions.Graphics.bOpaqueWallsUnlessObscuring);
+	setIniInt("Graphics", "Opaque Walls With Blobs", sgOptions.Graphics.bOpaqueWallsWithBlobs);
+	setIniInt("Graphics", "Opaque Walls With Silhouettes", sgOptions.Graphics.bOpaqueWallsWithSilhouette);
 	setIniInt("Graphics", "Hardware Rendering", sgOptions.Graphics.bInitHwRendering);
 	setIniInt("Graphics", "Lightmapping", sgOptions.Graphics.bInitLightmapping);
 	setIniInt("Graphics", "Animated UI Flasks", sgOptions.Graphics.bAnimatedUIFlasks);
@@ -613,6 +612,9 @@ static void LoadOptions()
 	sgOptions.Graphics.bFPSLimit = getIniBool("Graphics", "FPS Limiter", true);
 
 	//Fluffy
+	sgOptions.Graphics.bOpaqueWallsUnlessObscuring = getIniBool("Graphics", "Nonobscuring Walls Are Opaque", false);
+	sgOptions.Graphics.bOpaqueWallsWithBlobs = getIniBool("Graphics", "Opaque Walls With Blobs", false);
+	sgOptions.Graphics.bOpaqueWallsWithSilhouette = getIniBool("Graphics", "Opaque Walls With Silhouettes", false);
 	sgOptions.Graphics.bInitHwRendering = getIniBool("Graphics", "Hardware Rendering", true);
 	sgOptions.Graphics.bInitLightmapping = getIniBool("Graphics", "Lightmapping", true);
 	sgOptions.Graphics.bAnimatedUIFlasks = getIniBool("Graphics", "Animated UI Flasks", true);

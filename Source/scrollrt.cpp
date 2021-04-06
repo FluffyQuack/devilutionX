@@ -654,7 +654,7 @@ static void DrawObject(CelOutputBuffer out, int x, int y, int ox, int oy, BOOL p
 
 	if (bv == pcursobj) {
 		CelBlitOutlineTo(out, 194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
-		if (options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(194, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, true);
 	}
 	if (object[bv]._oLight) {
@@ -663,9 +663,9 @@ static void DrawObject(CelOutputBuffer out, int x, int y, int ox, int oy, BOOL p
 		CelClippedDrawTo(out, sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
 	}
 	if (object[bv]._oSelFlag >= 1) {
-		if (options_opaqueWallsWithBlobs) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithBlobs) //Fluffy
 			CelDrawToImportant_Ellipse(sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth);
-		if (options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(pLightTbl[(256 * light_table_index) + 198], sx, sy, object[bv]._oAnimData, object[bv]._oAnimFrame, object[bv]._oAnimWidth, false);
 	}
 }
@@ -700,10 +700,10 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 		}
 	}
 
-	if (options_opaqueWallsUnlessObscuring && !importantObjectNearby && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette) //Fluffy: Make this opaque if there's nothing important nearby
+	if (sgOptions.Graphics.bOpaqueWallsUnlessObscuring && !importantObjectNearby && !sgOptions.Graphics.bOpaqueWallsWithBlobs && !sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy: Make this opaque if there's nothing important nearby
 		cel_transparency_active = 0;
 	else {
-		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			cel_transparency_active = 1;
 		else
 			cel_transparency_active = (BYTE)(nTransTable[level_piece_id] & TransList[dTransVal[x][y]]);
@@ -975,14 +975,14 @@ static void DrawItem(CelOutputBuffer out, int x, int y, int sx, int sy, BOOL pre
 
 	if (bItem - 1 == pcursitem || AutoMapShowItems) {
 		CelBlitOutlineTo(out, 181, px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
-		if (options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(181, px, sy, pItem->_iAnimData, nCel, pItem->_iAnimWidth, true);
 	}
 	CelClippedDrawLightTo(out, px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
 
-	if (options_opaqueWallsWithBlobs) //Fluffy
+	if (sgOptions.Graphics.bOpaqueWallsWithBlobs) //Fluffy
 		CelDrawToImportant_Ellipse(px, sy, pCelBuff, nCel, pItem->_iAnimWidth);
-	if (options_opaqueWallsWithSilhouette) //Fluffy
+	if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 		CelDrawToImportant(pLightTbl[(256 * light_table_index) + 185], px, sy, pCelBuff, nCel, pItem->_iAnimWidth, false);
 }
 
@@ -1070,14 +1070,14 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 
 		if (mi == pcursmonst) {
 			CelBlitOutlineTo(out, 166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
-			if (options_opaqueWallsWithSilhouette) //Fluffy
+			if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 				CelDrawToImportant(166, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, true);
 		}
 		assert(towner[mi]._tAnimData);
 		CelClippedDrawTo(out, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
-		if (options_opaqueWallsWithBlobs) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithBlobs) //Fluffy
 			CelDrawToImportant_Ellipse(px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth);
-		if (options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			CelDrawToImportant(170, px, sy, towner[mi]._tAnimData, towner[mi]._tAnimFrame, towner[mi]._tAnimWidth, false);
 		return;
 	}
@@ -1131,13 +1131,13 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 
 	if (mi == pcursmonst) {
 		Cl2DrawOutline(out, 233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
-		if (options_opaqueWallsWithSilhouette) //Fluffy
+		if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 			Cl2DrawToImportant(233, px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width, true);
 	}
 	DrawMonster(out, x, y, px, py, mi);
-	if (options_opaqueWallsWithBlobs) //Fluffy
+	if (sgOptions.Graphics.bOpaqueWallsWithBlobs) //Fluffy
 		Cl2DrawToImportant_Ellipse(px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width);
-	if (options_opaqueWallsWithSilhouette) //Fluffy
+	if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 		Cl2DrawToImportant(pLightTbl[(256 * light_table_index) + 234], px, py, pMonster->_mAnimData, pMonster->_mAnimFrame, pMonster->MType->width, false);
 }
 
@@ -1169,9 +1169,9 @@ static void DrawPlayerHelper(CelOutputBuffer out, int x, int y, int sx, int sy)
 	}
 
 	DrawPlayer(out, p, x, y, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
-	if (options_opaqueWallsWithBlobs) //Fluffy
+	if (sgOptions.Graphics.bOpaqueWallsWithBlobs) //Fluffy
 		Cl2DrawToImportant_Ellipse(px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth);
-	else if (options_opaqueWallsWithSilhouette) //Fluffy
+	else if (sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 		Cl2DrawToImportant(165, px, py, pPlayer->_pAnimData, pPlayer->_pAnimFrame, pPlayer->_pAnimWidth, false);
 }
 
@@ -1276,7 +1276,7 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 
 	//Fluffy: In case we are to render a wall here, figure out if there's an important object nearby so we know if it should be opaque or not
 	bool importantObjectNearby = 0;
-	if (options_opaqueWallsUnlessObscuring && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette && light_table_index < lightmax) {
+	if (sgOptions.Graphics.bOpaqueWallsUnlessObscuring && !sgOptions.Graphics.bOpaqueWallsWithBlobs && !sgOptions.Graphics.bOpaqueWallsWithSilhouette && light_table_index < lightmax) {
 		for (int i = -3; i < 1; i++)
 			for (int j = -3; j < 2; j++) {
 				int x = i + sx;
@@ -1369,10 +1369,10 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 	if (leveltype != DTYPE_TOWN) {
 		char bArch = dSpecial[sx][sy];
 		if (bArch != 0) {
-			if (options_opaqueWallsUnlessObscuring && !options_opaqueWallsWithBlobs && !options_opaqueWallsWithSilhouette && !importantObjectNearby) //Fluffy: Make this opaque if nothing important is nearby
+			if (sgOptions.Graphics.bOpaqueWallsUnlessObscuring && !sgOptions.Graphics.bOpaqueWallsWithBlobs && !sgOptions.Graphics.bOpaqueWallsWithSilhouette && !importantObjectNearby) //Fluffy: Make this opaque if nothing important is nearby
 				cel_transparency_active = 0;
 			else {
-				if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) //Fluffy
+				if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) //Fluffy
 					cel_transparency_active = true;
 				else
 					cel_transparency_active = TransList[bMap];

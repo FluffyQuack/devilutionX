@@ -55,7 +55,7 @@ static void dx_create_back_buffer()
 		ErrSdl();
 	}
 
-	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
+	if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) {
 		gpBuffer_important = new BYTE[(BUFFER_BORDER_LEFT + gnScreenWidth + BUFFER_BORDER_RIGHT) * (BUFFER_BORDER_TOP + gnScreenHeight + BUFFER_BORDER_BOTTOM)]; //Fluffy: Create buffer used for wall transparency
 	}
 	if (sgOptions.Graphics.bInitHwRendering) {

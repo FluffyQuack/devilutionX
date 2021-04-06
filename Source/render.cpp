@@ -8,6 +8,7 @@
 #include "textures/textures.h" //Fluffy: For SDL textures
 #include "render/sdl-render.h" //Fluffy: For rendering SDL textures
 #include "render/lightmap.h" //Fluffy: For getting light values from the lightmap
+#include "options.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -396,7 +397,7 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 			}
 		}
 
-		if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+		if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette)
 			importantBuff += n; //Fluffy
 	} else {
 		// The number of iterations is anyway limited by the size of the mask.
@@ -406,41 +407,41 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 		assert(n != 0 && n <= sizeof(DWORD) * CHAR_BIT);
 		mask &= DWORD(-1) << ((sizeof(DWORD) * CHAR_BIT) - n);
 
-		if (sgOptions.Graphics.bBlendedTransparancy || options_opaqueWallsWithSilhouette || options_opaqueWallsWithBlobs) { // Blended transparancy
+		if (sgOptions.Graphics.bBlendedTransparancy || sgOptions.Graphics.bOpaqueWallsWithSilhouette || sgOptions.Graphics.bOpaqueWallsWithBlobs) { // Blended transparancy
 			if (light_table_index == lightmax) {       // Complete darkness
 				for (int i = 0; i < n; i++, mask <<= 1) {
-					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					if (sgOptions.Graphics.bOpaqueWallsWithSilhouette && *importantBuff != 0)
 						dst[i] = paletteTransparencyLookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+					else if (mask & 0x80000000 || ((sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = 0;
-					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (sgOptions.Graphics.bOpaqueWallsWithBlobs && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[0][dst[i]];
 
-					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette)
 						importantBuff++;
 				}
 			} else if (light_table_index == 0) { //Fully lit
 				for (int i = 0; i < n; i++, mask <<= 1) {
-					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					if (sgOptions.Graphics.bOpaqueWallsWithSilhouette && *importantBuff != 0)
 						dst[i] = paletteTransparencyLookup[src[i]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+					else if (mask & 0x80000000 || ((sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = src[i];
-					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (sgOptions.Graphics.bOpaqueWallsWithSilhouette && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[dst[i]][src[i]];
 
-					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette)
 						importantBuff++;
 				}
 			} else { //Partially lit
 				for (int i = 0; i < n; i++, mask <<= 1) {
-					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
+					if (sgOptions.Graphics.bOpaqueWallsWithSilhouette && *importantBuff != 0)
 						dst[i] = paletteTransparencyLookup[tbl[src[i]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
-					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
+					else if (mask & 0x80000000 || ((sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = tbl[src[i]];
-					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (sgOptions.Graphics.bOpaqueWallsWithBlobs && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[dst[i]][tbl[src[i]]];
 
-					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+					if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette)
 						importantBuff++;
 				}
 			}
