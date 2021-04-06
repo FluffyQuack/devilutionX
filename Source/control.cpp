@@ -586,8 +586,11 @@ void PrintChar(CelOutputBuffer out, int sx, int sy, int nCel, text_color col)
 				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_ADD);
 				Render_Texture(x, y, TEXTURE_SMALLFONT, frame);
 				break;
-			default: //Gold colour
+			case COL_GOLD:
 				SDL_SetTextureColorMod(tex, 255, 231, 148); //TODO: This colour should be ever so slightly darker
+				break;
+			case COL_BLACK:
+				SDL_SetTextureColorMod(tex, 0, 0, 0);
 				break;
 			}
 		}
