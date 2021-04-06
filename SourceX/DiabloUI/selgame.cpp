@@ -266,7 +266,8 @@ void selgame_Diff_Select(int value)
 		return;
 	}
 
-	//selgame_GameSpeedSelection(); //Fluffy: Skip speed selection as it doesn't make sense for high framerate support
+	//Fluffy: Skip speed selection as it doesn't make sense for high framerate support
+	//selgame_GameSpeedSelection(); 
 	nTickRate = gnTickRate;
 
 	if (provider == SELCONN_LOOPBACK) {
@@ -403,7 +404,7 @@ void selgame_Password_Init(int value)
 	vecSelGameDialog.push_back(new UiArtTextButton("CANCEL", &UiFocusNavigationEsc, rect7, UIS_CENTER | UIS_VCENTER | UIS_BIG | UIS_GOLD));
 
 	UiInitList(0, NULL, selgame_Password_Select, selgame_Password_Esc, vecSelGameDialog);
-	textInput_ReplaceNoTextWithA = true;
+	textInput_ReplaceNoTextWithA = true; //Fluffy
 }
 
 static bool IsGameCompatible(GameData *data)
@@ -458,6 +459,10 @@ void selgame_Password_Select(int value)
 	data->bRunInTown = sgOptions.Gameplay.bRunInTown;
 	data->bTheoQuest = sgOptions.Gameplay.bTheoQuest;
 	data->bCowQuest = sgOptions.Gameplay.bCowQuest;
+
+	//Fluffy
+	data->allowAttacksInTown = gameSetup_allowAttacksInTown;
+	data->safetyJog = gameSetup_safetyJog;
 
 	//Fluffy TODO: Should we make it possible to customize these for multiplayer?
 	data->gSpeedMod = nTickRate / 20;

@@ -279,7 +279,7 @@ void DrawSpellCel(CelOutputBuffer out, int xp, int yp, int nCel, int type, bool 
 	if (spellBook)
 		celData = pSBkIconCels;
 
-	CelDrawLightTo(out, xp, yp, celData, nCel, width, SplTransTbl);
+	CelDrawLightTo(out, xp, yp, celData, nCel, width, SplTransTbl); //Fluffy
 }
 
 void SetSpellTrans(char t)
@@ -367,9 +367,9 @@ static void DrawSpell(CelOutputBuffer out)
 		st = RSPLTYPE_INVALID;
 	SetSpellTrans(st);
 	if (spl != SPL_INVALID)
-		DrawSpellCel(out, PANEL_X + 565, PANEL_Y + 119, SpellITbl[spl], st, false);
+		DrawSpellCel(out, PANEL_X + 565, PANEL_Y + 119, SpellITbl[spl], st, false); //Fluffy
 	else
-		DrawSpellCel(out, PANEL_X + 565, PANEL_Y + 119, 27, st, false);
+		DrawSpellCel(out, PANEL_X + 565, PANEL_Y + 119, 27, st, false); //Fluffy
 }
 
 void DrawSpellList(CelOutputBuffer out)
@@ -411,7 +411,7 @@ void DrawSpellList(CelOutputBuffer out)
 		for (spl = 1; j < MAX_SPELLS; spl <<= 1, j++) {
 			if (!(mask & spl))
 				continue;
-			trans = i;
+			trans = i; //Fluffy
 			if (i == RSPLTYPE_SPELL) {
 				s = plr[myplr]._pISplLvlAdd + plr[myplr]._pSplLvl[j];
 				if (s < 0)
@@ -429,7 +429,7 @@ void DrawSpellList(CelOutputBuffer out)
 				SetSpellTrans(trans);
 			}
 
-			DrawSpellCel(out, x, y, SpellITbl[j], trans, false);
+			DrawSpellCel(out, x, y, SpellITbl[j], trans, false); //Fluffy
 			lx = x;
 			ly = y - SPLICONLENGTH;
 			if (MouseX >= lx && MouseX < lx + SPLICONLENGTH && MouseY >= ly && MouseY < ly + SPLICONLENGTH) {
@@ -437,7 +437,7 @@ void DrawSpellList(CelOutputBuffer out)
 				pSplType = (spell_type)i;
 				if (plr[myplr]._pClass == PC_MONK && j == SPL_SEARCH)
 					pSplType = RSPLTYPE_SKILL;
-				DrawSpellCel(out, x, y, c, trans, false);
+				DrawSpellCel(out, x, y, c, trans, false); //Fluffy
 				switch (pSplType) {
 				case RSPLTYPE_SKILL:
 					sprintf(infostr, "%s Skill", spelldata[pSpell].sSkillText);
@@ -490,8 +490,8 @@ void DrawSpellList(CelOutputBuffer out)
 				}
 				for (t = 0; t < 4; t++) {
 					if (plr[myplr]._pSplHotKey[t] == pSpell && plr[myplr]._pSplTHotKey[t] == pSplType) {
-						DrawSpellCel(out, x, y, t + SPLICONLAST + 5, trans, false);
-						sprintf(tempstr, "Spell Hot Key #F%i", t + 5);
+						DrawSpellCel(out, x, y, t + SPLICONLAST + 5, trans, false); //Fluffy
+						sprintf(tempstr, "Spell Hotkey #F%i", t + 5);
 						AddPanelString(tempstr, TRUE);
 					}
 				}
@@ -749,7 +749,6 @@ void DrawLifeFlask(CelOutputBuffer out)
 		filled = 80;
 
 	filled = 80 - filled;
-
 	if (filled > 11)
 		filled = 11;
 	filled += 2;
@@ -774,11 +773,6 @@ static void DrawFlask_SDL(int x, int startY, int texture)
 		Render_Texture_Crop(PANEL_LEFT + x, y, texture, 96, startY, 96 + 88, 88);
 }
 
-/**
- * Controls the drawing of the area of the life flask within the control panel.
- * First sets the fill amount then draws the empty flask cel portion then the filled
- * flask portion.
- */
 void UpdateLifeFlask(CelOutputBuffer out)
 {
 	if (options_hwRendering) { //Fluffy: Render via SDL
@@ -829,8 +823,6 @@ void DrawManaFlask(CelOutputBuffer out)
 	if (filled > 80)
 		filled = 80;
 	filled = 80 - filled;
-	
-
 	if (filled > 11)
 		filled = 11;
 	filled += 2;
@@ -859,6 +851,7 @@ void control_update_life_mana()
 
 void UpdateManaFlask(CelOutputBuffer out)
 {
+	int filled;
 	int maxMana = plr[myplr]._pMaxMana;
 	int mana = plr[myplr]._pMana;
 	if (maxMana < 0)
@@ -875,7 +868,7 @@ void UpdateManaFlask(CelOutputBuffer out)
 		if (talkflag)
 			texture = TEXTURE_HUDPANEL_VOICE;
 		int startY = 3; //We skip the first 3 pixels as they're not part of the flask
-		int filled = 0;
+		filled = 0;
 		if (maxMana > 0) {
 			filled = (double)mana / (double)maxMana * (88 - startY);
 		}
@@ -884,8 +877,6 @@ void UpdateManaFlask(CelOutputBuffer out)
 			DrawFlask_SDL(464, startY, options_animatedUIFlasks ? TEXTURE_MANAFLASK : texture);
 		goto spellrender;
 	}
-
-	int filled;
 
 	if (maxMana == 0)
 		filled = 0;
@@ -901,7 +892,7 @@ void UpdateManaFlask(CelOutputBuffer out)
 	if (filled != 0)
 		DrawPanelBox(out, 464, 85 - filled, 88, filled, PANEL_X + 464, PANEL_Y + 69 - filled);
 
-	spellrender:
+	spellrender: //Fluffy
 	DrawSpell(out);
 }
 
@@ -1046,10 +1037,6 @@ static void DrawCtrlButton(CelOutputBuffer out, int x, int y, BYTE *celData, int
 		CelDrawTo(out, x + PANEL_X, y + PANEL_Y, celData, frame, width);
 }
 
-/**
- * Draws the control panel buttons in their current state. If the button is in the default
- * state draw it from the panel cel(extract its sub-rect). Else draw it from the buttons cel.
- */
 void DrawCtrlBtns(CelOutputBuffer out)
 {
 	int i;
@@ -1058,11 +1045,11 @@ void DrawCtrlBtns(CelOutputBuffer out)
 		if (!panbtn[i])
 			DrawPanelBox(out, PanBtnPos[i][0], PanBtnPos[i][1] + 16, 71, 20, PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y);
 		else
-			DrawCtrlButton(out, PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS);
+			DrawCtrlButton(out, PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS); //Fluffy
 	}
 	if (numpanbtns == 8) {
-		DrawCtrlButton(out, 87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);
-		DrawCtrlButton(out, 527, 122, pMultiBtns, 33, gbFriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS);
+		DrawCtrlButton(out, 87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);                                   //Fluffy
+		DrawCtrlButton(out, 527, 122, pMultiBtns, 33, gbFriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS); //Fluffy
 	}
 }
 
@@ -2136,9 +2123,9 @@ void DrawSpellBook(CelOutputBuffer out)
 		}
 	} else {
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pSpellBkCel, 1, SPANEL_WIDTH);
-		if (gbIsHellfire && sbooktab < 5)
+		if (gbIsHellfire && sbooktab < 5) {
 			CelDrawTo(out, RIGHT_PANEL_X + 61 * sbooktab + 7, 348, pSBkBtnCel, sbooktab + 1, 61);
-		else {
+		} else {
 			// BUGFIX: rendering of page 3 and page 4 buttons are both off-by-one pixel (fixed).
 			int sx = RIGHT_PANEL_X + 76 * sbooktab + 7;
 			if (sbooktab == 2 || sbooktab == 3) {
@@ -2156,10 +2143,10 @@ void DrawSpellBook(CelOutputBuffer out)
 		if (sn != -1 && spl & GetSpellBitmask(sn)) {
 			st = GetSBookTrans(sn, TRUE);
 			SetSpellTrans(st);
-			DrawSpellCel(out, RIGHT_PANEL_X + 11, yp, SpellITbl[sn], st, true);
+			DrawSpellCel(out, RIGHT_PANEL_X + 11, yp, SpellITbl[sn], st, true); //Fluffy
 			if (sn == plr[myplr]._pRSpell && st == plr[myplr]._pRSplType) {
 				SetSpellTrans(RSPLTYPE_SKILL);
-				DrawSpellCel(out, RIGHT_PANEL_X + 11, yp, SPLICONLAST, RSPLTYPE_SKILL, true);
+				DrawSpellCel(out, RIGHT_PANEL_X + 11, yp, SPLICONLAST, RSPLTYPE_SKILL, true); //Fluffy
 			}
 			PrintSBookStr(out, 10, yp - 23, FALSE, spelldata[sn].sNameText, COL_WHITE);
 			switch (GetSBookTrans(sn, FALSE)) {

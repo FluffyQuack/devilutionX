@@ -770,10 +770,10 @@ static BOOL LeftMouseCmd(BOOL bShift)
 		else if (pcursmonst != -1)
 			NetSendCmdLocParam1(TRUE, CMD_TALKXY, cursmx, cursmy, pcursmonst);
 			
-		if ((!bShift || !gameSetup_allowAttacksInTown) && pcursitem == -1 && pcursmonst == -1 && pcursplr == -1)
+		if ((!bShift || !gameSetup_allowAttacksInTown) && pcursitem == -1 && pcursmonst == -1 && pcursplr == -1) //Fluffy
 			return TRUE;
 	} else {
-		BOOL bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
+		bNear = abs(plr[myplr]._px - cursmx) < 2 && abs(plr[myplr]._py - cursmy) < 2;
 		if (pcursitem != -1 && pcurs == CURSOR_HAND && !bShift) {
 			NetSendCmdLocParam1(TRUE, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursmx, cursmy, pcursitem);
 		} else if (pcursobj != -1 && (!bShift || (bNear && object[pcursobj]._oBreak == 1))) {
@@ -891,8 +891,8 @@ BOOL TryIconCurs()
 
 static BOOL LeftMouseDown(int wParam)
 {
-	lastLeftMouseButtonAction = MOUSEACTION_OTHER;
-	lastLeftMouseButtonTime = SDL_GetPerformanceCounter();
+	lastLeftMouseButtonAction = MOUSEACTION_OTHER; //Fluffy
+	lastLeftMouseButtonTime = SDL_GetPerformanceCounter(); //Fluffy
 	if (gmenu_left_mouse(TRUE))
 		return FALSE;
 
@@ -981,8 +981,8 @@ static void LeftMouseUp(int wParam)
 
 static void RightMouseDown()
 {
-	lastRightMouseButtonAction = MOUSEACTION_OTHER;
-	lastRightMouseButtonTime = SDL_GetPerformanceCounter();
+	lastRightMouseButtonAction = MOUSEACTION_OTHER; //Fluffy
+	lastRightMouseButtonTime = SDL_GetPerformanceCounter(); //Fluffy
 	if (!gmenu_is_active() && sgnTimeoutCurs == CURSOR_NONE && PauseMode != 2 && !plr[myplr]._pInvincible) {
 		if (doomflag) {
 			doom_close();

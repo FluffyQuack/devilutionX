@@ -239,7 +239,7 @@ static void PaletteFade(bool fadeIn)
 	}
 	while ((fadeIn && i < 256) || (!fadeIn && i > 0)) {
 		if (options_hwRendering) //Fluffy: We apply fading differently if we're doing hardware rendering
-			dx_fade = 256 - (i == 0 ? 1 : i); //Fluffy: We prevent i from being 0 in this calculation as it can range from 0 to 256 which is invalid. And speaking of which, TODO, we should double check if all of the values defined as 256 here should actually be 256. I find it weird i could ever range from 0 to 256
+			dx_fade = 256 - (i == 0 ? 1 : i); //Fluffy TODO: We should double check if all of the values defined as 256 here should actually be 256. I find it weird it could ever range from 0 to 256
 		else {
 			SetFadeLevel(i);
 			BltFast(&SrcRect, NULL);

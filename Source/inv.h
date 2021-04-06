@@ -36,6 +36,7 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
  * @brief Render the inventory panel to the given buffer.
  */
 void DrawInv(CelOutputBuffer out);
+
 void DrawInvBelt(CelOutputBuffer out);
 bool AutoEquipEnabled(const PlayerStruct &player, const ItemStruct &item);
 bool AutoEquip(int playerNumber, const ItemStruct &item, bool persistItem = true);

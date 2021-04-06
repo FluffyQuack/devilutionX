@@ -264,7 +264,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 59, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag == 0, pcursinvitem == INVITEM_HEAD, color);
+		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 59, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag == 0, pcursinvitem == INVITEM_HEAD, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_RING_LEFT].isEmpty()) {
@@ -282,7 +282,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 48, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_LEFT, color);
+		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 48, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_LEFT, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_RING_RIGHT].isEmpty()) {
@@ -300,7 +300,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 249, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_RIGHT, color);
+		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 249, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_RIGHT, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_AMULET].isEmpty()) {
@@ -318,7 +318,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 205, 60, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag == 0, pcursinvitem == INVITEM_AMULET, color);
+		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 205, 60, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag == 0, pcursinvitem == INVITEM_AMULET, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
@@ -339,7 +339,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_LEFT, color);
+		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_LEFT, color); //Fluffy
 
 		if (plr[myplr].InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND) {
 			if (plr[myplr]._pClass != PC_BARBARIAN
@@ -369,8 +369,7 @@ void DrawInv(CelOutputBuffer out)
 					const int dst_y = 160;
 					if (frame <= 179) {
 						CelClippedBlitLightTransTo(out, dst_x, dst_y, pCursCels, frame, frame_width);
-					}
-					else {
+					} else {
 						CelClippedBlitLightTransTo(out, dst_x, dst_y, pCursCels2, frame - 179, frame_width);
 					}
 				}
@@ -397,7 +396,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_RIGHT, color);
+		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_RIGHT, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_CHEST].isEmpty()) {
@@ -415,7 +414,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 160, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag == 0, pcursinvitem == INVITEM_CHEST, color);
+		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 160, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag == 0, pcursinvitem == INVITEM_CHEST, color); //Fluffy
 	}
 
 	for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
@@ -448,7 +447,7 @@ void DrawInv(CelOutputBuffer out)
 					color = ICOL_RED;
 				}
 			}
-			DrawCursorItemWrapper(out, InvRect[j + SLOTXY_INV_FIRST].X + RIGHT_PANEL_X, InvRect[j + SLOTXY_INV_FIRST].Y - 1, frame, frame_width, 0, plr[myplr].InvList[ii]._iStatFlag == 0, pcursinvitem == ii + INVITEM_INV_FIRST, color);
+			DrawCursorItemWrapper(out, InvRect[j + SLOTXY_INV_FIRST].X + RIGHT_PANEL_X, InvRect[j + SLOTXY_INV_FIRST].Y - 1, frame, frame_width, 0, plr[myplr].InvList[ii]._iStatFlag == 0, pcursinvitem == ii + INVITEM_INV_FIRST, color); //Fluffy
 		}
 	}
 }
@@ -456,7 +455,7 @@ void DrawInv(CelOutputBuffer out)
 void DrawInvBelt(CelOutputBuffer out)
 {
 	int i, frame, frame_width, color = 0;
-	bool drawOutline;
+	bool drawOutline; //Fluffy
 	BYTE fi, ff;
 
 	if (talkflag) {
@@ -485,7 +484,7 @@ void DrawInvBelt(CelOutputBuffer out)
 				drawOutline = TRUE;
 			}
 		}
-		DrawCursorItemWrapper(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color);
+		DrawCursorItemWrapper(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
 
 		if (AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
 		    && plr[myplr].SpdList[i]._iStatFlag

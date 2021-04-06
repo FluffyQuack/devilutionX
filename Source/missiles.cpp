@@ -2309,8 +2309,10 @@ void AddTeleport(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 m
 			ty = dy + CrawlTable[pn];
 			if (0 < tx && tx < MAXDUNX && 0 < ty && ty < MAXDUNY) {
 				if ((nSolidTable[dPiece[tx][ty]] | dMonster[tx][ty] | dObject[tx][ty] | dPlayer[tx][ty]) == 0) {
-					missile[mi]._misx = missile[mi]._mix = tx;
-					missile[mi]._misy = missile[mi]._miy = ty;
+					missile[mi]._mix = tx;
+					missile[mi]._miy = ty;
+					missile[mi]._misx = tx;
+					missile[mi]._misy = ty;
 					missile[mi]._miDelFlag = FALSE;
 					i = 6;
 					break;
@@ -2507,8 +2509,10 @@ void AddTown(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 					dp = dPiece[tx][ty];
 					if ((dMissile[tx][ty] | nSolidTable[dp] | nMissileTable[dp] | dObject[tx][ty] | dPlayer[tx][ty]) == 0) {
 						if (!CheckIfTrig(tx, ty)) {
-							missile[mi]._misx = missile[mi]._mix = tx;
-							missile[mi]._misy = missile[mi]._miy = ty;
+							missile[mi]._mix = tx;
+							missile[mi]._miy = ty;
+							missile[mi]._misx = tx;
+							missile[mi]._misy = ty;
 							missile[mi]._miDelFlag = FALSE;
 							j = 6;
 							break;
@@ -2521,8 +2525,10 @@ void AddTown(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 	} else {
 		tx = dx;
 		ty = dy;
-		missile[mi]._misx = missile[mi]._mix = tx;
-		missile[mi]._misy = missile[mi]._miy = ty;
+		missile[mi]._mix = tx;
+		missile[mi]._miy = ty;
+		missile[mi]._misx = tx;
+		missile[mi]._misy = ty;
 		missile[mi]._miDelFlag = FALSE;
 	}
 	missile[mi]._mirange = 100;
@@ -2634,8 +2640,10 @@ void AddGuardian(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 m
 			if (tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY) {
 				if (LineClear(sx, sy, tx, ty)) {
 					if ((dMonster[tx][ty] | nSolidTable[pn] | nMissileTable[pn] | dObject[tx][ty] | dMissile[tx][ty]) == 0) {
-						missile[mi]._misx = missile[mi]._mix = tx;
-						missile[mi]._misy = missile[mi]._miy = ty;
+						missile[mi]._mix = tx;
+						missile[mi]._miy = ty;
+						missile[mi]._misx = tx;
+						missile[mi]._misy = ty;
 						missile[mi]._miDelFlag = FALSE;
 						UseMana(id, SPL_GUARDIAN);
 						i = 6;
@@ -2868,8 +2876,10 @@ void AddStone(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midi
 	if (j != -99) {
 		missile[mi]._miDelFlag = TRUE;
 	} else {
-		missile[mi]._misx = missile[mi]._mix = tx;
-		missile[mi]._misy = missile[mi]._miy = ty;
+		missile[mi]._mix = tx;
+		missile[mi]._miy = ty;
+		missile[mi]._misx = missile[mi]._mix;
+		missile[mi]._misy = missile[mi]._miy;
 		missile[mi]._mirange = missile[mi]._mispllvl + 6;
 		missile[mi]._mirange += (missile[mi]._mirange * plr[id]._pISplDur) >> 7;
 
@@ -2927,8 +2937,10 @@ void AddDummy(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midi
 void AddBlodbur(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	missile[mi]._midam = dam;
-	missile[mi]._misx = missile[mi]._mix = sx;
-	missile[mi]._misy = missile[mi]._miy = sy;
+	missile[mi]._mix = sx;
+	missile[mi]._miy = sy;
+	missile[mi]._misx = sx;
+	missile[mi]._misy = sy;
 	missile[mi]._misource = id;
 	if (dam == 1)
 		SetMissDir(mi, 0);
@@ -2940,8 +2952,10 @@ void AddBlodbur(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 mi
 
 void AddBoom(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
-	missile[mi]._misx = missile[mi]._mix = dx;
-	missile[mi]._misy = missile[mi]._miy = dy;
+	missile[mi]._mix = dx;
+	missile[mi]._miy = dy;
+	missile[mi]._misx = dx;
+	missile[mi]._misy = dy;
 	missile[mi]._mixvel = 0;
 	missile[mi]._miyvel = 0;
 	missile[mi]._midam = dam;
@@ -3330,8 +3344,10 @@ void AddResurrect(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 
 
 void AddResurrectBeam(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
-	missile[mi]._misx = missile[mi]._mix = dx;
-	missile[mi]._misy = missile[mi]._miy = dy;
+	missile[mi]._mix = dx;
+	missile[mi]._miy = dy;
+	missile[mi]._misx = missile[mi]._mix;
+	missile[mi]._misy = missile[mi]._miy;
 	missile[mi]._mixvel = 0;
 	missile[mi]._miyvel = 0;
 	missile[mi]._mirange = misfiledata[MFILE_RESSUR1].mAnimLen[0];
@@ -3373,8 +3389,10 @@ void AddBoneSpirit(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32
 
 void AddRportal(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
-	missile[mi]._misx = missile[mi]._mix = sx;
-	missile[mi]._misy = missile[mi]._miy = sy;
+	missile[mi]._mix = sx;
+	missile[mi]._miy = sy;
+	missile[mi]._misx = sx;
+	missile[mi]._misy = sy;
 	missile[mi]._mirange = 100;
 	missile[mi]._miVar1 = 100 - missile[mi]._miAnimLen;
 	missile[mi]._miVar2 = 0;
@@ -3435,10 +3453,14 @@ int AddMissile(int sx, int sy, int dx, int dy, int midir, int mitype, char micas
 	else
 		SetMissDir(mi, midir);
 
-	missile[mi]._misx = missile[mi]._mix = sx;
-	missile[mi]._misy = missile[mi]._miy = sy;
-	missile[mi]._mitxoff = missile[mi]._mixoff = 0;
-	missile[mi]._mityoff = missile[mi]._miyoff = 0;
+	missile[mi]._mix = sx;
+	missile[mi]._miy = sy;
+	missile[mi]._mixoff = 0;
+	missile[mi]._miyoff = 0;
+	missile[mi]._misx = sx;
+	missile[mi]._misy = sy;
+	missile[mi]._mitxoff = 0;
+	missile[mi]._mityoff = 0;
 	missile[mi]._miDelFlag = FALSE;
 	missile[mi]._miAnimAdd = 1;
 	missile[mi]._miLightFlag = FALSE;
@@ -4474,7 +4496,7 @@ void MI_Lightctrl(Sint32 i)
 	int pn, dam, p, mx, my;
 
 	assert((DWORD)i < MAXMISSILES);
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	p = missile[i]._misource;
 	if (p != -1) {
@@ -4505,8 +4527,6 @@ void MI_Lightctrl(Sint32 i)
 	} else if (nMissileTable[pn]) {
 		missile[i]._mirange = 0;
 	}
-
-	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	if (newGameplayTick && !nMissileTable[pn]) { //Fluffy: We want this to be happening at 50ms intervals like the original game and not sped up thanks to gSpeedMod
 		if ((mx != missile[i]._miVar1 || my != missile[i]._miVar2) && mx > 0 && my > 0 && mx < MAXDUNX && my < MAXDUNY) {
@@ -4965,7 +4985,7 @@ void MI_Weapexp(Sint32 i)
 	CheckMissileCol(i, mind, maxd, FALSE, missile[i]._mix, missile[i]._miy, FALSE);
 
 	if (firstTick) //Fluffy: This action we only want to happen once ever (related to gSpeedMod)
-		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, ExpLight[0]);
+		missile[i]._mlid = AddLight(missile[i]._mix, missile[i]._miy, 9);
 
 	if (missile[i]._miVar1 != 0 && missile[i]._mirange != 0) {
 
@@ -5086,7 +5106,7 @@ void MI_Stone(Sint32 i)
 
 	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	m = missile[i]._miVar2;
-	if (newGameplayTick && monster[m]._mhitpoints == 0&& missile[i]._miAnimType != MFILE_SHATTER1) { //Fluffy: Only let this happen once per 50ms to match up with original code (related to gSpeedMod)
+	if (newGameplayTick && monster[m]._mhitpoints == 0 && missile[i]._miAnimType != MFILE_SHATTER1) { //Fluffy: Only let this happen once per 50ms to match up with original code (related to gSpeedMod)
 		missile[i]._mimfnum = 0;
 		missile[i]._miDrawFlag = TRUE;
 		SetMissAnim(i, MFILE_SHATTER1);
@@ -5359,8 +5379,8 @@ void MI_Nova(Sint32 i)
 		sx = missile[i]._mix;
 		sy = missile[i]._miy;
 		if (id != -1) {
-			en = TARGET_MONSTERS;
 			dir = plr[id]._pdir;
+			en = TARGET_MONSTERS;
 		} else {
 			dir = 0;
 			en = TARGET_PLAYERS;
@@ -5494,7 +5514,7 @@ void MI_Flamec(Sint32 i)
 			missile[i]._miVar3++;
 		}
 	}
-	if (missile[i]._mirange == 0|| missile[i]._miVar3 == 3)
+	if (missile[i]._mirange == 0 || missile[i]._miVar3 == 3)
 		missile[i]._miDelFlag = TRUE;
 }
 

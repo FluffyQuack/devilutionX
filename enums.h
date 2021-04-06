@@ -1883,7 +1883,7 @@ typedef enum MON_ANIM {
 	MA_GOTHIT  = 3,
 	MA_DEATH   = 4,
 	MA_SPECIAL = 5,
-	MA_NUM,
+	MA_NUM, //Fluffy
 } MON_ANIM;
 
 typedef enum spell_type {

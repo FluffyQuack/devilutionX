@@ -388,7 +388,7 @@ void UiFocusNavigationSelect()
 {
 	UiPlaySelectSound();
 	if (textInputActive) {
-		if (UiTextInput == NULL || strlen(UiTextInput) == 0) {
+		if (UiTextInput == NULL || strlen(UiTextInput) == 0) { //Fluffy: Modified this so it's valid to write no password (and it becomes 'a' behind the scenes)
 			if (UiTextInput != NULL && textInput_ReplaceNoTextWithA) {
 				UiTextInput[0] = 'a';
 				UiTextInput[1] = 0;

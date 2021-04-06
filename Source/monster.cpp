@@ -2050,7 +2050,7 @@ bool M_DoWalk(int i, int variant) //Fluffy: Merged M_DoWalk1/2/3 into one since 
 {
 	bool returnValue;
 
-	//TODO: This doesn't work right now when modifying gameplay speed
+	//Fluffy TODO: This doesn't work right now when modifying gameplay speed (is this TODO outdated and we did fix this?)
 
 	commitment((DWORD)i < MAXMONSTERS, i);
 	commitment(monster[i].MType != NULL, i);
@@ -2704,7 +2704,6 @@ void PrepDoEnding()
 
 BOOL M_DoDeath(int i)
 {
-	int var1;
 	int x, y;
 
 	commitment((DWORD)i < MAXMONSTERS, i);
@@ -2712,7 +2711,6 @@ BOOL M_DoDeath(int i)
 
 	if (monster[i].tickCount == 0) { //Fluffy: Make this happen at a 50ms interval to match it up with the original game (related to gMonsterSpeedMod)
 		monster[i]._mVar1++;
-		var1 = monster[i]._mVar1;
 		if (monster[i].MType->mtype == MT_DIABLO) {
 			x = monster[i]._mx - ViewX;
 			if (x < 0)
@@ -2729,7 +2727,7 @@ BOOL M_DoDeath(int i)
 			}
 			ViewY += y;
 
-			if (var1 == 140)
+			if (monster[i]._mVar1 == 140)
 				PrepDoEnding();
 		} else if (monster[i]._mAnimFrame == monster[i]._mAnimLen) {
 			if (monster[i]._uniqtype == 0)
@@ -2775,9 +2773,9 @@ BOOL M_DoDelay(int i)
 			monster[i]._mVar2 = 8;
 	}
 
-	bool delayFinished = 0;
+	bool delayFinished = false;
 	if (monster[i]._mVar2 == 0)
-		delayFinished = 1;
+		delayFinished = true;
 	if (monster[i].tickCount == 0) //Fluffy: Only let this happen once every 50ms (related to gMonsterSpeedMod)
 		monster[i]._mVar2--;
 
@@ -4702,7 +4700,6 @@ void ProcessMonsters()
 			SetRndSeed(Monst->_mAISeed);
 			Monst->_mAISeed = AdvanceRndSeed();
 		}
-
 		if (!(monster[mi]._mFlags & MFLAG_NOHEAL) && Monst->_mhitpoints < Monst->_mmaxhp && Monst->_mhitpoints >> 6 > 0 && Monst->tickCount == 0) { //Fluffy: Added a tickCount check so this happens at 50ms intervals like the original game (related to gMonsterSpeedMod)
 			if (Monst->mLevel > 1) {
 				Monst->_mhitpoints += Monst->mLevel >> 1;
@@ -4744,7 +4741,6 @@ void ProcessMonsters()
 			assurance((DWORD)_menemy < MAX_PLRS, _menemy);
 			Monst->_menemyx = plr[Monst->_menemy]._pfutx;
 			Monst->_menemyy = plr[Monst->_menemy]._pfuty;
-
 			if (dFlags[mx][my] & BFLAG_VISIBLE) {
 				Monst->_msquelch = UCHAR_MAX;
 				Monst->_lastx = plr[Monst->_menemy]._pfutx;

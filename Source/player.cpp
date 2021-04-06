@@ -572,7 +572,7 @@ void SetPlrAnims(int pnum)
 	gn = plr[pnum]._pgfxnum & 0xF;
 	if (pc == PC_WARRIOR) {
 		if (gn == ANIM_ID_BOW) {
-			/*if (leveltype != DTYPE_TOWN)*/ {
+			/*if (leveltype != DTYPE_TOWN)*/ { //Fluffy: Commented this out since we can attack in town
 				plr[pnum]._pNFrames = 8;
 			}
 			plr[pnum]._pAWidth = 96;
@@ -1230,7 +1230,7 @@ void FixPlayerLocation(int pnum, direction bDir)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo.pxoffDiff = 0;
+		ScrollInfo.pxoffDiff = 0; //Fluffy
 		ScrollInfo.pyoffDiff = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
@@ -1297,7 +1297,7 @@ void StartWalkStand(int pnum)
 	if (pnum == myplr) {
 		ScrollInfo._sxoff = 0;
 		ScrollInfo._syoff = 0;
-		ScrollInfo.pxoffDiff = 0;
+		ScrollInfo.pxoffDiff = 0; //Fluffy
 		ScrollInfo.pyoffDiff = 0;
 		ScrollInfo._sdir = SDIR_NONE;
 		ViewX = plr[pnum]._px;
@@ -1445,9 +1445,10 @@ void StartWalk(int pnum, int xvel, int yvel, int xoff, int yoff, int xadd, int y
 		plr[pnum]._pyoff = 0;
 		plr[pnum]._pVar1 = xadd;
 		plr[pnum]._pVar2 = yadd;
+		plr[pnum]._pVar3 = EndDir;
+
 		plr[pnum]._pVar6 = 0;
 		plr[pnum]._pVar7 = 0;
-		plr[pnum]._pVar3 = EndDir;
 		break;
 	case PM_WALK2:
 		dPlayer[plr[pnum]._px][plr[pnum]._py] = -(pnum + 1);
@@ -2331,7 +2332,6 @@ bool PM_DoWalk(int pnum, int variant)
 				DoUnVision(plr[pnum]._px, plr[pnum]._py, plr[pnum]._pLightRad); // fix for incorrect vision updating
 			plr[pnum]._px += plr[pnum]._pVar1;
 			plr[pnum]._py += plr[pnum]._pVar2;
-
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 			break;
 		case PM_WALK2:
@@ -2344,7 +2344,6 @@ bool PM_DoWalk(int pnum, int variant)
 			dFlags[plr[pnum]._pVar4][plr[pnum]._pVar5] &= ~BFLAG_PLAYERLR;
 			plr[pnum]._px = plr[pnum]._pVar1;
 			plr[pnum]._py = plr[pnum]._pVar2;
-
 			dPlayer[plr[pnum]._px][plr[pnum]._py] = pnum + 1;
 			break;
 		}
@@ -4095,7 +4094,7 @@ void SyncPlrAnim(int pnum) //Fluffy: This is called when setting up the state of
 	case PM_WALK:
 	case PM_WALK2:
 	case PM_WALK3:
-		if (leveltype == DTYPE_TOWN)
+		if (leveltype == DTYPE_TOWN) //Fluffy
 			plr[pnum]._pAnimData = plr[pnum]._pWAnim_c[dir];
 		else
 			plr[pnum]._pAnimData = plr[pnum]._pWAnim[dir];

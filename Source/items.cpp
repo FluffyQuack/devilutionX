@@ -1061,13 +1061,13 @@ void CalcPlrItemVals(int p, BOOL Loadgfx)
 	if (plr[p]._pgfxnum != g && Loadgfx) {
 		plr[p]._pgfxnum = g;
 		plr[p]._pGFXLoad = 0;
-		SetPlrAnims(p);
 		LoadPlrGFX(p, PFILE_STAND);
 		LoadPlrGFX(p, PFILE_STAND_CASUAL); //Fluffy: Load casual stand animation
+		SetPlrAnims(p);
 
 		d = plr[p]._pdir;
 
-		if (leveltype == DTYPE_TOWN)
+		if (leveltype == DTYPE_TOWN) //Fluffy: Default to casual animation in town
 		{
 			assert(plr[p]._pNAnim_c[d]);
 			plr[p]._pAnimData = plr[p]._pNAnim_c[d];

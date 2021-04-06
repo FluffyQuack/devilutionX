@@ -253,7 +253,7 @@ void CheckCursMove()
 	sy -= ScrollInfo._syoff - yo;
 
 	// Predict the next frame when walking to avoid input jitter
-	fx = plr[myplr]._pxoff;
+	fx = plr[myplr]._pxoff; //Fluffy TODO: Are we doing the calculation correctly here? DevX does this a bit differently
 	fy = plr[myplr]._pyoff;
 	fx -= plr[myplr]._pxoff + (plr[myplr]._pxvel / 256);
 	fy -= plr[myplr]._pyoff + (plr[myplr]._pyvel / 256);

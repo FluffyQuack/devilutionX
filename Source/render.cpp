@@ -21,7 +21,7 @@ enum {
 	RT_LTRIANGLE,
 	RT_RTRIANGLE,
 	RT_LTRAPEZOID,
-	RT_RTRAPEZOID,
+	RT_RTRAPEZOID
 };
 
 /** Fully transparent variant of WallMask. */
@@ -685,6 +685,7 @@ void RenderTile(CelOutputBuffer out, int x, int y)
 
 	// The mask defines what parts of the tile is opaque
 	mask = &SolidMask[TILE_HEIGHT - 1];
+
 	if (cel_transparency_active) {
 		if (arch_draw_type == 0) {
 			if (sgOptions.Graphics.bBlendedTransparancy) // Use a fully transparent mask

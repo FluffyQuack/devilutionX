@@ -238,7 +238,7 @@ typedef struct PlayerStruct {
 	Uint8 *_pHData;
 	Uint8 *_pDData;
 	Uint8 *_pBData;
-	Uint8 *_pNData_c;         //Fluffy: Standing casually
+	Uint8 *_pNData_c; //Fluffy: Standing casually
 	Uint8 *_pWData_c; //Fluffy: Walking casually
 
 	/**
