@@ -76,6 +76,9 @@ void DrawMonsterHealthBar(CelOutputBuffer out)
 {
 	if (!sgOptions.Gameplay.bEnemyHealthBar)
 		return;
+
+	//Fluffy TODO: Render this in Hardware
+
 	assert(qolArt != nullptr);
 	assert(qolArt->healthBox.surface != nullptr);
 	assert(qolArt->health.surface != nullptr);
@@ -154,6 +157,8 @@ void DrawXPBar(CelOutputBuffer out)
 {
 	if (!sgOptions.Gameplay.bExperienceBar)
 		return;
+
+	//Fluffy TODO: Render this in Hardware
 
 	int barWidth = 306;
 	int barHeight = 5;
