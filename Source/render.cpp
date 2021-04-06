@@ -406,14 +406,14 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 		assert(n != 0 && n <= sizeof(DWORD) * CHAR_BIT);
 		mask &= DWORD(-1) << ((sizeof(DWORD) * CHAR_BIT) - n);
 
-		if (sgOptions.Graphics.bBlendedTransparancy) { // Blended transparancy
+		if (sgOptions.Graphics.bBlendedTransparancy || options_opaqueWallsWithSilhouette || options_opaqueWallsWithBlobs) { // Blended transparancy
 			if (light_table_index == lightmax) {       // Complete darkness
 				for (int i = 0; i < n; i++, mask <<= 1) {
 					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
 						dst[i] = paletteTransparencyLookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = 0;
-					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[0][dst[i]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
@@ -425,7 +425,7 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 						dst[i] = paletteTransparencyLookup[src[i]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = src[i];
-					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[dst[i]][src[i]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
@@ -437,7 +437,7 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 						dst[i] = paletteTransparencyLookup[tbl[src[i]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
 						dst[i] = tbl[src[i]];
-					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
+					else if (sgOptions.Graphics.bBlendedTransparancy || (options_opaqueWallsWithBlobs && *importantBuff == 1))
 						dst[i] = paletteTransparencyLookup[dst[i]][tbl[src[i]]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
