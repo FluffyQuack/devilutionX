@@ -7,6 +7,7 @@
 #include "textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
 #include "render/lightmap.h" //Fluffy: For lightmap generation
+#include "options.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -2079,7 +2080,7 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
 			RenderDebugLine(out, &x, &y, String);
 
-			if (options_initHwRendering) {
+			if (sgOptions.Graphics.bInitHwRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
 				else if (totalTextureSize < (1 << 20) * 10)

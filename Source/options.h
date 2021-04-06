@@ -8,11 +8,6 @@ DEVILUTION_BEGIN_NAMESPACE
 extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
 extern BOOL options_opaqueWallsWithSilhouette;
-extern BOOL options_initHwRendering;
-extern BOOL options_initLightmapping;
-extern BOOL options_hwRendering;
-extern BOOL options_lightmapping;
-extern BOOL options_animatedUIFlasks;
 
 */
 
@@ -65,6 +60,9 @@ struct GraphicsOptions {
 	/** @brief Enable FPS Limit. */
 	bool bFPSLimit;
 
+	bool bInitHwRendering; //Fluffy
+	bool bInitLightmapping; //Fluffy
+	bool bAnimatedUIFlasks; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 	bool bDurabilityIconGradualChange; //Fluffy
 	Sint32 nDurabilityIconGold;        //Fluffy
 	Sint32 nDurabilityIconRed;         //Fluffy

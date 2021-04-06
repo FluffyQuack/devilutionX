@@ -3286,7 +3286,7 @@ void FreeItemGFX()
 		MemFreeDbg(itemanims[i]);
 	}
 
-	if (options_initHwRendering) { //Fluffy: Unload item SDL textures
+	if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Unload item SDL textures
 		for (int i = TEXTURE_ITEMS; i <= TEXTURE_ITEMS_LAST; i++)
 			Texture_UnloadTexture(i);
 	}

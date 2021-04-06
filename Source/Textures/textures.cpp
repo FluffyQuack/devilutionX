@@ -4,6 +4,7 @@
 #include "textures.h"
 #include "../render/lightmap.h"
 #include <sdl_image.h>
+#include "../options.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -152,11 +153,11 @@ void Textures_Init()
 
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
-	if (!options_initHwRendering)
+	if (!sgOptions.Graphics.bInitHwRendering)
 		return;
 
 	//Load textures
-	if (options_animatedUIFlasks) {
+	if (sgOptions.Graphics.bAnimatedUIFlasks) {
 		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
 		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
@@ -167,7 +168,7 @@ void Textures_Init()
 	LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
 	LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
 	LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
-	if (options_initLightmapping) {
+	if (sgOptions.Graphics.bInitLightmapping) {
 		LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
 		LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
 		LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
@@ -183,7 +184,7 @@ void Textures_Init()
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK].frames[0].frame, blendMode);
 	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
 
-	if (options_initLightmapping) {
+	if (sgOptions.Graphics.bInitLightmapping) {
 		LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
 		LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
 		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD); //Basically normal blending
@@ -199,7 +200,7 @@ void Textures_Init()
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, gnScreenWidth, gnScreenHeight, true);
 
-	if (options_initLightmapping) {
+	if (sgOptions.Graphics.bInitLightmapping) {
 		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, gnScreenWidth + LIGHTMAP_APPEND_X, gnScreenHeight + LIGHTMAP_APPEND_Y, true);
 		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
 		lightmap_imgData = new unsigned char[(gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4];

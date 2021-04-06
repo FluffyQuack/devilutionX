@@ -269,7 +269,7 @@ void InitObjectGFX()
 				sprintf(filestr, "Objects\\%s.CEL", ObjCryptLoadList[i]);
 			pObjCels[numobjfiles] = LoadFileInMem(filestr, NULL);
 
-			if (options_initHwRendering) { //Fluffy: Load CEL as SDL texture
+			if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Load CEL as SDL texture
 				LoadObjectAsTexture(numobjfiles, i);
 			}
 
@@ -287,7 +287,7 @@ void FreeObjectGFX()
 	}
 	numobjfiles = 0;
 
-	if (options_initHwRendering) { //Fluffy: Unload object SDL textures
+	if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Unload object SDL textures
 		for (int i = TEXTURE_OBJECTS; i <= TEXTURE_OBJECTS_LAST; i++)
 			Texture_UnloadTexture(i);
 	}
@@ -1174,7 +1174,7 @@ void SetMapObjects(BYTE *pMap, int startx, int starty)
 		sprintf(filestr, "Objects\\%s.CEL", ObjMasterLoadList[i]);
 		pObjCels[numobjfiles] = LoadFileInMem(filestr, NULL);
 
-		if (options_initHwRendering) { //Fluffy: Load as SDL textures
+		if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Load as SDL textures
 			LoadObjectAsTexture(numobjfiles, i);
 		}
 

@@ -122,8 +122,11 @@
 #define SCREEN_BPP		32
 #endif
 
+//Fluffy TODO: Almost all references to BUFFER_BORDER_LEFT and BUFFER_BORDER_TOP should be removed so HW rendering works correctly
 #define BUFFER_BORDER_LEFT		64
 #define BUFFER_BORDER_TOP		160
+//#define BUFFER_BORDER_LEFT 0
+//#define BUFFER_BORDER_TOP		0
 #define BUFFER_BORDER_RIGHT	dvl::borderRight
 #define BUFFER_BORDER_BOTTOM	16
 

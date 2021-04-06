@@ -98,16 +98,13 @@ BOOL gameSetup_safetyJog = false; //Fluffy: If true, player will jog whenever it
 BOOL options_opaqueWallsUnlessObscuring = false; //Fluffy: If true, walls are always opaque unless there's something important nearby
 BOOL options_opaqueWallsWithBlobs = false; //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 BOOL options_opaqueWallsWithSilhouette = false; //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
-BOOL options_initHwRendering = false;           //Fluffy: If true, we'll load and unload textures needed for SDL rendering
 BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
-BOOL options_initLightmapping = false;
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
-BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
-
 int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
 int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
 unsigned long long lastLeftMouseButtonTime = 0;
 unsigned long long lastRightMouseButtonTime = 0;
+
 
 /* rdata */
 
@@ -284,11 +281,11 @@ void FreeGameMem()
 	FreeMonsterSnd();
 	FreeTownerGFX();
 
-	if (options_initLightmapping) //Fluffy: Unload lighting information for subtiles
+	if (sgOptions.Graphics.bInitLightmapping) //Fluffy: Unload lighting information for subtiles
 		Lightmap_UnloadSubtileData();
 
 	//Fluffy: Also delete equivalent SDL textures
-	if (options_initHwRendering) {
+	if (sgOptions.Graphics.bInitHwRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
 
@@ -326,7 +323,7 @@ static void start_game(interface_mode uMsg)
 	track_repeat_walk(FALSE);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_initHwRendering) {
+	if (sgOptions.Graphics.bInitHwRendering) {
 		//Cursors
 		if (!textures[TEXTURE_CURSOR].loaded) {
 			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
@@ -529,6 +526,9 @@ static void SaveOptions()
 	setIniInt("Graphics", "FPS Limiter", sgOptions.Graphics.bFPSLimit);
 
 	//Fluffy
+	setIniInt("Graphics", "Hardware Rendering", sgOptions.Graphics.bInitHwRendering);
+	setIniInt("Graphics", "Lightmapping", sgOptions.Graphics.bInitLightmapping);
+	setIniInt("Graphics", "Animated UI Flasks", sgOptions.Graphics.bAnimatedUIFlasks);
 	setIniInt("Graphics", "Durability Icon Gradual Change", sgOptions.Graphics.bDurabilityIconGradualChange);
 	setIniInt("Graphics", "Durability Icon Gold Value", sgOptions.Graphics.nDurabilityIconGold);
 	setIniInt("Graphics", "Durability Icon Red Value", sgOptions.Graphics.nDurabilityIconRed);
@@ -613,9 +613,16 @@ static void LoadOptions()
 	sgOptions.Graphics.bFPSLimit = getIniBool("Graphics", "FPS Limiter", true);
 
 	//Fluffy
+	sgOptions.Graphics.bInitHwRendering = getIniBool("Graphics", "Hardware Rendering", true);
+	sgOptions.Graphics.bInitLightmapping = getIniBool("Graphics", "Lightmapping", true);
+	sgOptions.Graphics.bAnimatedUIFlasks = getIniBool("Graphics", "Animated UI Flasks", true);
 	sgOptions.Graphics.bDurabilityIconGradualChange = getIniBool("Graphics", "Durability Icon Gradual Change", true);
 	sgOptions.Graphics.nDurabilityIconGold = getIniInt("Graphics", "Durability Icon Gold Value", 5);
 	sgOptions.Graphics.nDurabilityIconRed = getIniInt("Graphics", "Durability Icon Red Value", 2);
+
+	//Fluffy TODO
+	//options_hwRendering = options_initHwRendering;
+	//options_lightmapping = options_initLightmapping;
 
 	sgOptions.Gameplay.nTickRate = getIniInt("Game", "Speed", 20);
 	sgOptions.Gameplay.bRunInTown = getIniBool("Game", "Run in Town", false);
@@ -1667,11 +1674,11 @@ static void PressChar(WPARAM vkey)
 		return;
 #endif
 	case 'h': //Fluffy: Toggle between normal and SDL rendering
-		if (options_initHwRendering)
+		if (sgOptions.Graphics.bInitHwRendering)
 			options_hwRendering = !options_hwRendering;
 		return;
 	case 'j': //Fluffy: Toggle between normal and lightmap lighting
-		if (options_initLightmapping)
+		if (sgOptions.Graphics.bInitLightmapping)
 			options_lightmapping = !options_lightmapping;
 		return;
 	}
@@ -2145,7 +2152,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		IncProgress();
 	}
 
-	if (options_initLightmapping) //Fluffy: Load subtile data
+	if (sgOptions.Graphics.bInitLightmapping) //Fluffy: Load subtile data
 		Lightmap_LoadSubtileData();
 
 	SyncPortals();
@@ -2200,7 +2207,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		PlaySFX(USFX_SKING1);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (options_initHwRendering) { 
+	if (sgOptions.Graphics.bInitHwRendering) { 
 		if (firstflag) {
 			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
 			LoadQuestDialogueTextures();

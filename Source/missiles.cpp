@@ -7,6 +7,7 @@
 #include "misc/misc.h" //For MI_MissExp() and a few other functions
 #include "textures/textures.h" //Fluffy: For loading CELs as SDL textures
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "options.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -1240,13 +1241,13 @@ void LoadMissileGFX(BYTE mi)
 		for (i = 0; i < mfd->mAnimFAmt; i++)
 			mfd->mAnimData[i] = CelGetFrameStart(file, i);
 
-		if (options_initHwRendering) //Fluffy: Load as SDL texture
+		if (sgOptions.Graphics.bInitHwRendering) //Fluffy: Load as SDL texture
 			Texture_ConvertCL2_MultipleFrames(file, TEXTURE_MISSILES + (16 * mi));
 	} else if (mfd->mAnimFAmt == 1) {
 		sprintf(pszName, "Missiles\\%s.CL2", mfd->mName);
 		if (!mfd->mAnimData[0]) {
 			mfd->mAnimData[0] = LoadFileInMem(pszName, NULL);
-			if (options_initHwRendering) { //Fluffy: Load as SDL texture
+			if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Load as SDL texture
 				Texture_ConvertCL2_MultipleFrames(mfd->mAnimData[0], TEXTURE_MISSILES + (16 * mi));
 			}
 		}
@@ -1256,7 +1257,7 @@ void LoadMissileGFX(BYTE mi)
 			if (!mfd->mAnimData[i]) {
 				file = LoadFileInMem(pszName, NULL);
 				mfd->mAnimData[i] = file;
-				if (options_initHwRendering) //Fluffy: Load as SDL texture
+				if (sgOptions.Graphics.bInitHwRendering) //Fluffy: Load as SDL texture
 					Texture_ConvertCL2_MultipleFrames(file, TEXTURE_MISSILES + (16 * mi) + i);
 			}
 		}
@@ -1297,7 +1298,7 @@ void FreeMissileGFX(int mi)
 	}
 
 	//Fluffy: Free missile SDL textures
-	if (options_initHwRendering) {
+	if (sgOptions.Graphics.bInitHwRendering) {
 		for (i = TEXTURE_MISSILES; i <= TEXTURE_MISSILES_LAST; i++)
 			Texture_UnloadTexture(i);
 	}

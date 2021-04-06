@@ -762,7 +762,7 @@ void DrawLifeFlask(CelOutputBuffer out)
 static void DrawFlask_SDL(int x, int startY, int texture)
 {
 	int y = PANEL_TOP - 16 + startY;
-	if (options_animatedUIFlasks) {
+	if (sgOptions.Graphics.bAnimatedUIFlasks) {
 		Render_Texture_Crop(PANEL_LEFT + x, y, texture, -1, startY, -1, -1, gameplayTickCount % 48);
 		if (gameplayTickCount_progress != 0) {
 			int frameNum = (gameplayTickCount + 1) % 48;
@@ -791,7 +791,7 @@ void UpdateLifeFlask(CelOutputBuffer out)
 		}
 		startY += (88 - startY) - (int)filled;
 		if (startY < 88)
-			DrawFlask_SDL(96, startY, options_animatedUIFlasks ? TEXTURE_HEALTHFLASK : texture);
+			DrawFlask_SDL(96, startY, sgOptions.Graphics.bAnimatedUIFlasks ? TEXTURE_HEALTHFLASK : texture);
 		return;
 	}
 
@@ -875,7 +875,7 @@ void UpdateManaFlask(CelOutputBuffer out)
 		}
 		startY += (88 - startY) - (int)filled;
 		if (startY < 88)
-			DrawFlask_SDL(464, startY, options_animatedUIFlasks ? TEXTURE_MANAFLASK : texture);
+			DrawFlask_SDL(464, startY, sgOptions.Graphics.bAnimatedUIFlasks ? TEXTURE_MANAFLASK : texture);
 		goto spellrender;
 	}
 
@@ -976,7 +976,7 @@ void InitControlPan()
 	initialDropGoldValue = 0;
 	initialDropGoldIndex = 0;
 
-	if (options_initHwRendering) { //Fluffy: Load the above CELs as SDL textures
+	if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Load the above CELs as SDL textures
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
 		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
 		int charButWidths[9] = { 95, 41, 41, 41, 41, 41, 41, 41, 41 };
