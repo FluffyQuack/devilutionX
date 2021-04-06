@@ -53,27 +53,6 @@ static BOOL mainmenu_init_menu(int type)
 static BOOL mainmenu_single_player()
 {
 	gbIsMultiplayer = false;
-
-	gbRunInTown = sgOptions.Gameplay.bRunInTown;
-	gnTickRate = sgOptions.Gameplay.nTickRate;
-	gbTheoQuest = sgOptions.Gameplay.bTheoQuest;
-	gbCowQuest = sgOptions.Gameplay.bCowQuest;
-
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / sgOptions.Gameplay.nTickRate; //Fluffy (this also gets set when initializing multiplayer) TODO: Do we need this here? This gets run in network which also gets run in singleplayer mode
-	//Fluffy TODO: Are we handling these correctly for multiplayer?
-	//Fluffy: Define game speed based on tick rate (tickrate should be a multiple of 20)
-	
-	gSpeedMod = gnTickRate / 20;
-	gMonsterSpeedMod = gnTickRate / 20;
-	if (gSpeedMod < 1)
-		gSpeedMod = 1;
-	if (gMonsterSpeedMod < 1)
-		gMonsterSpeedMod = 1;
-
-	//Fluffy: Load other gameplay-changing variables from config array
-	gameSetup_allowAttacksInTown = sgOptions.Gameplay.bAllowAttacksInTown;
-	gameSetup_safetyJog = sgOptions.Gameplay.bSafetyJog;
-
 	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
 }
 
