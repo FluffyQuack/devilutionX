@@ -283,7 +283,7 @@ add_library(devilution STATIC
   Source/track.cpp
   Source/trigs.cpp
   Source/Misc/misc.cpp
-  Source/Misc/config.cpp
+  
   Source/IO/fluffy-savegame.cpp
   Source/textures/textures.cpp
   Source/textures/cel-convert.cpp
