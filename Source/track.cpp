@@ -4,6 +4,7 @@
  * Implementation of functionality tracking what the mouse cursor is pointing at.
  */
 #include "all.h"
+#include "options.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -57,7 +58,7 @@ static bool RepeatRightMouseAction() //Fluffy
 
 void track_process()
 {
-	if (options_holdToAttack) { //Fluffy
+	if (sgOptions.Gameplay.bHoldToAttack) { //Fluffy
 		if (RepeatLeftMouseAttackAction())
 			return;
 

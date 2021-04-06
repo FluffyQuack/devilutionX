@@ -3955,8 +3955,8 @@ void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 	}
 
 	rspell = plr[myplr]._pRSpell;
-	if (rspell == SPL_INVALID && options_noEquippedSpellIsAttack) { //Fluffy: If no spell is selected, then default to an attack
-		if (gameSetup_allowAttacksInTown || leveltype != DTYPE_TOWN) {
+	if (rspell == SPL_INVALID) {
+		if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && (gameSetup_allowAttacksInTown || leveltype != DTYPE_TOWN)) { //Fluffy: If no spell is selected, then default to an attack
 			if(plr[myplr]._pwtype == WT_RANGED)
 				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
 			else

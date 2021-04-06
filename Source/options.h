@@ -4,8 +4,7 @@ DEVILUTION_BEGIN_NAMESPACE
 
 /*
 * Fluffy TODO: Add these:
-extern BOOL gameSetup_allowAttacksInTown;
-extern BOOL gameSetup_safetyJog;
+
 extern BOOL options_opaqueWallsUnlessObscuring;
 extern BOOL options_opaqueWallsWithBlobs;
 extern BOOL options_opaqueWallsWithSilhouette;
@@ -14,11 +13,7 @@ extern BOOL options_initLightmapping;
 extern BOOL options_hwRendering;
 extern BOOL options_lightmapping;
 extern BOOL options_animatedUIFlasks;
-extern BOOL options_durabilityIconGradualChange;
-extern int options_durabilityIconGold;
-extern int options_durabilityIconRed;
-extern BOOL options_noEquippedSpellIsAttack;
-extern BOOL options_holdToAttack;
+
 */
 
 struct DiabloOptions {
@@ -69,6 +64,10 @@ struct GraphicsOptions {
 	bool bColorCycling;
 	/** @brief Enable FPS Limit. */
 	bool bFPSLimit;
+
+	bool bDurabilityIconGradualChange; //Fluffy
+	Sint32 nDurabilityIconGold;        //Fluffy
+	Sint32 nDurabilityIconRed;         //Fluffy
 };
 
 struct GameplayOptions {
@@ -110,6 +109,11 @@ struct GameplayOptions {
 	bool bRandomizeQuests;
 	/** @brief Indicates whether or not monster type (Animal, Demon, Undead) is shown along with other monster information. */
 	bool bShowMonsterType;
+
+	bool bAllowAttacksInTown; //Fluffy: This needs to be in sync between network players
+	bool bSafetyJog; //Fluffy: This needs to be in sync between network players
+	bool bNoEquippedSpellIsAttack; //Fluffy
+	bool bHoldToAttack; //Fluffy
 };
 
 struct ControllerOptions {

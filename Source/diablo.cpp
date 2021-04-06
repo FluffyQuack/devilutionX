@@ -103,11 +103,6 @@ BOOL options_hwRendering = false;               //Fluffy: If true, we render eve
 BOOL options_initLightmapping = false;
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 BOOL options_animatedUIFlasks = false; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
-BOOL options_durabilityIconGradualChange = true;
-int options_durabilityIconGold = 8;
-int options_durabilityIconRed = 1;
-BOOL options_noEquippedSpellIsAttack = true;
-BOOL options_holdToAttack = true;
 
 int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
 int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
@@ -533,6 +528,11 @@ static void SaveOptions()
 	setIniInt("Graphics", "Color Cycling", sgOptions.Graphics.bColorCycling);
 	setIniInt("Graphics", "FPS Limiter", sgOptions.Graphics.bFPSLimit);
 
+	//Fluffy
+	setIniInt("Graphics", "Durability Icon Gradual Change", sgOptions.Graphics.bDurabilityIconGradualChange);
+	setIniInt("Graphics", "Durability Icon Gold Value", sgOptions.Graphics.nDurabilityIconGold);
+	setIniInt("Graphics", "Durability Icon Red Value", sgOptions.Graphics.nDurabilityIconRed);
+
 	setIniInt("Game", "Speed", sgOptions.Gameplay.nTickRate);
 	setIniInt("Game", "Run in Town", sgOptions.Gameplay.bRunInTown);
 	setIniInt("Game", "Grab Input", sgOptions.Gameplay.bGrabInput);
@@ -552,6 +552,12 @@ static void SaveOptions()
 	setIniInt("Game", "Auto Equip Jewelry", sgOptions.Gameplay.bAutoEquipJewelry);
 	setIniInt("Game", "Randomize Quests", sgOptions.Gameplay.bRandomizeQuests);
 	setIniInt("Game", "Show Monster Type", sgOptions.Gameplay.bShowMonsterType);
+
+	//Fluffy
+	setIniInt("Game", "Allow Attacks In Town", sgOptions.Gameplay.bAllowAttacksInTown);
+	setIniInt("Game", "Jog When Safe", sgOptions.Gameplay.bSafetyJog);
+	setIniInt("Game", "No Equipped Spell Is Attack", sgOptions.Gameplay.bNoEquippedSpellIsAttack);
+	setIniInt("Game", "Hold To Attack", sgOptions.Gameplay.bHoldToAttack);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -606,6 +612,11 @@ static void LoadOptions()
 	sgOptions.Graphics.bColorCycling = getIniBool("Graphics", "Color Cycling", true);
 	sgOptions.Graphics.bFPSLimit = getIniBool("Graphics", "FPS Limiter", true);
 
+	//Fluffy
+	sgOptions.Graphics.bDurabilityIconGradualChange = getIniBool("Graphics", "Durability Icon Gradual Change", true);
+	sgOptions.Graphics.nDurabilityIconGold = getIniInt("Graphics", "Durability Icon Gold Value", 5);
+	sgOptions.Graphics.nDurabilityIconRed = getIniInt("Graphics", "Durability Icon Red Value", 2);
+
 	sgOptions.Gameplay.nTickRate = getIniInt("Game", "Speed", 20);
 	sgOptions.Gameplay.bRunInTown = getIniBool("Game", "Run in Town", false);
 	sgOptions.Gameplay.bGrabInput = getIniBool("Game", "Grab Input", false);
@@ -625,6 +636,12 @@ static void LoadOptions()
 	sgOptions.Gameplay.bAutoEquipJewelry = getIniBool("Game", "Auto Equip Jewelry", false);
 	sgOptions.Gameplay.bRandomizeQuests = getIniBool("Game", "Randomize Quests", true);
 	sgOptions.Gameplay.bShowMonsterType = getIniBool("Game", "Show Monster Type", false);
+
+	//Fluffy
+	sgOptions.Gameplay.bAllowAttacksInTown = getIniBool("Game", "Allow Attacks In Town", true);
+	sgOptions.Gameplay.bSafetyJog = getIniBool("Game", "Jog When Safe", true);
+	sgOptions.Gameplay.bNoEquippedSpellIsAttack = getIniBool("Game", "No Equipped Spell Is Attack", true);
+	sgOptions.Gameplay.bHoldToAttack = getIniBool("Game", "Hold To Attack", true);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);
@@ -993,7 +1010,7 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (options_noEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
+					if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
 						ClearReadiedSpell(plr[myplr]);
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
 						CheckPlrSpell(true);

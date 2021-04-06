@@ -66,11 +66,6 @@ extern BOOL options_initLightmapping;
 extern BOOL options_hwRendering;
 extern BOOL options_lightmapping;
 extern BOOL options_animatedUIFlasks;
-extern BOOL options_durabilityIconGradualChange;
-extern int options_durabilityIconGold;
-extern int options_durabilityIconRed;
-extern BOOL options_noEquippedSpellIsAttack;
-extern BOOL options_holdToAttack;
 
 extern int lastLeftMouseButtonAction;
 extern int lastRightMouseButtonAction;

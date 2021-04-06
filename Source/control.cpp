@@ -7,6 +7,7 @@
 #include "textures/textures.h" //Fluffy: For accessing SDL textures
 #include "render/sdl-render.h" //Fluffy: For rendering via SDL
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
+#include "options.h" //Fluffy
 
 #include <cstddef>
 
@@ -1919,7 +1920,7 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 {
 	if (pItem->isEmpty())
 		return x;
-	if (pItem->_iDurability > options_durabilityIconGold)
+	if (pItem->_iDurability > sgOptions.Graphics.nDurabilityIconGold)
 		return x;
 	if (c == 0) {
 		switch (pItem->_itype) {
@@ -1949,18 +1950,18 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 	//Fluffy: Calculate how much of the icon should be gold and red
 	int height = 32;
 	//int max = (pItem->_iMaxDur > options_durabilityIconGold ? options_durabilityIconGold : pItem->_iMaxDur) - options_durabilityIconRed;
-	int max = options_durabilityIconGold - options_durabilityIconRed;
+	int max = sgOptions.Graphics.nDurabilityIconGold - sgOptions.Graphics.nDurabilityIconRed;
 	int amount;
-	if (!options_durabilityIconGradualChange) {
-		if (pItem->_iDurability <= options_durabilityIconRed)
+	if (!sgOptions.Graphics.bDurabilityIconGradualChange) {
+		if (pItem->_iDurability <= sgOptions.Graphics.nDurabilityIconRed)
 			amount = 0;
 		else
 			amount = height;
 	} else {
-		if (pItem->_iDurability <= options_durabilityIconRed || max <= 0)
+		if (pItem->_iDurability <= sgOptions.Graphics.nDurabilityIconRed || max <= 0)
 			amount = 0;
 		else {
-			int cur = pItem->_iDurability - options_durabilityIconRed;
+			int cur = pItem->_iDurability - sgOptions.Graphics.nDurabilityIconRed;
 			amount = (height * cur) / max;
 		}
 	}

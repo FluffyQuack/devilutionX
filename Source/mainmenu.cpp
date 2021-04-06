@@ -60,7 +60,18 @@ static BOOL mainmenu_single_player()
 	gbTheoQuest = sgOptions.Gameplay.bTheoQuest;
 	gbCowQuest = sgOptions.Gameplay.bCowQuest;
 
-	LoadOptionsFromConfig(); //Fluffy: In case we are changing from multiplayer to singleplayer, we re-read various options from config here //Fluffy TODO Merge: this should get deleted probably
+	//Fluffy TODO: Are we handling these correctly for multiplayer?
+	//Fluffy: Define game speed based on tick rate (tickrate should be a multiple of 20) 
+	gSpeedMod = gnTickRate / 20;
+	gMonsterSpeedMod = gnTickRate / 20;
+	if (gSpeedMod < 1)
+		gSpeedMod = 1;
+	if (gMonsterSpeedMod < 1)
+		gMonsterSpeedMod = 1;
+
+	//Fluffy: Load other gameplay-changing variables from config array
+	gameSetup_allowAttacksInTown = sgOptions.Gameplay.bAllowAttacksInTown;
+	gameSetup_safetyJog = sgOptions.Gameplay.bSafetyJog;
 
 	return mainmenu_init_menu(SELHERO_NEW_DUNGEON);
 }
