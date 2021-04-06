@@ -10,7 +10,6 @@
 #include "../3rdParty/Storm/Source/storm.h"
 #include "../DiabloUI/diabloui.h"
 #include <config.h>
-#include "misc/config.h" //Fluffy: For reading options from config during startup
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 #include "render/lightmap.h" //Fluffy: For lightmap debugging
@@ -766,7 +765,6 @@ int DiabloMain(int argc, char **argv)
 {
 	diablo_parse_flags(argc, argv);
 	LoadOptions();
-	LoadOptionsFromConfig(); //Fluffy: Read options from config here //Fluffy TODO Merge: We should remove this and use above function instead
 	diablo_init();
 	diablo_splash();
 	mainmenu_loop();

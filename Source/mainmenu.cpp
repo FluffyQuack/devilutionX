@@ -7,7 +7,6 @@
 #include "options.h"
 #include "../3rdParty/Storm/Source/storm.h"
 #include "../DiabloUI/diabloui.h"
-#include "misc/config.h" //Fluffy: For re-reading options from config
 
 DEVILUTION_BEGIN_NAMESPACE
 
