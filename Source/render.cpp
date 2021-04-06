@@ -584,8 +584,8 @@ repeat:
 			dstRect.x = 0;
 			dstRect.y = 0;
 		} else {
-			dstRect.x = sx - BUFFER_BORDER_LEFT;
-			dstRect.y = (sy - BUFFER_BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+			dstRect.x = sx;
+			dstRect.y = sy - (textures[textureNum].frames[frame].height - 1);
 		}
 		dstRect.w = 1;
 		dstRect.h = textures[textureNum].frames[frame].height;
@@ -630,8 +630,8 @@ repeat:
 		if (lightType == LIGHTING_SUBTILE_LIGHTMAP) {
 			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
 			if (lightType == LIGHTING_SUBTILE_LIGHTMAP) {
-				int x = sx - BUFFER_BORDER_LEFT;
-				int y = (sy - BUFFER_BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+				int x = sx;
+				int y = sy - (textures[textureNum].frames[frame].height - 1);
 				y += 64;
 				if (x < 0)
 					x = 0;
@@ -642,7 +642,7 @@ repeat:
 
 			//Switch render target back to intermediate texture and render final result
 			SDL_SetRenderTarget(renderer, texture_intermediate);
-			Render_Texture_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, TEXTURE_TILE_INTERMEDIATE, 0);
+			Render_Texture_FromBottom(sx, sy, TEXTURE_TILE_INTERMEDIATE, 0);
 		}
 
 		if (repeatRender)
@@ -652,7 +652,7 @@ repeat:
 
 	brightness = Render_IndexLightToBrightness();
 	SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
-	Render_Texture_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, textureNum, frame);
+	Render_Texture_FromBottom(sx, sy, textureNum, frame);
 	SDL_SetTextureColorMod(tex, 255, 255, 255);
 	if (transparent)
 		SDL_SetTextureAlphaMod(tex, 255);

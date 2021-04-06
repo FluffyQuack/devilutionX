@@ -299,7 +299,7 @@ void DrawMissilePrivate(CelOutputBuffer out, MissileStruct *m, int sx, int sy, B
 			brightness = Render_IndexLightToBrightness();
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(mx - BUFFER_BORDER_LEFT, my - BUFFER_BORDER_TOP, textureNum, frameNum);
+		Render_Texture_FromBottom(mx, my, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		//TODO: Handle m->_miUniqTrans
@@ -482,7 +482,7 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py) //Fluffy
 	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-	Render_Texture_FromBottom(px - BUFFER_BORDER_LEFT, py - BUFFER_BORDER_TOP, textureNum, frameNum);
+	Render_Texture_FromBottom(px, py, textureNum, frameNum);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 
@@ -641,10 +641,10 @@ static void DrawObject(CelOutputBuffer out, int x, int y, int ox, int oy, BOOL p
 		if (!object[bv]._oLight)
 			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_ADD);
 		if (bv == pcursobj)
-			Render_TextureOutline_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+			Render_TextureOutline_FromBottom(sx, sy, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+		Render_Texture_FromBottom(sx, sy, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		if (!object[bv]._oLight)
@@ -771,8 +771,8 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 
 				//Switch render target back to intermediate texture and render final result
 				SDL_SetRenderTarget(renderer, texture_intermediate);
-				dstRect.x = sx - BUFFER_BORDER_LEFT;
-				dstRect.y = ((sy - BUFFER_BORDER_TOP) - (textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height - 1)) + textureFrame->cropY1;
+				dstRect.x = sx;
+				dstRect.y = (sy - (textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height - 1)) + textureFrame->cropY1;
 				srcRect.w = dstRect.w = textureFrame->width;
 				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
 				srcRect.x = 0;
@@ -789,8 +789,8 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 
 				//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
 				SDL_Rect dstRect, srcRect;
-				dstRect.x = sx - BUFFER_BORDER_LEFT;
-				dstRect.y = ((sy - BUFFER_BORDER_TOP) - (textureFrame->height - 1)) + textureFrame->cropY1;
+				dstRect.x = sx;
+				dstRect.y = (sy - (textureFrame->height - 1)) + textureFrame->cropY1;
 				srcRect.w = dstRect.w = 1;
 				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
 				srcRect.x = textureFrame->offsetX;
@@ -824,8 +824,8 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 
 			//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
 			//TODO: Handle Y cropping
-			int x = sx - BUFFER_BORDER_LEFT;
-			int y = (sy - BUFFER_BORDER_TOP) - (textureFrame->height - 1);
+			int x = sx;
+			int y = sy - (textureFrame->height - 1);
 			y += textureFrame->width;
 			if (x < 0)
 				x = 0;
@@ -836,15 +836,15 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 			//Switch render target back to intermediate texture and render final result
 			SDL_SetRenderTarget(renderer, texture_intermediate);
 			SDL_Rect srcRect, dstRect;
-			dstRect.x = sx - BUFFER_BORDER_LEFT;
-			dstRect.y = ((sy - BUFFER_BORDER_TOP) - (textureFrame->height - 1)) + textureFrame->cropY1;
+			dstRect.x = sx;
+			dstRect.y = (sy - (textureFrame->height - 1)) + textureFrame->cropY1;
 			srcRect.w = dstRect.w = textureFrame->width;
 			srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
 			srcRect.x = 0;
 			srcRect.y = textureFrame->cropY1;
 			SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
 		} else {
-			Render_Texture(sx - BUFFER_BORDER_LEFT, sy - (BUFFER_BORDER_TOP + (textureFrame->height - 1)), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+			Render_Texture(sx, sy - (textureFrame->height - 1), TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
 		}
 
 		return;
@@ -963,11 +963,11 @@ static void DrawItem(CelOutputBuffer out, int x, int y, int sx, int sy, BOOL pre
 		int textureNum = TEXTURE_ITEMS + ItemCAnimTbl[pItem->_iCurs];
 		int frameNum = nCel - 1;
 		if (bItem - 1 == pcursitem || AutoMapShowItems)
-			Render_TextureOutline_FromBottom(px - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, 121, 127, 160, textureNum, frameNum);
+			Render_TextureOutline_FromBottom(px, sy, 121, 127, 160, textureNum, frameNum);
 		int brightness = Render_IndexLightToBrightness();
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(px - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, textureNum, frameNum);
+		Render_Texture_FromBottom(px, sy, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		return;
@@ -1058,11 +1058,11 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 					}
 			}
 			if (mi == pcursmonst)
-				Render_TextureOutline_FromBottom(px - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, 165, 90, 90, textureNum, frameNum);
+				Render_TextureOutline_FromBottom(px, sy, 165, 90, 90, textureNum, frameNum);
 			int brightness = Render_IndexLightToBrightness();
 			if (brightness < 255)
 				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-			Render_Texture_FromBottom(px - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, textureNum, frameNum);
+			Render_Texture_FromBottom(px, sy, textureNum, frameNum);
 			if (brightness < 255)
 				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 			return;
@@ -1119,10 +1119,10 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 	foundAnim:
 		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
 		if (mi == pcursmonst)
-			Render_TextureOutline_FromBottom(px - BUFFER_BORDER_LEFT, py - BUFFER_BORDER_TOP, 147, 30, 30, textureNum, frameNum);
+			Render_TextureOutline_FromBottom(px, py, 147, 30, 30, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(px - BUFFER_BORDER_LEFT, py - BUFFER_BORDER_TOP, textureNum, frameNum);
+		Render_Texture_FromBottom(px, py, textureNum, frameNum);
 		if (brightness < 255)
 			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
 		//TODO: Do rendering differently if trans is non-zero
@@ -1192,8 +1192,8 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent) //Fluf
 		srcRect.h = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].height;
 
 		SDL_Rect dstRect;
-		dstRect.x = x - BUFFER_BORDER_LEFT;
-		dstRect.y = (y - BUFFER_BORDER_TOP) - (srcRect.h - 1);
+		dstRect.x = x;
+		dstRect.y = y - (srcRect.h - 1);
 		dstRect.w = 1;
 		dstRect.h = srcRect.h;
 
@@ -1235,7 +1235,7 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent) //Fluf
 		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
 	if (transparent)
 		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);
-	Render_Texture_FromBottom(x - BUFFER_BORDER_LEFT, y - BUFFER_BORDER_TOP, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
+	Render_Texture_FromBottom(x, y, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
 	if (brightness < 255)
 		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255, 255, 255);
 	if (transparent)
@@ -1262,8 +1262,8 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 	light_table_index = dLight[sx][sy];
 
 	if (options_hwRendering && options_lightmapping) { //Fluffy: Set coordinates for light value to use
-		lightmap_lightx = (dx + (TILE_WIDTH / 2)) - BUFFER_BORDER_LEFT;
-		lightmap_lighty = dy - BUFFER_BORDER_TOP;
+		lightmap_lightx = (dx + (TILE_WIDTH / 2));
+		lightmap_lighty = dy;
 		if (lightmap_lightx >= gnScreenWidth)
 			lightmap_lightx = gnScreenWidth - 1;
 		else if (lightmap_lightx < 0)

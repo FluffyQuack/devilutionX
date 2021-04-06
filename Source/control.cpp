@@ -272,7 +272,7 @@ void DrawSpellCel(CelOutputBuffer out, int xp, int yp, int nCel, int type, bool 
 		/*if (spellBook) //This takes the big spell icon and scales it down to the same size of spell book icons. I like this dynamic solution, but the icons end up looking a bit different (the small icons in the CEL are a bit different than the normal spell icons, as they have a different border)
 			Render_Texture_ScaleAndCrop(xp - BORDER_LEFT, yp - BORDER_TOP - width + 1, textureNum, width, width, 5, 4, textures[textureNum].frames[nCel - 1].width - 3, textures[textureNum].frames[nCel - 1].height - 4, nCel - 1);
 		else*/
-		Render_Texture_FromBottom(xp - BUFFER_BORDER_LEFT, yp - BUFFER_BORDER_TOP, textureNum, nCel - 1);
+		Render_Texture_FromBottom(xp, yp, textureNum, nCel - 1);
 		return;
 	}
 
@@ -572,8 +572,8 @@ void PrintChar(CelOutputBuffer out, int sx, int sy, int nCel, text_color col)
 	if (options_hwRendering) { //Fluffy: Render font using SDL
 		int frame = nCel - 1;
 		SDL_Texture *tex = textures[TEXTURE_SMALLFONT].frames[frame].frame;
-		int x = sx - BUFFER_BORDER_LEFT;
-		int y = sy - BUFFER_BORDER_TOP - textures[TEXTURE_SMALLFONT].frames[0].height + 1;
+		int x = sx;
+		int y = sy - textures[TEXTURE_SMALLFONT].frames[0].height + 1;
 		if (col != COL_WHITE) {
 			switch (col) {
 			case COL_BLUE:
@@ -671,7 +671,7 @@ void DrawPanelBox(CelOutputBuffer out, int x, int y, int w, int h, int sx, int s
 			texture = TEXTURE_HUDPANEL_VOICE;
 			y -= 144;
 		}
-		Render_Texture_Crop(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, texture, x, y, x + w, y + h);
+		Render_Texture_Crop(sx, sy, texture, x, y, x + w, y + h);
 		return;
 	}
 
@@ -1967,8 +1967,8 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 	}
 
 	if (options_hwRendering) { //Fluffy: Render via SDL rendering
-		int renderX = x - BUFFER_BORDER_LEFT;
-		int renderY = y - (height - 1) - BUFFER_BORDER_TOP;
+		int renderX = x;
+		int renderY = y - (height - 1);
 		c -= 1;
 		if (amount)
 			Render_Texture_Crop(renderX, renderY + (height - amount), TEXTURE_DURABILITYWARNING, -1, height - amount, -1, -1, c + 8); //Gold icon
@@ -2247,7 +2247,7 @@ void DrawGoldSplit(CelOutputBuffer out, int amount)
 		screen_x = 386;
 	}
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottom(screen_x - BUFFER_BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(screen_x, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, screen_x, 140, pSPentSpn2Cels, PentSpn2Spin(), 12);
 }
@@ -2375,7 +2375,7 @@ void DrawTalkPan(CelOutputBuffer out)
 	if (msg)
 		*msg = '\0';
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottom(x - BUFFER_BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(x, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	talk_btn = 0;

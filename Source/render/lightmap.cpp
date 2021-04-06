@@ -155,6 +155,8 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 			//int lightY = py - (SPANEL_HEIGHT / 2);
 			int lightX = px - 23;
 			int lightY = py - 171;
+			lightX += BUFFER_BORDER_LEFT;
+			lightY += BUFFER_BORDER_TOP;
 			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
 		}
 	}
@@ -215,6 +217,8 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 			int height = width - (width / 2);
 			int lightX = ox - 23;
 			int lightY = oy - 171;
+			lightX += BUFFER_BORDER_LEFT;
+			lightY += BUFFER_BORDER_TOP;
 			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
 			//Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
 			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
@@ -423,7 +427,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			if (x >= 0 && x < MAXDUNX && y >= 0 && y < MAXDUNY) {
-				if (x + 1 < MAXDUNX && y - 1 >= 0 && sx + TILE_WIDTH <= BUFFER_BORDER_LEFT + gnScreenWidth) {
+				if (x + 1 < MAXDUNX && y - 1 >= 0 && sx + TILE_WIDTH <= /*BUFFER_BORDER_LEFT +*/ gnScreenWidth) { //FLuffy TODO: Should BUFFER_BORDER_LEFT be part of this?
 					// Render objects behind walls first to prevent sprites, that are moving
 					// between tiles, from poking through the walls as they exceed the tile bounds.
 					// A proper fix for this would probably be to layout the sceen and render by

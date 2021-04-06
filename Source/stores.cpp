@@ -2328,7 +2328,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottom(renderX - BUFFER_BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}
@@ -2357,7 +2357,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottom(renderX - BUFFER_BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}
