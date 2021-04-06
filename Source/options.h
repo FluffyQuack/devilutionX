@@ -2,6 +2,25 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+/*
+* Fluffy TODO: Add these:
+extern BOOL gameSetup_allowAttacksInTown;
+extern BOOL gameSetup_safetyJog;
+extern BOOL options_opaqueWallsUnlessObscuring;
+extern BOOL options_opaqueWallsWithBlobs;
+extern BOOL options_opaqueWallsWithSilhouette;
+extern BOOL options_initHwRendering;
+extern BOOL options_initLightmapping;
+extern BOOL options_hwRendering;
+extern BOOL options_lightmapping;
+extern BOOL options_animatedUIFlasks;
+extern BOOL options_durabilityIconGradualChange;
+extern int options_durabilityIconGold;
+extern int options_durabilityIconRed;
+extern BOOL options_noEquippedSpellIsAttack;
+extern BOOL options_holdToAttack;
+*/
+
 struct DiabloOptions {
 	/** @brief Play game intro video on startup. */
 	bool bIntro;
