@@ -821,7 +821,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gbCowQuest = sgGameInitInfo.bCowQuest;
 	gbFriendlyFire = sgGameInitInfo.bFriendlyFire;
 
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy (this also gets set when initializing singleplayer main menu) TODO: Do we only need this here? This gets called when starting a singleplayer game
 	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
 	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
 
