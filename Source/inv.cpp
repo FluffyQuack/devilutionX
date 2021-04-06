@@ -224,9 +224,9 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 
 		if (cursorRender) {
 			if (red) {
-				CelDrawLightRedTo(out, x, y, celData, frame, frameWidth, redLight);
+				CelDrawLightRedSafeTo(out, x, y, celData, frame, frameWidth, redLight);
 			} else {
-				CelClippedDrawTo(out, x, y, celData, frame, frameWidth);
+				CelClippedDrawSafeTo(out, x, y, celData, frame, frameWidth);
 			}
 		} else {
 			if (red) {

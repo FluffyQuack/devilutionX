@@ -141,7 +141,7 @@ static void scrollrt_draw_cursor_back_buffer(CelOutputBuffer out)
 static void scrollrt_draw_cursor_item(CelOutputBuffer out)
 {
 	int i, mx, my;
-	BYTE col;
+	BYTE col = 0; //Fluffy
 
 	assert(!sgdwCursWdt);
 
@@ -188,7 +188,7 @@ static void scrollrt_draw_cursor_item(CelOutputBuffer out)
 		BlitCursor(sgSaveBack, sgdwCursWdt, out.at(sgdwCursX, sgdwCursY), out.pitch());
 	}
 
-	mx++;
+	/*mx++;
 	my++;
 
 	out = out.subregion(0, 0, out.w() - 2, out.h());
@@ -217,7 +217,21 @@ static void scrollrt_draw_cursor_item(CelOutputBuffer out)
 		}
 	} else {
 		CelClippedDrawSafeTo(out, mx, my + cursH - 1, pCursCels, pcurs, cursW);
+	}*/
+
+	mx++;
+	my++;
+
+	if (pcurs >= CURSOR_FIRSTITEM) {
+		col = ICOL_WHITE;
+		if (plr[myplr].HoldItem._iMagical != 0) {
+			col = ICOL_BLUE;
+		}
+		if (!plr[myplr].HoldItem._iStatFlag) {
+			col = ICOL_RED;
+		}
 	}
+	DrawCursorItemWrapper(out, mx, my + cursH - 1, pcurs, cursW, 1, col == ICOL_RED, pcurs >= CURSOR_FIRSTITEM, col); //Fluffy
 }
 
 /**
