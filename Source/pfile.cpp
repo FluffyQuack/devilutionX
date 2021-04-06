@@ -563,7 +563,7 @@ BOOLEAN pfile_CheckIfFileExists(const char *pszName) //Fluffy: For checking if a
 	HANDLE archive, save;
 
 	save_num = pfile_get_save_num_from_name(plr[myplr]._pName);
-	archive = pfile_open_save_archive(NULL, save_num);
+	archive = pfile_open_save_archive(save_num);
 	if (archive == NULL)
 		app_fatal("Unable to open save file archive");
 

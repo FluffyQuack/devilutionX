@@ -56,10 +56,10 @@ static void dx_create_back_buffer()
 	}
 
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) {
-		gpBuffer_important = new BYTE[BUFFER_WIDTH * BUFFER_HEIGHT]; //Fluffy: Create buffer used for wall transparency
+		gpBuffer_important = new BYTE[(BUFFER_BORDER_LEFT + gnScreenWidth + BUFFER_BORDER_RIGHT) * (BUFFER_BORDER_TOP + gnScreenHeight + BUFFER_BORDER_BOTTOM)]; //Fluffy: Create buffer used for wall transparency
 	}
 	if (options_initHwRendering) {
-		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT); //Fluffy: Create the texture we use for rendering game graphics
+		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, gnScreenWidth, gnScreenHeight); //Fluffy: Create the texture we use for rendering game graphics
 		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
 	}
 

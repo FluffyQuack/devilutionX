@@ -232,7 +232,7 @@ static void PaletteFade(bool fadeIn)
 		ApplyGamma(logical_palette, orig_palette, 256);
 	DWORD tc = SDL_GetTicks();
 	int i = fadeIn ? 0 : 256;
-	SDL_Rect SrcRect = { SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT };
+	SDL_Rect SrcRect = { BUFFER_BORDER_LEFT, BUFFER_BORDER_TOP, gnScreenWidth, gnScreenHeight };
 	if (options_hwRendering) {
 		SetFadeLevel(256);
 		BltFast(&SrcRect, NULL);

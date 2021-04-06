@@ -197,13 +197,13 @@ void Textures_Init()
 	//Generate tile intermediate render target
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
 	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
-	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, SCREEN_WIDTH, SCREEN_HEIGHT, true);
+	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, gnScreenWidth, gnScreenHeight, true);
 
 	if (options_initLightmapping) {
-		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, SCREEN_WIDTH + LIGHTMAP_APPEND_X, SCREEN_HEIGHT + LIGHTMAP_APPEND_Y, true);
+		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, gnScreenWidth + LIGHTMAP_APPEND_X, gnScreenHeight + LIGHTMAP_APPEND_Y, true);
 		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
-		lightmap_imgData = new unsigned char[(SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4];
-		memset(lightmap_imgData, 0, (SCREEN_WIDTH + LIGHTMAP_APPEND_X) * (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y) * 4);
+		lightmap_imgData = new unsigned char[(gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4];
+		memset(lightmap_imgData, 0, (gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4);
 	}
 }
 

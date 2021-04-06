@@ -267,7 +267,7 @@ void selgame_Diff_Select(int value)
 	}
 
 	//selgame_GameSpeedSelection(); //Fluffy: Skip speed selection as it doesn't make sense for high framerate support
-	gbTickRate = ticks_per_sec;
+	nTickRate = gnTickRate;
 
 	if (provider == SELCONN_LOOPBACK) {
 		selgame_Password_Select(0);

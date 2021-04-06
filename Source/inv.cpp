@@ -148,10 +148,8 @@ static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 		SDL_SetRenderDrawColor(renderer, 255, 125, 125, 255); //TODO: This colour is off. It should be brighter
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_MOD);
 		SDL_Rect rect;
-		X -= BORDER_LEFT;
-		Y -= (BORDER_TOP + H) - 1;
-		rect.x = X;
-		rect.y = Y;
+		rect.x = X - BUFFER_BORDER_LEFT;
+		rect.y = Y - ((BUFFER_BORDER_TOP + H) - 1);
 		rect.h = H;
 		rect.w = W;
 		SDL_RenderFillRect(renderer, &rect);
@@ -191,8 +189,8 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 			frame -= 179;
 		}
 		frame -= 1;
-		x -= BORDER_LEFT;
-		y -= BORDER_TOP + (textures[textureNum].frames[frame].height - 1);
+		x -= BUFFER_BORDER_LEFT;
+		y -= BUFFER_BORDER_TOP + (textures[textureNum].frames[frame].height - 1);
 
 		if (outline) {
 			if (outlineColor == ICOL_WHITE)
@@ -221,20 +219,20 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 		}
 
 		if (outline) {
-			CelBlitOutline(outlineColor, x, y, celData, frame, frameWidth, false);
+			CelBlitOutlineTo(out, outlineColor, x, y, celData, frame, frameWidth, false);
 		}
 
-		if (cursorRender) { //If this rendered as a cursor (as opposed to as inventory icons) then we use different functions
+		if (cursorRender) {
 			if (red) {
-				CelDrawLightRedSafe(x, y, celData, frame, frameWidth, redLight);
+				CelDrawLightRedTo(out, x, y, celData, frame, frameWidth, redLight);
 			} else {
-				CelClippedDrawSafe(x, y, celData, frame, frameWidth);
+				CelClippedDrawTo(out, x, y, celData, frame, frameWidth);
 			}
 		} else {
 			if (red) {
-				CelDrawLightRed(x, y, celData, frame, frameWidth, 1);
+				CelDrawLightRedTo(out, x, y, celData, frame, frameWidth, 1);
 			} else {
-				CelClippedDraw(x, y, celData, frame, frameWidth);
+				CelClippedDrawTo(out, x, y, celData, frame, frameWidth);
 			}
 		}
 	}
@@ -361,9 +359,9 @@ void DrawInv(CelOutputBuffer out)
 					}
 					SDL_SetTextureAlphaMod(textures[textureNum].frames[frameNum].frame, 127);
 					screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-					screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? (160 + SCREEN_Y) : (146 + SCREEN_Y);
-					screen_x -= BORDER_LEFT;
-					screen_y -= BORDER_TOP + (textures[textureNum].frames[frameNum].height - 1);
+					screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
+					screen_x -= BUFFER_BORDER_LEFT;
+					screen_y -= (textures[textureNum].frames[frameNum].height - 1);
 					Render_Texture(screen_x, screen_y, textureNum, frameNum);
 					SDL_SetTextureAlphaMod(textures[textureNum].frames[frameNum].frame, 255);
 				} else {

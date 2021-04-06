@@ -17,9 +17,9 @@ unsigned int lightInfo_subTilesSize = 0;
 
 int Lightmap_ReturnBrightness(int x, int y)
 {
-	if (x < 0 || y < 0 || x >= (SCREEN_WIDTH + LIGHTMAP_APPEND_X) || y >= (SCREEN_HEIGHT + LIGHTMAP_APPEND_Y))
+	if (x < 0 || y < 0 || x >= (gnScreenWidth + LIGHTMAP_APPEND_X) || y >= (gnScreenHeight + LIGHTMAP_APPEND_Y))
 		return 0;
-	return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * y) + (4 * x)];
+	return lightmap_imgData[((gnScreenWidth + LIGHTMAP_APPEND_X) * 4 * y) + (4 * x)];
 }
 
 void Lightmap_UnloadSubtileData()
@@ -423,7 +423,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			if (x >= 0 && x < MAXDUNX && y >= 0 && y < MAXDUNY) {
-				if (x + 1 < MAXDUNX && y - 1 >= 0 && sx + TILE_WIDTH <= SCREEN_X + SCREEN_WIDTH) {
+				if (x + 1 < MAXDUNX && y - 1 >= 0 && sx + TILE_WIDTH <= BUFFER_BORDER_LEFT + gnScreenWidth) {
 					// Render objects behind walls first to prevent sprites, that are moving
 					// between tiles, from poking through the walls as they exceed the tile bounds.
 					// A proper fix for this would probably be to layout the sceen and render by
@@ -461,7 +461,7 @@ void Lightmap_MakeLightmap(int x, int y, int sx, int sy, int rows, int columns)
 		}
 	}
 
-	//SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, (SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4); //Read lightmap into system RAM
+	//SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, lightmap_imgData, (gnScreenWidth + LIGHTMAP_APPEND_X) * 4); //Read lightmap into system RAM
 	SDL_SetRenderTarget(renderer, texture_intermediate); //Revert render target to intermediate texture
 }
 
@@ -471,7 +471,7 @@ void Lightmap_SubtilePreview()
 {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_Rect rect;
-	rect.x = SCREEN_WIDTH - 160;
+	rect.x = gnScreenWidth - 160;
 	rect.y = 148;
 	rect.w = 100;
 	rect.h = 210;

@@ -24,65 +24,6 @@ enum {
 	RT_RTRAPEZOID,
 };
 
-/** Fluffy: Fully transparent variant of WallMask. */
-static DWORD WallMask_FullyTransparent[TILE_HEIGHT] = {
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000,
-	0x00000000, 0x00000000
-};
-
-/** Fluffy: Transparent variant of RightMask. */
-static DWORD RightMask_Transparent[TILE_HEIGHT] = {
-	0xE0000000, 0xF0000000,
-	0xFE000000, 0xFF000000,
-	0xFFE00000, 0xFFF00000,
-	0xFFFE0000, 0xFFFF0000,
-	0xFFFFE000, 0xFFFFF000,
-	0xFFFFFE00, 0xFFFFFF00,
-	0xFFFFFFE0, 0xFFFFFFF0,
-	0xFFFFFFFE, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF
-};
-/** Fluffy: Transparent variant of LeftMask. */
-static DWORD LeftMask_Transparent[TILE_HEIGHT] = {
-	0x00000003, 0x0000000F,
-	0x0000003F, 0x000000FF,
-	0x000003FF, 0x00000FFF,
-	0x00003FFF, 0x0000FFFF,
-	0x0003FFFF, 0x000FFFFF,
-	0x003FFFFF, 0x00FFFFFF,
-	0x03FFFFFF, 0x0FFFFFFF,
-	0x3FFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF,
-	0xFFFFFFFF, 0xFFFFFFFF
-};
-
 /** Fully transparent variant of WallMask. */
 const DWORD WallMask_FullyTrasparent[TILE_HEIGHT] = {
 	0x00000000,
@@ -439,7 +380,7 @@ void foreach_set_bit(DWORD mask, const F &f)
 
 inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 {
-	BYTE* importantBuff; //Fluffy: For wall transparency. (Only used if certain toggles are on)
+	BYTE *importantBuff; //Fluffy: For wall transparency. (Only used if certain toggles are on)
 	//Fluffy TODO Merge: Rewrite importantBuff code so it works again
 	/*
 	if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
@@ -469,11 +410,11 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 			if (light_table_index == lightmax) {       // Complete darkness
 				for (int i = 0; i < n; i++, mask <<= 1) {
 					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-						(*dst)[i] = palette_transparency_lookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+						dst[i] = paletteTransparencyLookup[0][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-						(*dst)[i] = 0;
+						dst[i] = 0;
 					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-						(*dst)[i] = palette_transparency_lookup[0][(*dst)[i]];
+						dst[i] = paletteTransparencyLookup[0][dst[i]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 						importantBuff++;
@@ -481,11 +422,11 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 			} else if (light_table_index == 0) { //Fully lit
 				for (int i = 0; i < n; i++, mask <<= 1) {
 					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-						dst[i] = palette_transparency_lookup[(*src)[i]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+						dst[i] = paletteTransparencyLookup[src[i]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-						dst[i] = (*src)[i];
+						dst[i] = src[i];
 					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-						dst[i] = palette_transparency_lookup[(*dst)[i]][(*src)[i]];
+						dst[i] = paletteTransparencyLookup[dst[i]][src[i]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 						importantBuff++;
@@ -493,11 +434,11 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 			} else { //Partially lit
 				for (int i = 0; i < n; i++, mask <<= 1) {
 					if (options_opaqueWallsWithSilhouette && *importantBuff != 0)
-						dst[i] = palette_transparency_lookup[tbl[(*src)[i]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
+						dst[i] = paletteTransparencyLookup[tbl[src[i]]][*importantBuff]; //Fluffy: Draw silhoutte using colour in important buffer
 					else if (mask & 0x80000000 || ((options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette) && *importantBuff == 0))
-						dst[i] = tbl[(*src)[i]];
+						dst[i] = tbl[src[i]];
 					else if (options_transparency || (options_opaqueWallsWithBlobs && *importantBuff == 1))
-						dst[i] = palette_transparency_lookup[(*dst)[i]][tbl[(*src)[i]]];
+						dst[i] = paletteTransparencyLookup[dst[i]][tbl[src[i]]];
 
 					if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 						importantBuff++;
@@ -505,14 +446,15 @@ inline void DoRenderLine(BYTE *dst, BYTE *src, int n, BYTE *tbl, DWORD mask)
 			}
 		} else {                                 // Stippled transparancy
 			if (light_table_index == lightmax) { // Complete darkness
-				foreach_set_bit(mask, [=](int i) { (*dst)[i] = 0; });
+				foreach_set_bit(mask, [=](int i) { dst[i] = 0; });
 			} else if (light_table_index == 0) { // Fully lit
-				foreach_set_bit(mask, [=](int i) { (*dst)[i] = (*src)[i]; });
+				foreach_set_bit(mask, [=](int i) { dst[i] = src[i]; });
 			} else { // Partially lit
-				foreach_set_bit(mask, [=](int i) { (*dst)[i] = tbl[(*src)[i]]; });
+				foreach_set_bit(mask, [=](int i) { dst[i] = tbl[src[i]]; });
 			}
 		}
 	}
+}
 
 DVL_ATTRIBUTE_ALWAYS_INLINE
 inline void RenderLine(BYTE *dst_begin, BYTE *dst_end, BYTE **dst, BYTE **src, int n, BYTE *tbl, DWORD mask)
@@ -525,6 +467,8 @@ skip:
 	(*src) += n;
 	(*dst) += n;
 }
+
+} // namespace
 
 void RenderTileViaSDL(int sx, int sy, int lightx, int lighty, int lightType)
 {
@@ -604,7 +548,7 @@ repeat:
 	//		int x = sx - BORDER_LEFT;
 	//		int y = (sy - BORDER_TOP) - (32 - 1);
 	//		y += 64;
-	//		if (x + 32 >= SCREEN_WIDTH || y + 32 >= SCREEN_HEIGHT) {
+	//		if (x + 32 >= gnScreenWidth || y + 32 >= gnScreenHeight) {
 	//			if (repeatRender)
 	//				goto repeat;
 	//			return;
@@ -639,8 +583,8 @@ repeat:
 			dstRect.x = 0;
 			dstRect.y = 0;
 		} else {
-			dstRect.x = sx - BORDER_LEFT;
-			dstRect.y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+			dstRect.x = sx - BUFFER_BORDER_LEFT;
+			dstRect.y = (sy - BUFFER_BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
 		}
 		dstRect.w = 1;
 		dstRect.h = textures[textureNum].frames[frame].height;
@@ -685,8 +629,8 @@ repeat:
 		if (lightType == LIGHTING_SUBTILE_LIGHTMAP) {
 			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
 			if (lightType == LIGHTING_SUBTILE_LIGHTMAP) {
-				int x = sx - BORDER_LEFT;
-				int y = (sy - BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
+				int x = sx - BUFFER_BORDER_LEFT;
+				int y = (sy - BUFFER_BORDER_TOP) - (textures[textureNum].frames[frame].height - 1);
 				y += 64;
 				if (x < 0)
 					x = 0;
@@ -697,7 +641,7 @@ repeat:
 
 			//Switch render target back to intermediate texture and render final result
 			SDL_SetRenderTarget(renderer, texture_intermediate);
-			Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, TEXTURE_TILE_INTERMEDIATE, 0);
+			Render_Texture_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, TEXTURE_TILE_INTERMEDIATE, 0);
 		}
 
 		if (repeatRender)
@@ -707,7 +651,7 @@ repeat:
 
 	brightness = Render_IndexLightToBrightness();
 	SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
-	Render_Texture_FromBottom(sx - BORDER_LEFT, sy - BORDER_TOP, textureNum, frame);
+	Render_Texture_FromBottom(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, textureNum, frame);
 	SDL_SetTextureColorMod(tex, 255, 255, 255);
 	if (transparent)
 		SDL_SetTextureAlphaMod(tex, 255);

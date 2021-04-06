@@ -94,7 +94,7 @@ static void ReadInt(BYTE *buffer, unsigned int *pos, int *val)
 	*pos += 4;
 }
 
-static void ReadBoolean(BYTE *buffer, unsigned int *pos, BOOLEAN *val)
+static void ReadBoolean(BYTE *buffer, unsigned int *pos, bool *val)
 {
 	*val = *((BOOL *)&buffer[*pos]);
 	*pos += 1;

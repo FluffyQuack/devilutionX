@@ -9,15 +9,18 @@ DEVILUTION_BEGIN_NAMESPACE
 
 static void LoadBoolVariableFromConfig(char *name, BOOL *variable)
 {
-	int temp = *variable;
+	//Fluffy TODO Merge: Rewrite
+	/*int temp = *variable;
 	if (SRegLoadValue("devilutionx", name, 0, &temp))
 		*variable = (BOOL)temp;
 	else
-		SRegSaveValue("devilutionx", name, 0, temp);
+		SRegSaveValue("devilutionx", name, 0, temp);*/
 }
 
 void LoadOptionsFromConfig()
 {
+	//Fluffy TODO Merge: Rewrite
+	/*
 	if (!SRegLoadValue("devilutionx", "game speed", 0, &ticks_per_sec)) {
 		SRegSaveValue("devilutionx", "game speed", 0, ticks_per_sec);
 	}
@@ -62,7 +65,7 @@ void LoadOptionsFromConfig()
 	}
 	
 	LoadBoolVariableFromConfig("No Equipped Spell Is Attack", &options_noEquippedSpellIsAttack);
-	LoadBoolVariableFromConfig("Hold To Attack", &options_holdToAttack);
+	LoadBoolVariableFromConfig("Hold To Attack", &options_holdToAttack);*/
 }
 
 DEVILUTION_END_NAMESPACE

@@ -225,13 +225,12 @@ void CelBlitLightSafeTo(CelOutputBuffer out, int sx, int sy, BYTE *pRLEBytes, in
 //Fluffy: Same as CelBlitLightSafe but with proper transparency (not dithered) // Fluffy TODO Merge: Add the "important" functionality into CelBlitLightBlendedSafeTo()
 void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth, BYTE *tbl)
 {
-	int i, w;
+	/*int i, w;
 	BYTE width;
 	BYTE *src, *dst;
 
 	assert(pDecodeTo != NULL);
 	assert(pRLEBytes != NULL);
-	assert(gpBuffer);
 
 	src = pRLEBytes;
 	dst = pDecodeTo;
@@ -241,8 +240,8 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 
 	BYTE *importantBuff; //Fluffy: We use this for wall transparency (if certain toggles are turned on)
 	//Fluffy TODO Merge: Rewrite this code so it works again
-	/*if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-		importantBuff = gpBuffer_important + (dst - gpBuffer);*/
+	//if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+		//importantBuff = gpBuffer_important + (dst - gpBuffer);
 
 	for (; src != &pRLEBytes[nDataSize]; dst -= BUFFER_WIDTH + w) {
 		for (i = w; i;) {
@@ -307,12 +306,12 @@ void CelBlitLightSafe_RealTransparency(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDa
 			}
 		}
 		//Fluffy TODO Merge: Rewrite this code so it works again
-		/*if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
-			importantBuff -= BUFFER_WIDTH + w;*/
-	}
+		//if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
+			//importantBuff -= BUFFER_WIDTH + w;
+	}*/
 }
 
-void CelBlitLightTransSafe(BYTE *pDecodeTo, BYTE *pRLEBytes, int nDataSize, int nWidth)
+void CelBlitLightTransSafeTo(CelOutputBuffer out, int sx, int sy, BYTE *pRLEBytes, int nDataSize, int nWidth)
 {
 	int w;
 	BOOL shift;
@@ -757,7 +756,8 @@ void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, 
 	One possible fix (though it would need a lot of work) is to do a "floodfill" action on assets for pixels of value 0, and then check if those resulting regions touch empty space. If they do, we assume it's a shadow and we separate them
 	That would work for most sprites, but there are sprites which would need manual attention. For instance, the shields for skeletons are so dark it uses value 0 along its edge
 */
-	int nDataSize, w;
+
+	/*int nDataSize, w;
 	BYTE *src, *dst, *end;
 	BYTE width;
 
@@ -833,7 +833,7 @@ void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, 
 		}
 		dst -= BUFFER_WIDTH + nWidth;
 	}
-	delete[] buffer;
+	delete[] buffer;*/
 
 	//TODO: We can greatly optimize this function by making it more similar to the CelBlitOutline() function but keeping the previous horizontal line as a buffer so we can compare against that as we process line by line
 }
@@ -1253,6 +1253,8 @@ static void Cl2BlitSafe(CelOutputBuffer out, int sx, int sy, BYTE *pRLEBytes, in
 //Fluffy: Same as Cl2DrawToImportant() but we draw an ellipse based on center point of sprite
 void Cl2DrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
+	//Fluffy TODO Merge: Rewrite this
+	/*
 	int nDataSize;
 	BYTE *pRLEBytes;
 
@@ -1300,12 +1302,14 @@ void Cl2DrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nW
 
 	DrawImportantAsEllipse(sx, sy, rows, nWidth, 2.5);
 
-	gpBufEnd += BUFFER_WIDTH;
+	gpBufEnd += BUFFER_WIDTH;*/
 }
 
 //Fluffy: Similar to Cl2DrawOutline() but it writes to gpBuffer_important
 void Cl2DrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline)
 {
+	//Fluffy TODO Merge: Rewrite this
+	/*
 	int nDataSize;
 	BYTE *pRLEBytes;
 
@@ -1403,7 +1407,7 @@ void Cl2DrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int 
 		}
 	}
 
-	gpBufEnd += BUFFER_WIDTH;
+	gpBufEnd += BUFFER_WIDTH;*/
 }
 
 /**

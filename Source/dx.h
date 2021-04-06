@@ -13,6 +13,7 @@ CelOutputBuffer GlobalBackBuffer();
 extern BYTE *gpBuffer_important; //Fluffy
 extern SDL_Renderer *renderer;
 extern SDL_Texture* texture_intermediate;
+extern BYTE dx_fade; //Fluffy: If above 0, we apply fading by rendering a black rectangle
 
 void dx_init();
 void lock_buf(BYTE idx);

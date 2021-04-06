@@ -203,7 +203,7 @@ enum {
 	//This is used for multiple render passes
 	TEXTURE_TILE_INTERMEDIATE, //32x32
 	TEXTURE_TILE_INTERMEDIATE_PIECE, //64x160
-	TEXTURE_TILE_INTERMEDIATE_BIG, //SCREEN_WIDTH * SCREEN_HEIGHT
+	TEXTURE_TILE_INTERMEDIATE_BIG, //gnScreenWidth * gnScreenHeight
 	TEXTURE_LIGHT_FRAMEBUFFER, //Lightmap to apply to entire screen
 
 	//BillieJoe's animated HUD flasks

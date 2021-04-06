@@ -99,16 +99,16 @@ void DrawSSlider(CelOutputBuffer out, int y1, int y2)
 	yd1 = y1 * 12 + 44 + UI_OFFSET_Y;
 	yd2 = y2 * 12 + 44 + UI_OFFSET_Y;
 	if (stextscrlubtn != -1)
-		DrawSSlider_Render(renderX, yd1, 12);
+		DrawSSlider_Render(out, renderX, yd1, 12);
 	else
-		DrawSSlider_Render(renderX, yd1, 10);
+		DrawSSlider_Render(out, renderX, yd1, 10);
 	if (stextscrldbtn != -1)
-		DrawSSlider_Render(renderX, yd2, 11);
+		DrawSSlider_Render(out, renderX, yd2, 11);
 	else
-		DrawSSlider_Render(renderX, yd2, 9);
+		DrawSSlider_Render(out, renderX, yd2, 9);
 	yd1 += 12;
 	for (yd3 = yd1; yd3 < yd2; yd3 += 12)
-		DrawSSlider_Render(renderX, yd3, 14);
+		DrawSSlider_Render(out, renderX, yd3, 14);
 	if (stextsel == 22)
 		yd3 = stextlhold;
 	else
@@ -2328,7 +2328,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX - BUFFER_BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}
@@ -2357,7 +2357,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
 		int renderY = s + 45 + UI_OFFSET_Y;
 		if (options_hwRendering) //Fluffy: Render via SDL
-			Render_Texture_FromBottom(renderX - BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
+			Render_Texture_FromBottom(renderX - BUFFER_BORDER_LEFT, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
 	}

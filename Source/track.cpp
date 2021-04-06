@@ -33,7 +33,7 @@ static bool RepeatLeftMouseAttackAction() //Fluffy
 				NetSendCmdParam1(TRUE, CMD_RATTACKID, pcursmonst);
 			else
 				NetSendCmdParam1(TRUE, CMD_ATTACKID, pcursmonst);
-		} else if (lastLeftMouseButtonAction == MOUSEACTION_ATTACK_PLAYERTARGET && pcursplr != -1 && !FriendlyMode) {
+		} else if (lastLeftMouseButtonAction == MOUSEACTION_ATTACK_PLAYERTARGET && pcursplr != -1 && !gbFriendlyMode) {
 			if (plr[myplr]._pwtype == WT_RANGED)
 				NetSendCmdParam1(TRUE, CMD_RATTACKPID, pcursplr);
 			else

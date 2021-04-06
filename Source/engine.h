@@ -197,6 +197,10 @@ void CelDrawTo(CelOutputBuffer out, int sx, int sy, BYTE *pCelBuff, int nCel, in
  */
 void CelDrawUnsafeTo(CelOutputBuffer out, int x, int y, BYTE *pCelBuff, int nCel, int nWidth);
 
+void CelDrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
+void CelDrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline);
+void CelBlitOutline_Precise(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
+
 /**
  * @brief Same as CelDrawTo but with the option to skip parts of the top and bottom of the sprite
  * @param out Target buffer
@@ -421,6 +425,8 @@ void mem_free_dbg(void *p);
 BYTE *LoadFileInMem(const char *pszName, DWORD *pdwFileLen);
 DWORD LoadFileWithMem(const char *pszName, BYTE *p);
 void Cl2ApplyTrans(BYTE *p, BYTE *ttbl, int nCel);
+void Cl2DrawToImportant_Ellipse(int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth);
+void Cl2DrawToImportant(char col, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth, BOOL outline);
 void PlayInGameMovie(const char *pszMovie);
 
 DEVILUTION_END_NAMESPACE

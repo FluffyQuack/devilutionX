@@ -12,7 +12,7 @@ static unsigned char brightnessValues[16] = {255, 230, 210, 180, 140, 120, 100, 
 int Render_IndexLightToBrightness()
 {
 	if (0 && options_lightmapping && lightmap_lightx != -1 && lightmap_lighty != -1)
-		return lightmap_imgData[((SCREEN_WIDTH + LIGHTMAP_APPEND_X) * 4 * lightmap_lighty) + (4 * lightmap_lightx)];
+		return lightmap_imgData[((gnScreenWidth + LIGHTMAP_APPEND_X) * 4 * lightmap_lighty) + (4 * lightmap_lightx)];
 	int brightness;
 	brightness = 255 - ((light_table_index * 255) / lightmax);
 	if (lightmax == 15) {

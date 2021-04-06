@@ -271,7 +271,7 @@ void DrawSpellCel(CelOutputBuffer out, int xp, int yp, int nCel, int type, bool 
 		/*if (spellBook) //This takes the big spell icon and scales it down to the same size of spell book icons. I like this dynamic solution, but the icons end up looking a bit different (the small icons in the CEL are a bit different than the normal spell icons, as they have a different border)
 			Render_Texture_ScaleAndCrop(xp - BORDER_LEFT, yp - BORDER_TOP - width + 1, textureNum, width, width, 5, 4, textures[textureNum].frames[nCel - 1].width - 3, textures[textureNum].frames[nCel - 1].height - 4, nCel - 1);
 		else*/
-		Render_Texture_FromBottom(xp - BORDER_LEFT, yp - BORDER_TOP, textureNum, nCel - 1);
+		Render_Texture_FromBottom(xp - BUFFER_BORDER_LEFT, yp - BUFFER_BORDER_TOP, textureNum, nCel - 1);
 		return;
 	}
 
@@ -571,8 +571,8 @@ void PrintChar(CelOutputBuffer out, int sx, int sy, int nCel, text_color col)
 	if (options_hwRendering) { //Fluffy: Render font using SDL
 		int frame = nCel - 1;
 		SDL_Texture *tex = textures[TEXTURE_SMALLFONT].frames[frame].frame;
-		int x = sx - BORDER_LEFT;
-		int y = sy - BORDER_TOP - textures[TEXTURE_SMALLFONT].frames[0].height + 1;
+		int x = sx - BUFFER_BORDER_LEFT;
+		int y = sy - BUFFER_BORDER_TOP - textures[TEXTURE_SMALLFONT].frames[0].height + 1;
 		if (col != COL_WHITE) {
 			switch (col) {
 			case COL_BLUE:
@@ -670,7 +670,7 @@ void DrawPanelBox(CelOutputBuffer out, int x, int y, int w, int h, int sx, int s
 			texture = TEXTURE_HUDPANEL_VOICE;
 			y -= 144;
 		}
-		Render_Texture_Crop(sx - BORDER_LEFT, sy - BORDER_TOP, texture, x, y, x + w, y + h);
+		Render_Texture_Crop(sx - BUFFER_BORDER_LEFT, sy - BUFFER_BORDER_TOP, texture, x, y, x + w, y + h);
 		return;
 	}
 
@@ -919,14 +919,15 @@ void InitControlPan()
 	else
 		pSpellCels = LoadFileInMem("Data\\SpelIcon.CEL", NULL);
 	SetSpellTrans(RSPLTYPE_SKILL);
-	BYTE *panel8 = LoadFileInMem("CtrlPan\\Panel8.CEL", NULL);
+	BYTE *panel8 = LoadFileInMem("CtrlPan\\Panel8.CEL", NULL); //Fluffy: This is loaded into its own pointer, so we can load it to GPU as well
 	CelDrawUnsafeTo(pBtmBuff, 0, (PANEL_HEIGHT + 16) - 1, panel8, 1, PANEL_WIDTH);
-	BYTE *pStatusPanel = LoadFileInMem("CtrlPan\\P8Bulbs.CEL", NULL);
+	BYTE *pStatusPanel = LoadFileInMem("CtrlPan\\P8Bulbs.CEL", NULL); //Fluffy: Deleted later so GPU can load this
 	CelDrawUnsafeTo(pLifeBuff, 0, 87, pStatusPanel, 1, 88);
 	CelDrawUnsafeTo(pManaBuff, 0, 87, pStatusPanel, 2, 88);
 	talkflag = FALSE;
+	BYTE *pTalkPanel = 0; //Fluffy: Deleted later so GPU can load this
 	if (gbIsMultiplayer) {
-		BYTE *pTalkPanel = LoadFileInMem("CtrlPan\\TalkPanl.CEL", NULL);
+		pTalkPanel = LoadFileInMem("CtrlPan\\TalkPanl.CEL", NULL);
 		CelDrawUnsafeTo(pBtmBuff, 0, (PANEL_HEIGHT + 16) * 2 - 1, pTalkPanel, 1, PANEL_WIDTH);
 		pMultiBtns = LoadFileInMem("CtrlPan\\P8But2.CEL", NULL);
 		pTalkBtns = LoadFileInMem("CtrlPan\\TalkButt.CEL", NULL);
@@ -1017,17 +1018,17 @@ void InitControlPan()
 		Texture_ConvertCEL_SingleFrame(panel8, TEXTURE_HUDPANEL, PANEL_WIDTH);
 		Texture_ConvertCEL_MultipleFrames(pStatusPanel, TEXTURE_HUDPANEL_EMPTYFLASKS, 88);
 		Texture_ConvertCEL_MultipleFrames(pPanelButtons, TEXTURE_HUDPANEL_BUTTONS, 71);
-		if (gbMaxPlayers != 1) {
+		if (gbIsMultiplayer) {
 			Texture_ConvertCEL_MultipleFrames(pMultiBtns, TEXTURE_HUDPANEL_MPBUTTONS, 33);
 			Texture_ConvertCEL_MultipleFrames(pTalkBtns, TEXTURE_HUDPANEL_TALKBUTTONS, 61);
 			Texture_ConvertCEL_SingleFrame(pTalkPanel, TEXTURE_HUDPANEL_VOICE, PANEL_WIDTH);
 		}
 	}
 
-	//Free up loaded CEL data we won't be referencing anymore
+	//Fluffy: Free up loaded CEL data we won't be referencing anymore
 	MemFreeDbg(panel8);
 	MemFreeDbg(pStatusPanel);
-	if (gbMaxPlayers != 1)
+	if (gbIsMultiplayer)
 		MemFreeDbg(pTalkPanel);
 }
 
@@ -1057,11 +1058,11 @@ void DrawCtrlBtns(CelOutputBuffer out)
 		if (!panbtn[i])
 			DrawPanelBox(out, PanBtnPos[i][0], PanBtnPos[i][1] + 16, 71, 20, PanBtnPos[i][0] + PANEL_X, PanBtnPos[i][1] + PANEL_Y);
 		else
-			DrawCtrlButton(PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS);
+			DrawCtrlButton(out, PanBtnPos[i][0], PanBtnPos[i][1] + 18, pPanelButtons, 71, i + 1, TEXTURE_HUDPANEL_BUTTONS);
 	}
 	if (numpanbtns == 8) {
-		DrawCtrlButton(87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);
-		DrawCtrlButton(527, 122, pMultiBtns, 33, FriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS);
+		DrawCtrlButton(out, 87, 122, pMultiBtns, 33, panbtn[6] + 1, TEXTURE_HUDPANEL_MPBUTTONS);
+		DrawCtrlButton(out, 527, 122, pMultiBtns, 33, gbFriendlyMode ? panbtn[7] + 3 : panbtn[7] + 5, TEXTURE_HUDPANEL_MPBUTTONS);
 	}
 }
 
@@ -1774,7 +1775,7 @@ void DrawChr(CelOutputBuffer out)
 	if (plr[myplr]._pStatPts > 0) {
 		sprintf(chrstr, "%i", plr[myplr]._pStatPts);
 		ADD_PlrStringXY(out, 95, 266, 126, chrstr, COL_RED);
-		pc = plr[myplr]._pClass;
+		plr_class pc = plr[myplr]._pClass;
 
 		//Fluffy: Draw the level-up icon in the character stat window
 		int xCoord = 137;
@@ -1830,7 +1831,7 @@ void DrawLevelUpIcon(CelOutputBuffer out)
 
 	if (stextflag == STORE_NONE) {
 		nCel = lvlbtndown ? 3 : 2;
-		ADD_PlrStringXY(PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
+		ADD_PlrStringXY(out, PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
 
 		if (options_hwRendering) //Fluffy: Render via SDL
 			Render_Texture_FromBottom(40 + PANEL_LEFT, -17 + PANEL_TOP, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
@@ -1978,8 +1979,8 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 	}
 
 	if (options_hwRendering) { //Fluffy: Render via SDL rendering
-		int renderX = x - BORDER_LEFT;
-		int renderY = y - (height - 1) - BORDER_TOP;
+		int renderX = x - BUFFER_BORDER_LEFT;
+		int renderY = y - (height - 1) - BUFFER_BORDER_TOP;
 		c -= 1;
 		if (amount)
 			Render_Texture_Crop(renderX, renderY + (height - amount), TEXTURE_DURABILITYWARNING, -1, height - amount, -1, -1, c + 8); //Gold icon
@@ -1989,11 +1990,11 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 		//TODO: This is more indirectly related, but we should make it so that when equipment is fully destroyed, we should show some kind of icon then as well (we could add a new variable to the player struct which defines if a slot is empty due to item destruction or not, and if true, show a durability icon for that slot)
 	} else {
 		if (amount > 0) {
-			CelOutputBuffer stenciledBuffer = out.subregionY(y - partition, partition);
-			CelDrawTo(stenciledBuffer, x, partition, pDurIcons, c + 8, 32); // Gold icon
+			CelOutputBuffer stenciledBuffer = out.subregionY(y - amount, amount);
+			CelDrawTo(stenciledBuffer, x, amount, pDurIcons, c + 8, 32); // Gold icon
 		}
 		if (amount != height) {
-			CelOutputBuffer stenciledBuffer = out.subregionY(y - height, height - partition);
+			CelOutputBuffer stenciledBuffer = out.subregionY(y - height, height - amount);
 			CelDrawTo(stenciledBuffer, x, height, pDurIcons, c, 32); // Red icon
 		}
 	}
@@ -2121,25 +2122,30 @@ void DrawSpellBook(CelOutputBuffer out)
 {
 	int i, sn, mana, lvl, yp, min, max;
 	char st;
-	unsigned __int64 spl;
 
 	if (options_hwRendering) { //Fluffy: Render spellbook window and buttons via SDL
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_SPELLBOOK);
 		if (gbIsHellfire && sbooktab < 5)
 			Render_Texture_FromBottom(RIGHT_PANEL + 61 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
-		else if (gbIsHellfire && sbooktab < 4)
-			Render_Texture_FromBottom(RIGHT_PANEL + 76 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
+		else {
+			int sx = RIGHT_PANEL_X + 76 * sbooktab + 7;
+			if (sbooktab == 2 || sbooktab == 3) {
+				sx++;
+			}
+			Render_Texture_FromBottom(sx, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab); //Probably needs the same fix as described below, and also... this probably causes a crash as I haven't seen these buttons with 76 as resolution
+		}
 	} else {
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pSpellBkCel, 1, SPANEL_WIDTH);
 		if (gbIsHellfire && sbooktab < 5)
 			CelDrawTo(out, RIGHT_PANEL_X + 61 * sbooktab + 7, 348, pSBkBtnCel, sbooktab + 1, 61);
-		else if (gbIsHellfire && sbooktab < 4)
+		else {
 			// BUGFIX: rendering of page 3 and page 4 buttons are both off-by-one pixel (fixed).
 			int sx = RIGHT_PANEL_X + 76 * sbooktab + 7;
-		if (sbooktab == 2 || sbooktab == 3) {
-			sx++;
+			if (sbooktab == 2 || sbooktab == 3) {
+				sx++;
+			}
+			CelDrawTo(out, sx, 348, pSBkBtnCel, sbooktab + 1, 76);
 		}
-		CelDrawTo(out, sx, 348, pSBkBtnCel, sbooktab + 1, 76);
 	}
 
 	Uint64 spl = plr[myplr]._pMemSpells | plr[myplr]._pISpells | plr[myplr]._pAblSpells;
@@ -2253,7 +2259,7 @@ void DrawGoldSplit(CelOutputBuffer out, int amount)
 		screen_x = 386;
 	}
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottom(screen_x - BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(screen_x - BUFFER_BORDER_LEFT, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, screen_x, 140, pSPentSpn2Cels, PentSpn2Spin(), 12);
 }
@@ -2381,7 +2387,7 @@ void DrawTalkPan(CelOutputBuffer out)
 	if (msg)
 		*msg = '\0';
 	if (options_hwRendering) //Fluffy: Render via SDL
-		Render_Texture_FromBottom(x - BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
+		Render_Texture_FromBottom(x - BUFFER_BORDER_LEFT, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
 	talk_btn = 0;
@@ -2399,7 +2405,7 @@ void DrawTalkPan(CelOutputBuffer out)
 				if (options_hwRendering) //Fluffy: Render via SDL
 					Render_Texture_FromBottom(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
 				else
-					CelDraw(172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
+					CelDrawTo(out, 172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
 			}
 		} else {
 			if (talk_btn != 0)

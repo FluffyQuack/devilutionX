@@ -388,7 +388,7 @@ void gamemenu_speed(BOOL bActivate)
 
 	sgOptions.Gameplay.nTickRate = gnTickRate;
 	gnTickDelay = 1000 / gnTickRate;
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy (Fluffy TODO Merge: Do we need both of these?)
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy (Fluffy TODO Merge: Do we need both of these?)
 }
 
 void gamemenu_color_cycling(BOOL bActivate)

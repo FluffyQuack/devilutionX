@@ -821,7 +821,7 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gbCowQuest = sgGameInitInfo.bCowQuest;
 	gbFriendlyFire = sgGameInitInfo.bFriendlyFire;
 
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / ticks_per_sec; //Fluffy
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy
 	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
 	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
 
