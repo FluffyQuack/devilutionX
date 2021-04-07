@@ -30,7 +30,7 @@ extern const InvXY InvRect[73];
 
 void FreeInvGFX();
 void InitInv();
-void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor = 0);
+void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline = 0, int outlineColor = 0, bool transparent = 0);
 
 /**
  * @brief Render the inventory panel to the given buffer.

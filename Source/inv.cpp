@@ -178,7 +178,7 @@ static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 	}
 }
 
-void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor) //Fluffy: A wrapper for a lot of render calls in scrollrt_draw_cursor_item() and DrawInv()
+void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor, bool transparent) //Fluffy: A wrapper for a lot of render calls in scrollrt_draw_cursor_item() and DrawInv()
 {
 	if (options_hwRendering) { //Fluffy: 32-bit version of cursor rendering
 		int textureNum = TEXTURE_CURSOR;
@@ -201,6 +201,8 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 			Render_Texture(x - 1, y - 1, textureNumOutline, frame);
 		}
 
+		if (transparent)
+			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 127);
 		if (red) {
 			SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 207, 0, 0);
 			Render_Texture(x, y, textureNum, frame);
@@ -208,6 +210,8 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 		} else {
 			Render_Texture(x, y, textureNum, frame);
 		}
+		if (transparent)
+			SDL_SetTextureAlphaMod(textures[textureNum].frames[frame].frame, 255);
 	} else {
 		BYTE *celData = pCursCels;
 		bool redLight = 1;
@@ -221,7 +225,12 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 			CelBlitOutlineTo(out, outlineColor, x, y, celData, frame, frameWidth, false);
 		}
 
-		if (cursorRender) {
+		if (transparent) {
+			cel_transparency_active = TRUE;
+			CelClippedBlitLightTransTo(out, x, y, celData, frame, frameWidth);
+			cel_transparency_active = FALSE;
+		}
+		else if (cursorRender) {
 			if (red) {
 				CelDrawLightRedSafeTo(out, x, y, celData, frame, frameWidth, redLight);
 			} else {
@@ -346,33 +355,9 @@ void DrawInv(CelOutputBuffer out)
 			        && plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_MACE)) {
 				InvDrawSlotBack(out, RIGHT_PANEL_X + 248, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 				light_table_index = 0;
-				cel_transparency_active = TRUE;
-
-				if (options_hwRendering) { //Fluffy
-					//TODO: Turn this into its own function or something like that
-					int textureNum = TEXTURE_CURSOR;
-					int frameNum = frame - 1;
-					if (frame > 179) {
-						textureNum = TEXTURE_CURSOR2;
-						frame -= 179;
-					}
-					SDL_SetTextureAlphaMod(textures[textureNum].frames[frameNum].frame, 127);
-					screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-					screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
-					screen_y -= (textures[textureNum].frames[frameNum].height - 1);
-					Render_Texture(screen_x, screen_y, textureNum, frameNum);
-					SDL_SetTextureAlphaMod(textures[textureNum].frames[frameNum].frame, 255);
-				} else {
-					const int dst_x = RIGHT_PANEL_X + (frame_width == INV_SLOT_SIZE_PX ? 261 : 247);
-					const int dst_y = 160;
-					if (frame <= 179) {
-						CelClippedBlitLightTransTo(out, dst_x, dst_y, pCursCels, frame, frame_width);
-					} else {
-						CelClippedBlitLightTransTo(out, dst_x, dst_y, pCursCels2, frame - 179, frame_width);
-					}
-				}
-
-				cel_transparency_active = FALSE;
+				int x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
+				int y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
+				DrawCursorItemWrapper(out, x, y, frame, frame_width, false, false, false, 0, true);
 			}
 		}
 	}
