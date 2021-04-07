@@ -754,8 +754,13 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 		sgGameInitInfo.bCowQuest = sgOptions.Gameplay.bCowQuest;
 		sgGameInitInfo.bFriendlyFire = sgOptions.Gameplay.bFriendlyFire;
 
-		sgGameInitInfo.gSpeedMod = gSpeedMod; //Fluffy
-		sgGameInitInfo.gMonsterSpeedMod = gMonsterSpeedMod;
+		//Fluffy: Calculate game speed based on tick rate
+		sgGameInitInfo.gSpeedMod = sgOptions.Gameplay.nTickRate / 20;
+		sgGameInitInfo.gMonsterSpeedMod = sgOptions.Gameplay.nTickRate / 20;
+		if (sgGameInitInfo.gSpeedMod < 1)
+			sgGameInitInfo.gSpeedMod = 1;
+		if (sgGameInitInfo.gMonsterSpeedMod < 1)
+			sgGameInitInfo.gMonsterSpeedMod = 1;
 
 		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
 		sgGameInitInfo.allowAttacksInTown = gameSetup_allowAttacksInTown;
@@ -821,13 +826,13 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gbCowQuest = sgGameInitInfo.bCowQuest;
 	gbFriendlyFire = sgGameInitInfo.bFriendlyFire;
 
-	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy (this also gets set when initializing singleplayer main menu) TODO: Do we only need this here? This gets called when starting a singleplayer game
-	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
-	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
+	tick_delay_highResolution = SDL_GetPerformanceFrequency() / gnTickRate; //Fluffy
 
-	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we now be loading updated game setup variables from the host)
+	//Fluffy: Load gamesetup variables from gameinit (if we're the host, then we're loading the same data we just saved, but if we're the client, then we're now loading updated game setup variables from the host)
 	gameSetup_allowAttacksInTown = sgGameInitInfo.allowAttacksInTown;
 	gameSetup_safetyJog = sgGameInitInfo.safetyJog;
+	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
+	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
 
 	for (int i = 0; i < NUMLEVELS; i++) {
 		glSeedTbl[i] = AdvanceRndSeed();
