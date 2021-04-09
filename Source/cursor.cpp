@@ -366,6 +366,17 @@ void CheckCursMove()
 		cursmy = my;
 		return;
 	}
+
+	//Fluffy: Check if mouse is on health or mana orb
+	gbMouseOnHealthOrb = false;
+	gbMouseOnManaOrb = false;
+	if (MouseY >= PANEL_TOP - 13 && MouseY <= PANEL_TOP + 74) {
+		if (MouseX >= PANEL_LEFT + 97 && MouseX <= PANEL_LEFT + 181)
+			gbMouseOnHealthOrb = true;
+		else if (MouseX >= PANEL_LEFT + 463 && MouseX <= PANEL_LEFT + 545)
+			gbMouseOnManaOrb = true;
+	}
+
 	if (MouseY > PANEL_TOP && MouseX >= PANEL_LEFT && MouseX <= PANEL_LEFT + PANEL_WIDTH) {
 		CheckPanelInfo();
 		return;

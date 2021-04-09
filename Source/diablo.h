@@ -66,6 +66,11 @@ extern int lastRightMouseButtonAction;
 extern unsigned long long lastLeftMouseButtonTime;
 extern unsigned long long lastRightMouseButtonTime;
 
+extern bool gbMouseOnHealthOrb; //Fluffy
+extern bool gbMouseOnManaOrb;   //Fluffy
+extern bool gbAlwaysPrintPlayerHealth; //Fluffy
+extern bool gbAlwaysPrintManaHealth;   //Fluffy
+
 void FreeGameMem();
 BOOL StartGame(BOOL bNewGame, BOOL bSinglePlayer);
 [[noreturn]] void diablo_quit(int exitStatus);

@@ -101,6 +101,11 @@ int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for suppo
 unsigned long long lastLeftMouseButtonTime = 0;
 unsigned long long lastRightMouseButtonTime = 0;
 
+bool gbMouseOnHealthOrb = false; //Fluffy
+bool gbMouseOnManaOrb = false;   //Fluffy
+bool gbAlwaysPrintPlayerHealth = false; //Fluffy
+bool gbAlwaysPrintManaHealth = false;   //Fluffy
+
 /* rdata */
 
 bool gbForceWindowed = false;
@@ -950,7 +955,11 @@ static BOOL LeftMouseDown(int wParam)
 
 	bool isShiftHeld = wParam & DVL_MK_SHIFT;
 
-	if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
+	if (gbMouseOnHealthOrb) //Fluffy
+		gbAlwaysPrintPlayerHealth = !gbAlwaysPrintPlayerHealth;
+	else if (gbMouseOnManaOrb) //Fluffy
+		gbAlwaysPrintManaHealth = !gbAlwaysPrintManaHealth;
+	else if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
 		if (!gmenu_is_active() && !TryIconCurs()) {
 			if (questlog && MouseX > 32 && MouseX < 288 && MouseY > 32 && MouseY < 308) {
 				QuestlogESC();
