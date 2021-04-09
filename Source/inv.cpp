@@ -249,7 +249,7 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 void DrawInv(CelOutputBuffer out)
 {
 	BOOL invtest[NUM_INV_GRID_ELEM];
-	int frame, frame_width, color = 0, screen_x, screen_y, i, j, ii;
+	int frame, frame_width, color = 0, screen_x, screen_y, i, j, ii, x, y;
 
 	if (options_hwUIRendering) { //Fluffy: Render 32-bit version of inventory
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_INVENTORY);
@@ -257,8 +257,57 @@ void DrawInv(CelOutputBuffer out)
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pInvCels, 1, SPANEL_WIDTH);
 	}
 
+	//Fluffy: List of inventory positions
+	int slotPositions[NUM_INVLOC * 2];
+	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE) {
+		slotPositions[(INVLOC_HEAD * 2) + 0] = 250;
+		slotPositions[(INVLOC_HEAD * 2) + 1] = 75;
+
+		slotPositions[(INVLOC_RING_LEFT * 2) + 0] = 241;
+		slotPositions[(INVLOC_RING_LEFT * 2) + 1] = 205;
+
+		slotPositions[(INVLOC_RING_RIGHT * 2) + 0] = 282;
+		slotPositions[(INVLOC_RING_RIGHT * 2) + 1] = 205;
+
+		slotPositions[(INVLOC_AMULET * 2) + 0] = 209;
+		slotPositions[(INVLOC_AMULET * 2) + 1] = 76;
+
+		slotPositions[(INVLOC_HAND_LEFT * 2) + 0] = 16;
+		slotPositions[(INVLOC_HAND_LEFT * 2) + 1] = 102;
+
+		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 16;
+		slotPositions[(INVLOC_HAND_RIGHT * 2) + 1] = 204;
+
+		slotPositions[(INVLOC_CHEST * 2) + 0] = 250;
+		slotPositions[(INVLOC_CHEST * 2) + 1] = 169;
+	} else {
+		slotPositions[(INVLOC_HEAD * 2) + 0] = 133;
+		slotPositions[(INVLOC_HEAD * 2) + 1] = 59;
+
+		slotPositions[(INVLOC_RING_LEFT * 2) + 0] = 48;
+		slotPositions[(INVLOC_RING_LEFT * 2) + 1] = 205;
+
+		slotPositions[(INVLOC_RING_RIGHT * 2) + 0] = 249;
+		slotPositions[(INVLOC_RING_RIGHT * 2) + 1] = 205;
+
+		slotPositions[(INVLOC_AMULET * 2) + 0] = 205;
+		slotPositions[(INVLOC_AMULET * 2) + 1] = 60;
+
+		slotPositions[(INVLOC_HAND_LEFT * 2) + 0] = 17;
+		slotPositions[(INVLOC_HAND_LEFT * 2) + 1] = 160;
+
+		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 261;
+		slotPositions[(INVLOC_HAND_RIGHT * 2) + 1] = 160;
+
+		slotPositions[(INVLOC_CHEST * 2) + 0] = 133;
+		slotPositions[(INVLOC_CHEST * 2) + 1] = 160;
+	}
+
 	if (!plr[myplr].InvBody[INVLOC_HEAD].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 133, 59, 2 * INV_SLOT_SIZE_PX, 2 * INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_HEAD * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_HEAD * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 2 * INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_HEAD]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
@@ -272,11 +321,14 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 59, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag == 0, pcursinvitem == INVITEM_HEAD, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag == 0, pcursinvitem == INVITEM_HEAD, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_RING_LEFT].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 48, 205, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_RING_LEFT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_RING_LEFT * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_RING_LEFT]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
@@ -290,11 +342,14 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 48, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_LEFT, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_LEFT, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_RING_RIGHT].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 249, 205, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_RING_RIGHT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_RING_RIGHT * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_RING_RIGHT]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
@@ -308,11 +363,14 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 249, 205, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_RIGHT, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_RIGHT, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_AMULET].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 205, 60, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_AMULET * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_AMULET * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_AMULET]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
@@ -326,17 +384,27 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 205, 60, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag == 0, pcursinvitem == INVITEM_AMULET, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag == 0, pcursinvitem == INVITEM_AMULET, color); //Fluffy
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 17, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_HAND_LEFT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_HAND_LEFT * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_HAND_LEFT]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
 		// calc item offsets for weapons smaller than 2x3 slots
-		screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 31) : (RIGHT_PANEL_X + 17);
-		screen_y = InvItemHeight[frame] == (3 * INV_SLOT_SIZE_PX) ? (160) : (146);
+		screen_x = x; //Fluffy
+		screen_y = y;
+		if (frame_width == INV_SLOT_SIZE_PX)
+			screen_x += 14;
+		if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
+			screen_y -= 14;
+
+		//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 31) : (RIGHT_PANEL_X + 17);
+		//screen_y = InvItemHeight[frame] == (3 * INV_SLOT_SIZE_PX) ? (160) : (146);
 
 		if (pcursinvitem == INVITEM_HAND_LEFT) {
 			color = ICOL_WHITE;
@@ -350,25 +418,43 @@ void DrawInv(CelOutputBuffer out)
 		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_LEFT, color); //Fluffy
 
 		if (plr[myplr].InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND) {
+			x = slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] + RIGHT_PANEL_X;
+			y = slotPositions[(INVLOC_HAND_RIGHT * 2) + 1];
+
 			if (plr[myplr]._pClass != PC_BARBARIAN
 			    || (plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_SWORD
 			        && plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_MACE)) {
 				InvDrawSlotBack(out, RIGHT_PANEL_X + 248, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 				light_table_index = 0;
-				int x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-				int y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
-				DrawCursorItemWrapper(out, x, y, frame, frame_width, false, false, false, 0, true);
+				screen_x = x; //Fluffy
+				screen_y = y;
+				if (frame_width != INV_SLOT_SIZE_PX)
+					screen_x -= 12;
+				if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
+					screen_y -= 14;
+				//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
+				//screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
+				DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, false, false, false, 0, true);
 			}
 		}
 	}
 	if (!plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 248, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_HAND_RIGHT * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
 		// calc item offsets for weapons smaller than 2x3 slots
-		screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-		screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? (160) : (146);
+		screen_x = x; //Fluffy
+		screen_y = y;
+		if (frame_width != INV_SLOT_SIZE_PX)
+			screen_x -= 12;
+		if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
+			screen_y -= 14;
+		//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
+		//screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? (160) : (146);
 
 		if (pcursinvitem == INVITEM_HAND_RIGHT) {
 			color = ICOL_WHITE;
@@ -383,7 +469,10 @@ void DrawInv(CelOutputBuffer out)
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_CHEST].isEmpty()) {
-		InvDrawSlotBack(out, RIGHT_PANEL_X + 133, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
+		x = slotPositions[(INVLOC_CHEST * 2) + 0] + RIGHT_PANEL_X; //Fluffy
+		y = slotPositions[(INVLOC_CHEST * 2) + 1];
+
+		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 
 		frame = plr[myplr].InvBody[INVLOC_CHEST]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
@@ -397,7 +486,7 @@ void DrawInv(CelOutputBuffer out)
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, RIGHT_PANEL_X + 133, 160, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag == 0, pcursinvitem == INVITEM_CHEST, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag == 0, pcursinvitem == INVITEM_CHEST, color); //Fluffy
 	}
 
 	for (i = 0; i < NUM_INV_GRID_ELEM; i++) {

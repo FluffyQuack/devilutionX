@@ -264,6 +264,7 @@ extern texture_s textures[TEXTURE_NUM];
 extern unsigned long long totalTextureSize;
 
 void Texture_UnloadTexture(int textureNum);
+void Textures_LoadTexture(int textureNum, char *filePath, int frameCount = 1);
 void Textures_Init();
 void Textures_Deinit();
 

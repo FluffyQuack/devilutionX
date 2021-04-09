@@ -61,6 +61,7 @@ struct GraphicsOptions {
 	bool bDurabilityIconGradualChange; //Fluffy
 	Sint32 nDurabilityIconGold;        //Fluffy
 	Sint32 nDurabilityIconRed;         //Fluffy
+	bool bPaperdoll; //Fluffy
 };
 
 struct GameplayOptions {
