@@ -763,8 +763,8 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 			sgGameInitInfo.gMonsterSpeedMod = 1;
 
 		//Fluffy: Put game setup variables into sgGameInitInfo so it can be sent to other players if we're the host
-		sgGameInitInfo.allowAttacksInTown = gameSetup_allowAttacksInTown;
-		sgGameInitInfo.safetyJog = gameSetup_safetyJog;
+		sgGameInitInfo.allowAttacksInTown = sgOptions.Gameplay.bAllowAttacksInTown;
+		sgGameInitInfo.safetyJog = sgOptions.Gameplay.bSafetyJog;
 
 		memset(&ProgramData, 0, sizeof(ProgramData));
 		ProgramData.size = sizeof(ProgramData);
