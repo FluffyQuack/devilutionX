@@ -140,7 +140,7 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
-	if (options_hwRendering) { //Fluffy: Render player via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render player via SDL
 		if (options_lightmapping) { //Fluffy: Render light for player
 			int width = 1024;
 			int height = width - (width / 2);
@@ -184,7 +184,7 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 
 	assert((unsigned char)bv < MAXOBJECTS);
 
-	if (options_hwRendering) {
+	if (options_hwIngameRendering) {
 
 		int lightRadius = 0;
 		switch (object[bv]._otype) {

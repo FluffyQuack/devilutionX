@@ -264,7 +264,7 @@ void DrawSpellCel(CelOutputBuffer out, int xp, int yp, int nCel, int type, bool 
 	if (spellBook)
 		width = SPLSMALLICONSIZE;
 
-	if (options_hwRendering) {
+	if (options_hwUIRendering) {
 		int textureNum = TEXTURE_SPELLICONS;
 		if (spellBook)
 			textureNum = TEXTURE_SMALLSPELLICONS;
@@ -569,7 +569,7 @@ void ToggleSpell(int slot)
 
 void PrintChar(CelOutputBuffer out, int sx, int sy, int nCel, text_color col)
 {
-	if (options_hwRendering) { //Fluffy: Render font using SDL
+	if (options_hwUIRendering) { //Fluffy: Render font using SDL
 		int frame = nCel - 1;
 		SDL_Texture *tex = textures[TEXTURE_SMALLFONT].frames[frame].frame;
 		int x = sx;
@@ -665,7 +665,7 @@ void ClearPanel()
 
 void DrawPanelBox(CelOutputBuffer out, int x, int y, int w, int h, int sx, int sy)
 {
-	if (options_hwRendering) { //Fluffy: Render HUD panel via SDL (we reference two different textures for this)
+	if (options_hwUIRendering) { //Fluffy: Render HUD panel via SDL (we reference two different textures for this)
 		//x, y = from
 		//sx, sy = to
 		//w, h = crop
@@ -736,7 +736,7 @@ static void DrawFlask(CelOutputBuffer out, CelOutputBuffer celBuf, int celX, int
 
 void DrawLifeFlask(CelOutputBuffer out)
 {
-	if (options_hwRendering) //Fluffy: If true, we'll be handling everything to do with life flask rendering in UpdateLifeFlask()
+	if (options_hwUIRendering) //Fluffy: If true, we'll be handling everything to do with life flask rendering in UpdateLifeFlask()
 		return;
 
 	double p;
@@ -779,7 +779,7 @@ static void DrawFlask_SDL(int x, int startY, int texture)
 
 void UpdateLifeFlask(CelOutputBuffer out)
 {
-	if (options_hwRendering) { //Fluffy: Render via SDL
+	if (options_hwUIRendering) { //Fluffy: Render via SDL
 		//First, draw empty life flask
 		Render_Texture(PANEL_LEFT + 96, PANEL_TOP - 16, TEXTURE_HUDPANEL_EMPTYFLASKS, 0);
 
@@ -820,7 +820,7 @@ void UpdateLifeFlask(CelOutputBuffer out)
 
 void DrawManaFlask(CelOutputBuffer out)
 {
-	if (options_hwRendering) //Fluffy: If true, we'll be handling everything to do with mana flask rendering in UpdateManaFlask()
+	if (options_hwUIRendering) //Fluffy: If true, we'll be handling everything to do with mana flask rendering in UpdateManaFlask()
 		return;
 
 	int filled = plr[myplr]._pManaPer;
@@ -863,7 +863,7 @@ void UpdateManaFlask(CelOutputBuffer out)
 	if (mana < 0)
 		mana = 0;
 
-	if (options_hwRendering) { //Fluffy: Render via SDL
+	if (options_hwUIRendering) { //Fluffy: Render via SDL
 		//First, draw empty mana flask
 		Render_Texture(PANEL_LEFT + 464, PANEL_TOP - 16, TEXTURE_HUDPANEL_EMPTYFLASKS, 1);
 
@@ -979,7 +979,7 @@ void InitControlPan()
 	initialDropGoldValue = 0;
 	initialDropGoldIndex = 0;
 
-	if (sgOptions.Graphics.bInitHwRendering) { //Fluffy: Load the above CELs as SDL textures
+	if (sgOptions.Graphics.bInitHwUIRendering) { //Fluffy: Load the above CELs as SDL textures
 		Texture_ConvertCEL_MultipleFrames(pPanelText, TEXTURE_SMALLFONT, 13);
 		Texture_ConvertCEL_SingleFrame(pChrPanel, TEXTURE_STATWINDOW, SPANEL_WIDTH);
 		int charButWidths[9] = { 95, 41, 41, 41, 41, 41, 41, 41, 41 };
@@ -1035,7 +1035,7 @@ void DrawCtrlPan(CelOutputBuffer out)
 
 static void DrawCtrlButton(CelOutputBuffer out, int x, int y, BYTE *celData, int width, int frame, int texture) //Fluffy
 {
-	if (options_hwRendering) //Fluffy: Render via SDL
+	if (options_hwUIRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(x + PANEL_LEFT, y + PANEL_TOP, texture, frame - 1);
 	else
 		CelDrawTo(out, x + PANEL_X, y + PANEL_Y, celData, frame, width);
@@ -1578,7 +1578,7 @@ static void MY_PlrStringXY(CelOutputBuffer out, int x, int y, int endX, const ch
 
 static void RenderLevelupIconOnStatWindow(CelOutputBuffer out, int x, int y, int frame) //Fluffy
 {
-	if (options_hwRendering) //Fluffy: Render via SDL
+	if (options_hwUIRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(x, y, TEXTURE_STATWINDOW_BUTTONS, frame - 1);
 	else
 		CelDrawTo(out, x, y, pChrButtons, frame, 41);
@@ -1590,7 +1590,7 @@ void DrawChr(CelOutputBuffer out)
 	char chrstr[64];
 	int mindam, maxdam;
 
-	if (options_hwRendering) //Fluffy: Render character stat window via SDL
+	if (options_hwUIRendering) //Fluffy: Render character stat window via SDL
 		Render_Texture(0, 0, TEXTURE_STATWINDOW);
 	else
 		CelDrawTo(out, 0, 351, pChrPanel, 1, SPANEL_WIDTH);
@@ -1824,7 +1824,7 @@ void DrawLevelUpIcon(CelOutputBuffer out)
 		nCel = lvlbtndown ? 3 : 2;
 		ADD_PlrStringXY(out, PANEL_LEFT + 0, PANEL_TOP - 49, PANEL_LEFT + 120, "Level Up", COL_WHITE);
 
-		if (options_hwRendering) //Fluffy: Render via SDL
+		if (options_hwUIRendering) //Fluffy: Render via SDL
 			Render_Texture_FromBottom(40 + PANEL_LEFT, -17 + PANEL_TOP, TEXTURE_STATWINDOW_BUTTONS, nCel - 1);
 		else
 			CelDrawTo(out, 40 + PANEL_X, -17 + PANEL_Y, pChrButtons, nCel, 41);
@@ -1969,7 +1969,7 @@ static int DrawDurIcon4Item(CelOutputBuffer out, ItemStruct *pItem, int x, int c
 		}
 	}
 
-	if (options_hwRendering) { //Fluffy: Render via SDL rendering
+	if (options_hwUIRendering) { //Fluffy: Render via SDL rendering
 		int renderX = x;
 		int renderY = y - (height - 1);
 		c -= 1;
@@ -2114,7 +2114,7 @@ void DrawSpellBook(CelOutputBuffer out)
 	int i, sn, mana, lvl, yp, min, max;
 	char st;
 
-	if (options_hwRendering) { //Fluffy: Render spellbook window and buttons via SDL
+	if (options_hwUIRendering) { //Fluffy: Render spellbook window and buttons via SDL
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_SPELLBOOK);
 		if (gbIsHellfire && sbooktab < 5)
 			Render_Texture_FromBottom(RIGHT_PANEL + 61 * sbooktab + 7, 348, TEXTURE_SPELLBOOK_BUTTONS, sbooktab);
@@ -2227,7 +2227,7 @@ void DrawGoldSplit(CelOutputBuffer out, int amount)
 	int screen_x, i;
 
 	screen_x = 0;
-	if (options_hwRendering) //Fluffy: Draw via SDL rendering
+	if (options_hwUIRendering) //Fluffy: Draw via SDL rendering
 		Render_Texture_FromBottom(351, 178, TEXTURE_GOLDDROPSELECTION);
 	else
 		CelDrawTo(out, 351, 178, pGBoxBuff, 1, 261);
@@ -2249,7 +2249,7 @@ void DrawGoldSplit(CelOutputBuffer out, int amount)
 	} else {
 		screen_x = 386;
 	}
-	if (options_hwRendering) //Fluffy: Render via SDL
+	if (options_hwUIRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(screen_x, 140, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, screen_x, 140, pSPentSpn2Cels, PentSpn2Spin(), 12);
@@ -2377,7 +2377,7 @@ void DrawTalkPan(CelOutputBuffer out)
 	}
 	if (msg)
 		*msg = '\0';
-	if (options_hwRendering) //Fluffy: Render via SDL
+	if (options_hwUIRendering) //Fluffy: Render via SDL
 		Render_Texture_FromBottom(x, i + 22 + PANEL_TOP, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 	else
 		CelDrawTo(out, x, i + 22 + PANEL_Y, pSPentSpn2Cels, PentSpn2Spin(), 12);
@@ -2393,7 +2393,7 @@ void DrawTalkPan(CelOutputBuffer out)
 					nCel = 4;
 				else
 					nCel = 3;
-				if (options_hwRendering) //Fluffy: Render via SDL
+				if (options_hwUIRendering) //Fluffy: Render via SDL
 					Render_Texture_FromBottom(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
 				else
 					CelDrawTo(out, 172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);
@@ -2405,7 +2405,7 @@ void DrawTalkPan(CelOutputBuffer out)
 				nCel = 1;
 			if (talkbtndown[talk_btn])
 				nCel += 4;
-			if (options_hwRendering) //Fluffy: Render via SDL
+			if (options_hwUIRendering) //Fluffy: Render via SDL
 				Render_Texture_FromBottom(172 + PANEL_LEFT, 84 + 18 * talk_btn + PANEL_TOP, TEXTURE_HUDPANEL_TALKBUTTONS, nCel - 1);
 			else
 				CelDrawTo(out, 172 + PANEL_X, 84 + 18 * talk_btn + PANEL_Y, pTalkBtns, nCel, 61);

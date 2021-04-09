@@ -153,7 +153,7 @@ void Textures_Init()
 
 	memset(textures, 0, sizeof(texture_s) * TEXTURE_NUM);
 
-	if (!sgOptions.Graphics.bInitHwRendering)
+	if (!sgOptions.Graphics.bInitHwUIRendering)
 		return;
 
 	//Load textures
@@ -163,48 +163,50 @@ void Textures_Init()
 	}
 
 	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
-	SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha) 
-	LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
-	LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
-	LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
-	LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
-	if (sgOptions.Graphics.bInitLightmapping) {
-		LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
-		LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
-		LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
-		LoadTexture(TEXTURE_TILE_RIGHTMASK_OPAQUE, "data/textures/tiles/RightMaskNulls.png");
+	if (sgOptions.Graphics.bInitHwIngameRendering) {
+		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha)
+		LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
+		LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
+		LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
+		LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
+		if (sgOptions.Graphics.bInitLightmapping) {
+			LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
+			LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
+			LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
+			LoadTexture(TEXTURE_TILE_RIGHTMASK_OPAQUE, "data/textures/tiles/RightMaskNulls.png");
 
-		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
-		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
-		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK_OPAQUE].frames[0].frame, blendMode);
-		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK_OPAQUE].frames[0].frame, blendMode);
-	}
-	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTFOLIAGEMASK].frames[0].frame, blendMode);
-	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTFOLIAGEMASK].frames[0].frame, blendMode);
-	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK].frames[0].frame, blendMode);
-	SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
+			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
+			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
+			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK_OPAQUE].frames[0].frame, blendMode);
+			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK_OPAQUE].frames[0].frame, blendMode);
+		}
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTFOLIAGEMASK].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTFOLIAGEMASK].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASK].frames[0].frame, blendMode);
+		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
 
-	if (sgOptions.Graphics.bInitLightmapping) {
-		LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
-		LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
-		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD); //Basically normal blending
-		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD); //Same as normal additive blending
-		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM);
-		//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
-		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, blendMode);
-		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_HALFGRADIENT_HALFGREY].frames[0].frame, blendMode);
-	}
+		if (sgOptions.Graphics.bInitLightmapping) {
+			LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
+			LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
+			SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD); //Basically normal blending
+			//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD); //Same as normal additive blending
+			//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM);
+			//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+			SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, blendMode);
+			SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_HALFGRADIENT_HALFGREY].frames[0].frame, blendMode);
+		}
 
-	//Generate tile intermediate render target
-	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
-	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
-	GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, gnScreenWidth, gnScreenHeight, true);
+		//Generate tile intermediate render target
+		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
+		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
+		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, gnScreenWidth, gnScreenHeight, true);
 
-	if (sgOptions.Graphics.bInitLightmapping) {
-		GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, gnScreenWidth + LIGHTMAP_APPEND_X, gnScreenHeight + LIGHTMAP_APPEND_Y, true);
-		SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
-		lightmap_imgData = new unsigned char[(gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4];
-		memset(lightmap_imgData, 0, (gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4);
+		if (sgOptions.Graphics.bInitLightmapping) {
+			GenerateRenderTarget(TEXTURE_LIGHT_FRAMEBUFFER, gnScreenWidth + LIGHTMAP_APPEND_X, gnScreenHeight + LIGHTMAP_APPEND_Y, true);
+			SDL_SetTextureBlendMode(textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame, SDL_BLENDMODE_MOD);
+			lightmap_imgData = new unsigned char[(gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4];
+			memset(lightmap_imgData, 0, (gnScreenWidth + LIGHTMAP_APPEND_X) * (gnScreenHeight + LIGHTMAP_APPEND_Y) * 4);
+		}
 	}
 }
 

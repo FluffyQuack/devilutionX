@@ -54,7 +54,8 @@ struct GraphicsOptions {
 	bool bOpaqueWallsUnlessObscuring; //Fluffy: If true, walls are always opaque unless there's something important nearby
 	bool bOpaqueWallsWithBlobs;       //Fluffy: If true, walls are always opaque but important objects render through an elliptic see-through window
 	bool bOpaqueWallsWithSilhouette;  //Fluffy: If true, walls are always opaque but important objects render through as a silhoutte
-	bool bInitHwRendering; //Fluffy
+	bool bInitHwIngameRendering; //Fluffy
+	bool bInitHwUIRendering;	//Fluffy
 	bool bInitLightmapping; //Fluffy
 	bool bAnimatedUIFlasks; //Fluffy: If true, the flasks on the UI are replaced with BillieJoe's flasks (needs options_hwRendering)
 	bool bDurabilityIconGradualChange; //Fluffy

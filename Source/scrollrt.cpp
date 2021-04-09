@@ -166,7 +166,7 @@ static void scrollrt_draw_cursor_item(CelOutputBuffer out)
 		return;
 	}
 
-	if (!options_hwRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
+	if (!options_hwUIRendering) { //Fluffy: Only do backup of cursor if we're doing 8-bit rendering
 		sgdwCursX = mx;
 		sgdwCursWdt = sgdwCursX + cursW + 1;
 		if (sgdwCursWdt > gnScreenWidth - 1) {
@@ -256,7 +256,7 @@ void DrawMissilePrivate(CelOutputBuffer out, MissileStruct *m, int sx, int sy, B
 	int mx = sx + m->_mixoff - m->_miAnimWidth2;
 	int my = sy + m->_miyoff;
 
-	if (options_hwRendering) { //Fluffy: Render missile via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render missile via SDL
 
 		//Figure out what texture to use for this missile
 		int textureNum = -1;
@@ -629,7 +629,7 @@ static void DrawObject(CelOutputBuffer out, int x, int y, int ox, int oy, BOOL p
 		return;
 	}
 
-	if (options_hwRendering) { //Fluffy: Render object via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render object via SDL
 		int brightness;
 		if (!object[bv]._oLight)
 			brightness = 255;
@@ -690,7 +690,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 	int lightx = -1;
 	int lighty = -1;
 	int lightType = LIGHTING_SUBTILE_NONE;
-	if (options_hwRendering && options_lightmapping) {
+	if (options_hwIngameRendering && options_lightmapping) {
 		if (lightInfo_subTiles && level_piece_id < lightInfo_subTilesSize)
 			lightType = lightInfo_subTiles[level_piece_id - 1];
 
@@ -710,7 +710,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 	}
 
 	//Fluffy: Render cell as one whole dungeon piece
-	if (1 && nSolidTable[level_piece_id] && options_hwRendering && options_lightmapping) {
+	if (1 && nSolidTable[level_piece_id] && options_hwIngameRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
 		textureFrame_s *textureFrame = &textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id];
@@ -855,7 +855,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 
 		//Fluffy
 		int curType = lightType;
-		if (options_hwRendering && options_lightmapping) {
+		if (options_hwIngameRendering && options_lightmapping) {
 			if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
 				lightx = lightmap_lightx - (TILE_WIDTH / 2);
 				lighty = lightmap_lighty + (TILE_HEIGHT / 2);
@@ -870,7 +870,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 		level_cel_block = pMap->mt[2 * i];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 1 : 0;
-			if (options_hwRendering) //Fluffy
+			if (options_hwIngameRendering) //Fluffy
 				RenderTileViaSDL(sx, sy, lightx, lighty, curType);
 			else
 				RenderTile(out, sx, sy);
@@ -878,7 +878,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 		level_cel_block = pMap->mt[2 * i + 1];
 		if (level_cel_block != 0) {
 			arch_draw_type = i == 0 ? 2 : 0;
-			if (options_hwRendering) //Fluffy
+			if (options_hwIngameRendering) //Fluffy
 				RenderTileViaSDL(sx + TILE_WIDTH / 2, sy, lightx, lighty, curType);
 			else
 				RenderTile(out, sx + TILE_WIDTH / 2, sy);
@@ -899,7 +899,7 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 static void drawFloor(CelOutputBuffer out, int x, int y, int sx, int sy)
 {
 	cel_transparency_active = 0;
-	if (options_hwRendering && options_lightmapping) //Fluffy: Force brightness to max for lightmapping
+	if (options_hwIngameRendering && options_lightmapping) //Fluffy: Force brightness to max for lightmapping
 		light_table_index = 0;
 	else
 		light_table_index = dLight[x][y];
@@ -907,7 +907,7 @@ static void drawFloor(CelOutputBuffer out, int x, int y, int sx, int sy)
 	arch_draw_type = 1; // Left
 	level_cel_block = dpiece_defs_map_2[x][y].mt[0];
 	if (level_cel_block != 0) {
-		if (options_hwRendering) //Fluffy
+		if (options_hwIngameRendering) //Fluffy
 			RenderTileViaSDL(sx, sy);
 		else
 			RenderTile(out, sx, sy);
@@ -915,7 +915,7 @@ static void drawFloor(CelOutputBuffer out, int x, int y, int sx, int sy)
 	arch_draw_type = 2; // Right
 	level_cel_block = dpiece_defs_map_2[x][y].mt[1];
 	if (level_cel_block != 0) {
-		if (options_hwRendering) //Fluffy
+		if (options_hwIngameRendering) //Fluffy
 			RenderTileViaSDL(sx + TILE_WIDTH / 2, sy);
 		else
 			RenderTile(out, sx + TILE_WIDTH / 2, sy);
@@ -959,7 +959,7 @@ static void DrawItem(CelOutputBuffer out, int x, int y, int sx, int sy, BOOL pre
 
 	int px = sx - pItem->_iAnimWidth2;
 
-	if (options_hwRendering) { //Fluffy: Render item via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render item via SDL
 		int textureNum = TEXTURE_ITEMS + ItemCAnimTbl[pItem->_iCurs];
 		int frameNum = nCel - 1;
 		if (bItem - 1 == pcursitem || AutoMapShowItems)
@@ -1006,7 +1006,7 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 	if (leveltype == DTYPE_TOWN) {
 		px = sx - towner[mi]._tAnimWidth2;
 
-		if (options_hwRendering) { //Fluffy: Render NPC via SDL
+		if (options_hwIngameRendering) { //Fluffy: Render NPC via SDL
 			int textureNum = TEXTURE_SMITH;
 			switch (towner[mi]._ttype) {
 			case TOWN_SMITH:
@@ -1103,7 +1103,7 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 	px = sx + pMonster->_mxoff - pMonster->MType->width2;
 	py = sy + pMonster->_myoff;
 
-	if (options_hwRendering) { //Fluffy: Render monster via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render monster via SDL
 		int brightness = Render_IndexLightToBrightness();
 		int textureNum = TEXTURE_MONSTERS + (pMonster->_mMTidx * MA_NUM);
 		int facing = -1;
@@ -1163,7 +1163,7 @@ static void DrawPlayerHelper(CelOutputBuffer out, int x, int y, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
-	if (options_hwRendering) { //Fluffy: Render player via SDL
+	if (options_hwIngameRendering) { //Fluffy: Render player via SDL
 		DrawPlayer_SDL(p, x, y, px, py);
 		return;
 	}
@@ -1261,7 +1261,7 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 
 	light_table_index = dLight[sx][sy];
 
-	if (options_hwRendering && options_lightmapping) { //Fluffy: Set coordinates for light value to use
+	if (options_hwIngameRendering && options_lightmapping) { //Fluffy: Set coordinates for light value to use
 		lightmap_lightx = (dx + (TILE_WIDTH / 2));
 		lightmap_lighty = dy;
 		if (lightmap_lightx >= gnScreenWidth)
@@ -1328,7 +1328,7 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 			char dd = (bDead >> 5) & 7;
 			int px = dx - pDeadGuy->_deadWidth2;
 
-			if (options_hwRendering) { //Render dead enemy via SDL
+			if (options_hwIngameRendering) { //Render dead enemy via SDL
 				//Figure out which monster in the Monsters array this body belongs to
 				int textureNum = -1;
 				int frameNum = -1;
@@ -1407,7 +1407,7 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 				cel_transparency_active = 0; // Turn transparency off here for debugging
 			}
 #endif
-			if (options_hwRendering) //Fluffy: Render via SDL
+			if (options_hwIngameRendering) //Fluffy: Render via SDL
 				RenderArchViaSDL(dx, dy, bArch, cel_transparency_active != 0);
 			else
 				CelClippedBlitLightTransTo(out, dx, dy, pSpecialCels, bArch, 64);
@@ -1424,7 +1424,7 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 		if (sx > 0 && sy > 0 && dy > TILE_HEIGHT) {
 			char bArch = dSpecial[sx - 1][sy - 1];
 			if (bArch != 0) {
-				if (options_hwRendering) //Fluffy: Render via SDL
+				if (options_hwIngameRendering) //Fluffy: Render via SDL
 					RenderArchViaSDL(dx, dy - TILE_HEIGHT, bArch, 0);
 				else
 					CelDrawTo(out, dx, dy - TILE_HEIGHT, pSpecialCels, bArch, 64);
@@ -1810,7 +1810,7 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 	/*if (options_opaqueWallsWithBlobs || options_opaqueWallsWithSilhouette)
 		memset(gpBuffer_important, 0, BUFFER_WIDTH * BUFFER_HEIGHT); //Fluffy: Reset "important" buffer before drawing stuff*/
 
-	if (options_hwRendering && options_lightmapping) { //Fluffy: Process all entities with a light source and have them add lights to the lightmap buffer
+	if (options_hwIngameRendering && options_lightmapping) { //Fluffy: Process all entities with a light source and have them add lights to the lightmap buffer
 		Lightmap_MakeLightmap(x, y, sx, sy, rows, columns);
 		lightmap_lightx = -1;
 		lightmap_lighty = -1;
@@ -1818,7 +1818,7 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 
 	scrollrt_drawFloor(out, x, y, sx, sy, rows, columns);
 
-	if (options_hwRendering && options_lightmapping) { //Fluffy: Render lightmap on top of floor tiles
+	if (options_hwIngameRendering && options_lightmapping) { //Fluffy: Render lightmap on top of floor tiles
 
 		/*
 		//This applies more of a contrast to the lighting. Maybe it has some potential?
@@ -1838,7 +1838,7 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 
 	scrollrt_draw(out, x, y, sx, sy, rows, columns);
 
-	if (options_hwRendering && !zoomflag) { //Fluffy: Scale up the render if we're zooming in. TODO: Implement integer scaling for this?
+	if (options_hwIngameRendering && !zoomflag) { //Fluffy: Scale up the render if we're zooming in. TODO: Implement integer scaling for this?
 		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
 		SDL_Rect rect;
 		rect.x = 0;
@@ -1944,7 +1944,7 @@ void ClearScreenBuffer()
 
 	unlock_buf(3);
 
-	if (options_hwRendering) //Fluffy: Also clear the intermediate texture
+	if (options_hwUIRendering) //Fluffy: Also clear the intermediate texture
 	{
 		if (options_lightmapping) { //Clear lightmap
 			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);
@@ -2119,7 +2119,7 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
 			RenderDebugLine(out, &x, &y, String);
 
-			if (sgOptions.Graphics.bInitHwRendering) {
+			if (sgOptions.Graphics.bInitHwUIRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
 				else if (totalTextureSize < (1 << 20) * 10)
@@ -2130,7 +2130,10 @@ static void DrawFPS(CelOutputBuffer out)
 					snprintf(String, 100, "loadedTextures: %uGB", totalTextureSize >> 30);
 				RenderDebugLine(out, &x, &y, String);
 
-				snprintf(String, 100, "hwRendering: %s", options_hwRendering ? "ON" : "OFF");
+				snprintf(String, 100, "hwUIRendering: %s", options_hwUIRendering ? "ON" : "OFF");
+				RenderDebugLine(out, &x, &y, String);
+
+				snprintf(String, 100, "hwIngameRendering: %s", options_hwIngameRendering ? "ON" : "OFF");
 				RenderDebugLine(out, &x, &y, String);
 
 				snprintf(String, 100, "lightMapping: %s", options_lightmapping ? "ON" : "OFF");
@@ -2234,7 +2237,7 @@ void scrollrt_draw_game_screen(BOOL draw_cursor)
 	DrawMain(hgt, FALSE, FALSE, FALSE, FALSE, FALSE);
 
 	if (draw_cursor) {
-		if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+		if (!options_hwUIRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 			lock_buf(0);
 			scrollrt_draw_cursor_back_buffer(GlobalBackBuffer());
 			unlock_buf(0);
@@ -2252,9 +2255,9 @@ void DrawAndBlit()
 		return;
 	}
 
-	if (options_hwRendering) //Fluffy: Change render target to texture
+	if (options_hwUIRendering) //Fluffy: Change render target to texture
 	{
-		if (options_lightmapping) { //Clear lightmap
+		if (options_hwIngameRendering && options_lightmapping) { //Clear lightmap
 			SDL_SetRenderTarget(renderer, textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame);
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_TRANSPARENT);
 			SDL_RenderClear(renderer);
@@ -2319,13 +2322,13 @@ void DrawAndBlit()
 
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
-	if (!options_hwRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
+	if (!options_hwUIRendering) { //Fluffy: Only remove cursor from buffer if we're doing 8-bit rendering
 		lock_buf(0);
 		scrollrt_draw_cursor_back_buffer(GlobalBackBuffer());
 		unlock_buf(0);
 	}
 
-	if (options_hwRendering) //Fluffy: Reset render target
+	if (options_hwUIRendering) //Fluffy: Reset render target
 	{
 		SDL_SetRenderTarget(renderer, NULL);
 	}

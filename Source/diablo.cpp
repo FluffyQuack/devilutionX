@@ -94,7 +94,8 @@ int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 //Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 BOOL gameSetup_allowAttacksInTown = false; //Fluffy: Allow attacking in town
 BOOL gameSetup_safetyJog = false; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown)
-BOOL options_hwRendering = false;               //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
+BOOL options_hwIngameRendering = false;               //Fluffy: If true, we render all ingame graphics via SDL (this requires options_hwUIRendering to be true)
+BOOL options_hwUIRendering = false; //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
 int lastLeftMouseButtonAction = MOUSEACTION_NONE;  //Fluffy: These are for supporting repeating attacks with leftclick
 int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for supporting repeating actions with rightclick
@@ -280,7 +281,7 @@ void FreeGameMem()
 		Lightmap_UnloadSubtileData();
 
 	//Fluffy: Also delete equivalent SDL textures
-	if (sgOptions.Graphics.bInitHwRendering) {
+	if (sgOptions.Graphics.bInitHwIngameRendering) {
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES);
 		Texture_UnloadTexture(TEXTURE_DUNGEONTILES_SPECIAL);
 
@@ -318,7 +319,7 @@ static void start_game(interface_mode uMsg)
 	track_repeat_walk(FALSE);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (sgOptions.Graphics.bInitHwRendering) {
+	if (sgOptions.Graphics.bInitHwUIRendering) {
 		//Cursors
 		if (!textures[TEXTURE_CURSOR].loaded) {
 			Texture_ConvertCEL_MultipleFrames_VariableResolution(pCursCels, TEXTURE_CURSOR, (int *)&InvItemWidth[1], (int *)&InvItemHeight[1], true);
@@ -439,7 +440,7 @@ static void run_game_loop(interface_mode uMsg)
 	PaletteFadeOut(8);
 	NewCursor(CURSOR_NONE);
 	ClearScreenBuffer();
-	if (options_hwRendering) //Fluffy: dx_face would be 255 here after a fade out, but we're not doing a fade back in, so we set it to 0 here
+	if (options_hwUIRendering) //Fluffy: dx_face would be 255 here after a fade out, but we're not doing a fade back in, so we set it to 0 here
 		dx_fade = 0;
 	force_redraw = 255;
 	scrollrt_draw_game_screen(TRUE);
@@ -524,7 +525,8 @@ static void SaveOptions()
 	setIniInt("Graphics", "Nonobscuring Walls Are Opaque", sgOptions.Graphics.bOpaqueWallsUnlessObscuring);
 	setIniInt("Graphics", "Opaque Walls With Blobs", sgOptions.Graphics.bOpaqueWallsWithBlobs);
 	setIniInt("Graphics", "Opaque Walls With Silhouettes", sgOptions.Graphics.bOpaqueWallsWithSilhouette);
-	setIniInt("Graphics", "Hardware Rendering", sgOptions.Graphics.bInitHwRendering);
+	setIniInt("Graphics", "Hardware Ingame Rendering", sgOptions.Graphics.bInitHwIngameRendering);
+	setIniInt("Graphics", "Hardware UI Rendering", sgOptions.Graphics.bInitHwUIRendering);
 	setIniInt("Graphics", "Lightmapping", sgOptions.Graphics.bInitLightmapping);
 	setIniInt("Graphics", "Animated UI Flasks", sgOptions.Graphics.bAnimatedUIFlasks);
 	setIniInt("Graphics", "Durability Icon Gradual Change", sgOptions.Graphics.bDurabilityIconGradualChange);
@@ -614,12 +616,17 @@ static void LoadOptions()
 	sgOptions.Graphics.bOpaqueWallsUnlessObscuring = getIniBool("Graphics", "Nonobscuring Walls Are Opaque", false);
 	sgOptions.Graphics.bOpaqueWallsWithBlobs = getIniBool("Graphics", "Opaque Walls With Blobs", false);
 	sgOptions.Graphics.bOpaqueWallsWithSilhouette = getIniBool("Graphics", "Opaque Walls With Silhouettes", false);
-	sgOptions.Graphics.bInitHwRendering = getIniBool("Graphics", "Hardware Rendering", true);
+	sgOptions.Graphics.bInitHwIngameRendering = getIniBool("Graphics", "Hardware Ingame Rendering", true);
+	sgOptions.Graphics.bInitHwUIRendering = getIniBool("Graphics", "Hardware UI Rendering", true);
 	sgOptions.Graphics.bInitLightmapping = getIniBool("Graphics", "Lightmapping", true);
 	sgOptions.Graphics.bAnimatedUIFlasks = getIniBool("Graphics", "Animated UI Flasks", true);
 	sgOptions.Graphics.bDurabilityIconGradualChange = getIniBool("Graphics", "Durability Icon Gradual Change", true);
 	sgOptions.Graphics.nDurabilityIconGold = getIniInt("Graphics", "Durability Icon Gold Value", 5);
 	sgOptions.Graphics.nDurabilityIconRed = getIniInt("Graphics", "Durability Icon Red Value", 2);
+
+	//Fluffy: HW ingame rendering can't be true unless HW UI rendering is also true
+	if (sgOptions.Graphics.bInitHwIngameRendering && !sgOptions.Graphics.bInitHwUIRendering)
+		sgOptions.Graphics.bInitHwIngameRendering = false;
 
 	//Fluffy TODO
 	//options_hwRendering = options_initHwRendering;
@@ -1673,11 +1680,19 @@ static void PressChar(WPARAM vkey)
 		}
 		return;
 #endif
-	case 'h': //Fluffy: Toggle between normal and SDL rendering
-		if (sgOptions.Graphics.bInitHwRendering)
-			options_hwRendering = !options_hwRendering;
+	case 'h': //Fluffy: Toggle between normal and SDL UI rendering
+		if (sgOptions.Graphics.bInitHwUIRendering)
+			options_hwUIRendering = !options_hwUIRendering;
+		if (!options_hwUIRendering)
+			options_hwIngameRendering = false;
 		return;
-	case 'j': //Fluffy: Toggle between normal and lightmap lighting
+	case 'j': //Fluffy: Toggle between normal and SDL ingame rendering (this requires HW UI rendering to be true)
+		if (sgOptions.Graphics.bInitHwIngameRendering)
+			options_hwIngameRendering = !options_hwIngameRendering;
+		if (!options_hwUIRendering)
+			options_hwIngameRendering = false;
+		return;
+	case 'k': //Fluffy: Toggle between normal and lightmap lighting
 		if (sgOptions.Graphics.bInitLightmapping)
 			options_lightmapping = !options_lightmapping;
 		return;
@@ -2207,7 +2222,7 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 		PlaySFX(USFX_SKING1);
 
 	//Fluffy: Load various CELs as SDL textures here
-	if (sgOptions.Graphics.bInitHwRendering) { 
+	if (sgOptions.Graphics.bInitHwUIRendering) { 
 		if (firstflag) {
 			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
 			LoadQuestDialogueTextures();
@@ -2222,19 +2237,21 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			}
 		}
 
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES, TEXTURE_DUNGEONTILES_DUNGEONPIECES, pLevelPieces);
-		//Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
-		Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1 , currlevel == 0 ? false: true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
+		if (sgOptions.Graphics.bInitHwIngameRendering) {
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES, TEXTURE_DUNGEONTILES_DUNGEONPIECES, pLevelPieces);
+			//Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES);
+			Texture_ConvertCEL_MultipleFrames(pSpecialCels, TEXTURE_DUNGEONTILES_SPECIAL, 64, -1, currlevel == 0 ? false : true); //The town special CEL doens't have frame header (TODO: Can we replace 64 with a reference?)
 
-		//Fluffy debug: Testing optimization
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASK);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASK);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
-		Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+			//Fluffy debug: Testing optimization
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTFOLIAGE);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTFOLIAGE);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASK);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASK);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKINVERTED);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE);
+			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
+		}
 	}
 }
 

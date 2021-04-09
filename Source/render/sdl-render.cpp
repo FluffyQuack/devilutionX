@@ -25,8 +25,6 @@ int Render_IndexLightToBrightness()
 //Render texture as a solid colour
 void Render_Texture_SolidColor(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
@@ -62,8 +60,6 @@ void Render_TextureOutline_FromBottom(int x, int y, unsigned char r, unsigned ch
 //Render texture as an outline (this assumes the normal version of the texture is rendered afterwards)
 void Render_TextureOutline(int x, int y, unsigned char r, unsigned char g, unsigned char b, int textureNum, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
@@ -96,9 +92,6 @@ void Render_TextureOutline(int x, int y, unsigned char r, unsigned char g, unsig
 
 void Render_Texture_ScaleAndCrop(int x, int y, int textureNum, int width, int height, int startX, int startY, int endX, int endY, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
-
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
@@ -129,8 +122,6 @@ void Render_Texture_ScaleAndCrop(int x, int y, int textureNum, int width, int he
 
 void Render_Texture_Scale(int x, int y, int textureNum, int width, int height, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
@@ -148,9 +139,6 @@ void Render_Texture_Scale(int x, int y, int textureNum, int width, int height, i
 
 void Render_Texture_Crop(int x, int y, int textureNum, int startX, int startY, int endX, int endY, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
-	
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}
@@ -183,8 +171,6 @@ void Render_Texture_FromBottom(int x, int y, int textureNum, int frameNum)
 
 void Render_Texture(int x, int y, int textureNum, int frameNum)
 {
-	if (!options_hwRendering)
-		return;
 	if (textures[textureNum].frameCount <= frameNum) {
 		ErrSdl(); //TODO Quit with proper error message
 	}

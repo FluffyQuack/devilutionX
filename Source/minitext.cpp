@@ -147,7 +147,7 @@ int CalcTextSpeed(int nSFX)
  */
 void PrintQTextChr(int sx, int sy, Uint8 *pCelBuff, int nCel)
 {
-	if (options_hwRendering) { //Fluffy: Use SDL rendering
+	if (options_hwUIRendering) { //Fluffy: Use SDL rendering
 		//We use clipping to ensure text is limited to within a certain area
 		SDL_Rect rect;
 		rect.x = 0;
@@ -266,7 +266,7 @@ void InitQTextMsg(int m)
 
 void DrawQTextBack(CelOutputBuffer out)
 {
-	if (options_hwRendering) { //Fluffy: Render text box using SDL
+	if (options_hwUIRendering) { //Fluffy: Render text box using SDL
 		//Render the black transparent background for the panel
 		SDL_Rect rect;
 		rect.w = textures[TEXTURE_TEXTBOX].frames[0].width;

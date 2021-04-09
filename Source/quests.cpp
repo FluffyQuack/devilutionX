@@ -826,7 +826,7 @@ static void PrintQLString(CelOutputBuffer out, int x, int y, BOOL cjustflag, con
 		sx += k;
 	}
 	if (qline == y) {
-		if (options_hwRendering)
+		if (options_hwUIRendering)
 			Render_Texture_FromBottom(cjustflag ? x + k + 12 : x + 12, sy + 1, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
 			CelDrawTo(out, cjustflag ? x + k + 12 : x + 12, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
@@ -840,7 +840,7 @@ static void PrintQLString(CelOutputBuffer out, int x, int y, BOOL cjustflag, con
 		sx += fontkern[c] + 1;
 	}
 	if (qline == y) {
-		if (options_hwRendering)
+		if (options_hwUIRendering)
 			Render_Texture_FromBottom(cjustflag ? x + k + 36 : 276 - x, sy + 1, TEXTURE_SPINNINGPENTAGRAM2, PentSpn2Spin() - 1);
 		else
 			CelDrawTo(out, cjustflag ? x + k + 36 : 276 - x, sy + 1, pSPentSpn2Cels, PentSpn2Spin(), 12);
@@ -852,7 +852,7 @@ void DrawQuestLog(CelOutputBuffer out)
 	int y, i;
 
 	PrintQLString(out, 0, 2, TRUE, "Quest Log", COL_GOLD);
-	if (options_hwRendering) //Fluffy: Render via SDL
+	if (options_hwUIRendering) //Fluffy: Render via SDL
 		Render_Texture(0, 0, TEXTURE_QUESTLOG);
 	else
 		CelDrawTo(out, 0, 351, pQLogCel, 1, SPANEL_WIDTH);

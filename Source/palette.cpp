@@ -233,12 +233,12 @@ static void PaletteFade(bool fadeIn)
 	DWORD tc = SDL_GetTicks();
 	int i = fadeIn ? 0 : 256;
 	SDL_Rect SrcRect = { BUFFER_BORDER_LEFT, BUFFER_BORDER_TOP, gnScreenWidth, gnScreenHeight };
-	if (options_hwRendering) {
+	if (options_hwUIRendering) {
 		SetFadeLevel(256);
 		BltFast(&SrcRect, NULL);
 	}
 	while ((fadeIn && i < 256) || (!fadeIn && i > 0)) {
-		if (options_hwRendering) //Fluffy: We apply fading differently if we're doing hardware rendering
+		if (options_hwUIRendering) //Fluffy: We apply fading differently if we're doing hardware rendering
 			dx_fade = 256 - (i == 0 ? 1 : i); //Fluffy TODO: We should double check if all of the values defined as 256 here should actually be 256. I find it weird it could ever range from 0 to 256
 		else {
 			SetFadeLevel(i);
@@ -252,7 +252,7 @@ static void PaletteFade(bool fadeIn)
 	}
 
 	SetFadeLevel(fadeIn ? 256 : 0);
-	if (options_hwRendering)
+	if (options_hwUIRendering)
 		dx_fade = fadeIn ? 0 : 255;
 	if (fadeIn)
 		memcpy(logical_palette, orig_palette, sizeof(orig_palette));

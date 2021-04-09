@@ -66,7 +66,7 @@ const char *const talkname[] = {
 
 void DrawSTextBack(CelOutputBuffer out)
 {
-	if (options_hwRendering) { //Fluffy: Draw text box via SDL
+	if (options_hwUIRendering) { //Fluffy: Draw text box via SDL
 		//Render the black transparent background for the panel
 		SDL_Rect rect;
 		rect.w = textures[TEXTURE_TEXTBOX2].frames[0].width;
@@ -85,7 +85,7 @@ void DrawSTextBack(CelOutputBuffer out)
 
 static void DrawSSlider_Render(CelOutputBuffer out, int x, int y, int frameNum)
 {
-	if (options_hwRendering) //Fluffy: SDL render
+	if (options_hwUIRendering) //Fluffy: SDL render
 		Render_Texture_FromBottom(x, y, TEXTURE_DYNAMICWINDOW, frameNum - 1);
 	else
 		CelDrawTo(out, x, y, pSTextSlidCels, frameNum, 12);
@@ -119,7 +119,7 @@ void DrawSSlider(CelOutputBuffer out, int y1, int y2)
 		yd3 = 0;
 
 	int renderY = (y1 + 1) * 12 + 44 + UI_OFFSET_Y + yd3;
-	if (options_hwRendering) //Fluffy: SDL render
+	if (options_hwUIRendering) //Fluffy: SDL render
 		Render_Texture_FromBottom(renderX, renderY, TEXTURE_DYNAMICWINDOW, 13 - 1);
 	else
 		CelDrawTo(out, renderX, renderY, pSTextSlidCels, 13, 12);
@@ -2327,7 +2327,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int frameNum = PentSpn2Spin();
 		int renderX = cjustflag ? xx + x + k - 20 : xx + x - 20;
 		int renderY = s + 45 + UI_OFFSET_Y;
-		if (options_hwRendering) //Fluffy: Render via SDL
+		if (options_hwUIRendering) //Fluffy: Render via SDL
 			Render_Texture_FromBottom(renderX, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
@@ -2356,7 +2356,7 @@ void PrintSString(CelOutputBuffer out, int x, int y, bool cjustflag, const char 
 		int frameNum = PentSpn2Spin();
 		int renderX = cjustflag ? (xx + x + k + 4) : (PANEL_X + 596 - x);
 		int renderY = s + 45 + UI_OFFSET_Y;
-		if (options_hwRendering) //Fluffy: Render via SDL
+		if (options_hwUIRendering) //Fluffy: Render via SDL
 			Render_Texture_FromBottom(renderX, renderY, TEXTURE_SPINNINGPENTAGRAM2, frameNum - 1);
 		else
 			CelDrawTo(out, renderX, renderY, pSPentSpn2Cels, frameNum, 12);
@@ -2369,7 +2369,7 @@ void DrawSLine(CelOutputBuffer out, int y)
 	BYTE *src, *dst;
 	int width;
 
-	if (options_hwRendering) { //Fluffy: Render via SDL
+	if (options_hwUIRendering) { //Fluffy: Render via SDL
 		int x1 = PANEL_LEFT;
 		int x2;
 		int y2 = sy + 38 + UI_OFFSET_Y;

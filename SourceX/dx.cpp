@@ -58,7 +58,7 @@ static void dx_create_back_buffer()
 	if (sgOptions.Graphics.bOpaqueWallsWithBlobs || sgOptions.Graphics.bOpaqueWallsWithSilhouette) {
 		gpBuffer_important = new BYTE[(BUFFER_BORDER_LEFT + gnScreenWidth + BUFFER_BORDER_RIGHT) * (BUFFER_BORDER_TOP + gnScreenHeight + BUFFER_BORDER_BOTTOM)]; //Fluffy: Create buffer used for wall transparency
 	}
-	if (sgOptions.Graphics.bInitHwRendering) {
+	if (sgOptions.Graphics.bInitHwUIRendering) {
 		texture_intermediate = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, gnScreenWidth, gnScreenHeight); //Fluffy: Create the texture we use for rendering game graphics
 		SDL_SetTextureBlendMode(texture_intermediate, SDL_BLENDMODE_BLEND);
 	}
@@ -304,18 +304,18 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
-		if (!options_hwRendering) {
-			if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
+			if (!options_hwIngameRendering) {
+				if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
+					ErrSdl();
+				}
+
+			// Clear buffer to avoid artifacts in case the window was resized
+#ifndef __vita__
+			// There's no window resizing on vita, so texture always properly overwrites display area.
+			// Thus, there's no need to clear the screen and unnecessarily modify sdl render context state.
+			if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
 				ErrSdl();
 			}
-
-		// Clear buffer to avoid artifacts in case the window was resized
-#ifndef __vita__
-		// There's no window resizing on vita, so texture always properly overwrites display area.
-		// Thus, there's no need to clear the screen and unnecessarily modify sdl render context state.
-		if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) <= -1) { // TODO only do this if window was resized
-			ErrSdl();
-		}
 
 			if (SDL_RenderClear(renderer) <= -1) {
 				ErrSdl();
@@ -325,7 +325,9 @@ void RenderPresent()
 			if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
 				ErrSdl();
 			}
-		} else {
+		}
+
+		if(options_hwUIRendering) {
 			if (SDL_RenderCopy(renderer, texture_intermediate, NULL, NULL) <= -1) { //Fluffy: Render intermediate texture
 				ErrSdl();
 			}

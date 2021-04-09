@@ -144,7 +144,7 @@ void InitInv()
 
 static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 {
-	if (options_hwRendering) { //Fluffy
+	if (options_hwUIRendering) { //Fluffy
 		SDL_SetRenderDrawColor(renderer, 255, 125, 125, 255); //TODO: This colour is off. It should be brighter
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_MOD);
 		SDL_Rect rect;
@@ -180,7 +180,7 @@ static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 
 void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline, int outlineColor, bool transparent) //Fluffy: A wrapper for a lot of render calls in scrollrt_draw_cursor_item() and DrawInv()
 {
-	if (options_hwRendering) { //Fluffy: 32-bit version of cursor rendering
+	if (options_hwUIRendering) { //Fluffy: 32-bit version of cursor rendering
 		int textureNum = TEXTURE_CURSOR;
 		int textureNumOutline = TEXTURE_CURSOR_OUTLINE;
 		if (frame > 179) {
@@ -251,7 +251,7 @@ void DrawInv(CelOutputBuffer out)
 	BOOL invtest[NUM_INV_GRID_ELEM];
 	int frame, frame_width, color = 0, screen_x, screen_y, i, j, ii;
 
-	if (options_hwRendering) { //Fluffy: Render 32-bit version of inventory
+	if (options_hwUIRendering) { //Fluffy: Render 32-bit version of inventory
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_INVENTORY);
 	} else {
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pInvCels, 1, SPANEL_WIDTH);
