@@ -140,26 +140,22 @@ static void DrawPlayerLightmap(int x, int y, int oy, int sx, int sy)
 	int px = sx + pPlayer->_pxoff - pPlayer->_pAnimWidth2;
 	int py = sy + pPlayer->_pyoff;
 
-	if (options_hwIngameRendering) { //Fluffy: Render player via SDL
-		if (options_lightmapping) { //Fluffy: Render light for player
-			int width = 1024;
-			int height = width - (width / 2);
+	int width = 1024;
+	int height = width - (width / 2);
 
-			if (currlevel == 0) {
-				width *= 2;
-				height *= 2;
-			}
-
-			//int lightX = px - (pPlayer->_pAnimWidth / 2);
-			//int lightY = py - BORDER_TOP;
-			//int lightY = py - (SPANEL_HEIGHT / 2);
-			int lightX = px - 23;
-			int lightY = py - 171;
-			lightX += BUFFER_BORDER_LEFT;
-			lightY += BUFFER_BORDER_TOP;
-			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
-		}
+	if (currlevel == 0) {
+		width *= 2;
+		height *= 2;
 	}
+
+	//int lightX = px - (pPlayer->_pAnimWidth / 2);
+	//int lightY = py - BORDER_TOP;
+	//int lightY = py - (SPANEL_HEIGHT / 2);
+	int lightX = px - 23;
+	int lightY = py - 171;
+	lightX += BUFFER_BORDER_LEFT;
+	lightY += BUFFER_BORDER_TOP;
+	Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
 }
 
 static void DrawObjectLightmap(int x, int y, int ox, int oy)
@@ -184,47 +180,44 @@ static void DrawObjectLightmap(int x, int y, int ox, int oy)
 
 	assert((unsigned char)bv < MAXOBJECTS);
 
-	if (options_hwIngameRendering) {
-
-		int lightRadius = 0;
-		switch (object[bv]._otype) {
-		case OBJ_L1LIGHT:
-		case OBJ_SKFIRE:
-		case OBJ_CANDLE1:
-		case OBJ_CANDLE2:
-		case OBJ_BOOKCANDLE:
-		case OBJ_BCROSS:
-		case OBJ_TBCROSS:
-			lightRadius = 5;
-			break;
-		case OBJ_STORYCANDLE:
-			lightRadius = 3;
-			break;
-		case OBJ_TORCHL:
-		case OBJ_TORCHR:
-		case OBJ_TORCHL2:
-		case OBJ_TORCHR2:
-			lightRadius = 8;
-			break;
-		}
-		
-		if (options_lightmapping && lightRadius) { //Fluffy: Generate lightmap for light
-			int width = 512;
-			width = (width * 5) / lightRadius;
-
-			//width += random_(0, 40); //TODO: Add nice flickering for flame objects
-
-			int height = width - (width / 2);
-			int lightX = ox - 23;
-			int lightY = oy - 171;
-			lightX += BUFFER_BORDER_LEFT;
-			lightY += BUFFER_BORDER_TOP;
-			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
-			//Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
-			Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
-			//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
-		}
+	int lightRadius = 0;
+	switch (object[bv]._otype) {
+	case OBJ_L1LIGHT:
+	case OBJ_SKFIRE:
+	case OBJ_CANDLE1:
+	case OBJ_CANDLE2:
+	case OBJ_BOOKCANDLE:
+	case OBJ_BCROSS:
+	case OBJ_TBCROSS:
+		lightRadius = 5;
+		break;
+	case OBJ_STORYCANDLE:
+		lightRadius = 3;
+		break;
+	case OBJ_TORCHL:
+	case OBJ_TORCHR:
+	case OBJ_TORCHL2:
+	case OBJ_TORCHR2:
+		lightRadius = 8;
+		break;
 	}
+		
+	if (options_lightmapping && lightRadius) { //Fluffy: Generate lightmap for light
+		int width = 512;
+		width = (width * 5) / lightRadius;
+
+		//width += random_(0, 40); //TODO: Add nice flickering for flame objects
+
+		int height = width - (width / 2);
+		int lightX = ox - 23;
+		int lightY = oy - 171;
+		lightX += BUFFER_BORDER_LEFT;
+		lightY += BUFFER_BORDER_TOP;
+		//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 214, 173);
+		//Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_SMOOTHGRADIENT, width, height);
+		Render_Texture_Scale(lightX - (width / 2), lightY - (height / 2), TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, width, height);
+		//SDL_SetTextureColorMod(textures[TEXTURE_LIGHT_SMOOTHGRADIENT].frames[0].frame, 255, 255, 255);
+		}
 }
 
 static void ProcessTile(int sx, int sy, int dx, int dy)
