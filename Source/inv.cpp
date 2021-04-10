@@ -296,7 +296,7 @@ void DrawInv(CelOutputBuffer out)
 		slotPositions[(INVLOC_HAND_LEFT * 2) + 0] = 17;
 		slotPositions[(INVLOC_HAND_LEFT * 2) + 1] = 160;
 
-		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 261;
+		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 248;
 		slotPositions[(INVLOC_HAND_RIGHT * 2) + 1] = 160;
 
 		slotPositions[(INVLOC_CHEST * 2) + 0] = 133;
@@ -424,12 +424,12 @@ void DrawInv(CelOutputBuffer out)
 			if (plr[myplr]._pClass != PC_BARBARIAN
 			    || (plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_SWORD
 			        && plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_MACE)) {
-				InvDrawSlotBack(out, RIGHT_PANEL_X + 248, 160, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
+				InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
 				light_table_index = 0;
 				screen_x = x; //Fluffy
 				screen_y = y;
-				if (frame_width != INV_SLOT_SIZE_PX)
-					screen_x -= 12;
+				if (frame_width == INV_SLOT_SIZE_PX)
+					screen_x += 12;
 				if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
 					screen_y -= 14;
 				//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
@@ -449,8 +449,8 @@ void DrawInv(CelOutputBuffer out)
 		// calc item offsets for weapons smaller than 2x3 slots
 		screen_x = x; //Fluffy
 		screen_y = y;
-		if (frame_width != INV_SLOT_SIZE_PX)
-			screen_x -= 12;
+		if (frame_width == INV_SLOT_SIZE_PX)
+			screen_x += 12;
 		if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
 			screen_y -= 14;
 		//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
