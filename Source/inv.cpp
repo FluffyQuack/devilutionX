@@ -34,31 +34,32 @@ int sgdwLastTime; // check name
 const InvXY InvRect[] = {
 	// clang-format off
 	//  X,   Y
-	{ 132,  31 }, // helmet
-	{ 160,  31 }, // helmet
-	{ 132,  59 }, // helmet
-	{ 160,  59 }, // helmet
-	{  45, 205 }, // left ring
-	{ 247, 205 }, // right ring
-	{ 204,  59 }, // amulet
+	//Fluffy: Tweaked some of these values. Since they're used for rendering, I changed them to match what the rendering values were
+	{ 133,  31 }, // helmet
+	{ 161,  31 }, // helmet
+	{ 133,  59 }, // helmet
+	{ 161,  59 }, // helmet
+	{  48, 205 }, // left ring
+	{ 249, 205 }, // right ring
+	{ 205,  60 }, // amulet
 	{  17, 104 }, // left hand
 	{  46, 104 }, // left hand
 	{  17, 132 }, // left hand
 	{  46, 132 }, // left hand
 	{  17, 160 }, // left hand
 	{  46, 160 }, // left hand
-	{ 247, 104 }, // right hand
-	{ 276, 104 }, // right hand
-	{ 247, 132 }, // right hand
-	{ 276, 132 }, // right hand
-	{ 247, 160 }, // right hand
-	{ 276, 160 }, // right hand
-	{ 132, 104 }, // chest
-	{ 160, 104 }, // chest
-	{ 132, 132 }, // chest
-	{ 160, 132 }, // chest
-	{ 132, 160 }, // chest
-	{ 160, 160 }, // chest
+	{ 248, 104 }, // right hand
+	{ 277, 104 }, // right hand
+	{ 248, 132 }, // right hand
+	{ 277, 132 }, // right hand
+	{ 248, 160 }, // right hand
+	{ 277, 160 }, // right hand
+	{ 133, 104 }, // chest
+	{ 161, 104 }, // chest
+	{ 133, 132 }, // chest
+	{ 161, 132 }, // chest
+	{ 133, 160 }, // chest
+	{ 161, 160 }, // chest
 	{  17, 250 }, // inv row 1
 	{  46, 250 }, // inv row 1
 	{  75, 250 }, // inv row 1
@@ -175,7 +176,7 @@ void InitInv()
 		};
 		int slotNum = 0;
 		for (int j = 0; j < NUM_INVLOC; j++) {
-			int baseX = newSizes[j].X - 1;
+			int baseX = newSizes[j].X;
 			int baseY = newSizes[j].Y - (INV_SLOT_SIZE_PX * (slotSize[j].Y - 1));
 			int x = 0;
 			int y = 0;
@@ -325,7 +326,7 @@ void DrawInv(CelOutputBuffer out)
 		if (plr[myplr].InvBody[i].isEmpty())
 			continue;
 
-		x = slotPositions[bottomLeftEquipmentSlots[i]].X + 1 + RIGHT_PANEL_X;
+		x = slotPositions[bottomLeftEquipmentSlots[i]].X + RIGHT_PANEL_X;
 		y = slotPositions[bottomLeftEquipmentSlots[i]].Y;
 
 		InvDrawSlotBack(out, x, y, slotSize[i].X * INV_SLOT_SIZE_PX, slotSize[i].Y * INV_SLOT_SIZE_PX);
