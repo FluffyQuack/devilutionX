@@ -3729,7 +3729,7 @@ void ProcessPlayers()
 				}
 			}
 
-			if (gameSetup_safetyJog && plr[pnum].tickCount == 0) {
+			if (gameSetup_safetyJog && plr[pnum].tickCount == 0) { //Fluffy
 
 				//Check if any enemy is close and within "vision" of player (TODO: We should also check if the "vision" is directly connected to player, and not part of another player's "vision" on the other side of a wall)
 				#define SAFETY_RANGE 12
@@ -3749,7 +3749,7 @@ void ProcessPlayers()
 				bool enemyInRange = false;
 				for (int x = fromX; x <= toX; x++)
 					for (int y = fromY; y <= toY; y++) {
-						if (dFlags[x][y] & BFLAG_VISIBLE && dMonster[x][y] != 0) {
+						if (dFlags[x][y] & BFLAG_VISIBLE && (dMonster[x][y] != 0 && currlevel != 0)) {
 							enemyInRange = true;
 							goto endSearch;
 						}
