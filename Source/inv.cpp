@@ -110,6 +110,30 @@ const InvXY InvRect[] = {
 	// clang-format on
 };
 
+static const InvXY slotSize[] = { //Fluffy
+	// clang-format off
+	{ 2, 2 }, //INVLOC_HEAD      
+	{ 1, 1 }, //INVLOC_RING_LEFT 
+	{ 1, 1 }, //INVLOC_RING_RIGHT
+	{ 1, 1 }, //INVLOC_AMULET    
+	{ 2, 3 }, //INVLOC_HAND_LEFT 
+	{ 2, 3 }, //INVLOC_HAND_RIGHT
+	{ 2, 3 }, //INVLOC_CHEST     
+	// clang-format on
+};
+
+InvXY InvRect_PaperDollInterface[73]; //Fluffy
+
+const int bottomLeftEquipmentSlots[NUM_INVLOC] = { //Fluffy: This references the bottomleft position of every equippable gear slot in InvRect
+	2, //INVLOC_HEAD      
+	4, //INVLOC_RING_LEFT 
+	5, //INVLOC_RING_RIGHT
+	6, //INVLOC_AMULET    
+	11, //INVLOC_HAND_LEFT 
+	17, //INVLOC_HAND_RIGHT
+	23  //INVLOC_CHEST     
+};
+
 /* data */
 /** Specifies the starting inventory slots for placement of 2x2 items. */
 int AP2x2Tbl[10] = { 8, 28, 6, 26, 4, 24, 2, 22, 0, 20 };
@@ -136,6 +160,38 @@ void InitInv()
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv_rog.CEL", NULL);
 	} else if (plr[myplr]._pClass == PC_BARBARIAN) {
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv.CEL", NULL);
+	}
+
+	//Fluffy: Populate the slot position array for the alternate paperdoll inventory interface
+	{
+		const InvXY newSizes[NUM_INVLOC] = { //These correspond to the bottom left slot of each gear piece
+			{ 250, 75 }, //INVLOC_HEAD      
+			{ 241, 205 }, //INVLOC_RING_LEFT
+			{ 282, 205 }, //INVLOC_RING_RIGHT
+			{ 209, 76 }, //INVLOC_AMULET
+			{ 16, 102 }, //INVLOC_HAND_LEFT
+			{ 16, 204 }, //INVLOC_HAND_RIGHT
+			{ 250, 169 }  //INVLOC_CHEST     
+		};
+		int slotNum = 0;
+		for (int j = 0; j < NUM_INVLOC; j++) {
+			int baseX = newSizes[j].X - 1;
+			int baseY = newSizes[j].Y - (INV_SLOT_SIZE_PX * (slotSize[j].Y - 1));
+			int x = 0;
+			int y = 0;
+			for (int i = 0; i < slotSize[j].X * slotSize[j].Y; i++) {
+				InvRect_PaperDollInterface[slotNum].X = baseX + (INV_SLOT_SIZE_PX * x);
+				InvRect_PaperDollInterface[slotNum].Y = baseY + (INV_SLOT_SIZE_PX * y);
+				x++;
+				if (x >= slotSize[j].X) {
+					x = 0;
+					y++;
+				}
+				slotNum++;
+			}
+		}
+		for (int i = slotNum; i < 73; i++)
+			InvRect_PaperDollInterface[i] = InvRect[i];
 	}
 
 	invflag = FALSE;
@@ -257,236 +313,61 @@ void DrawInv(CelOutputBuffer out)
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pInvCels, 1, SPANEL_WIDTH);
 	}
 
-	//Fluffy: List of inventory positions
-	int slotPositions[NUM_INVLOC * 2];
-	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE) {
-		slotPositions[(INVLOC_HEAD * 2) + 0] = 250;
-		slotPositions[(INVLOC_HEAD * 2) + 1] = 75;
+	//Fluffy: Pointer to inventory slot positions
+	InvXY *slotPositions;
+	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE)
+		slotPositions = (InvXY *) InvRect_PaperDollInterface;
+	else
+		slotPositions = (InvXY *) InvRect;
 
-		slotPositions[(INVLOC_RING_LEFT * 2) + 0] = 241;
-		slotPositions[(INVLOC_RING_LEFT * 2) + 1] = 205;
+	//Fluffy: Moved everything into one "for" loop
+	for (int i = 0; i < NUM_INVLOC; i++) {
+		if (plr[myplr].InvBody[i].isEmpty())
+			continue;
 
-		slotPositions[(INVLOC_RING_RIGHT * 2) + 0] = 282;
-		slotPositions[(INVLOC_RING_RIGHT * 2) + 1] = 205;
+		x = slotPositions[bottomLeftEquipmentSlots[i]].X + 1 + RIGHT_PANEL_X;
+		y = slotPositions[bottomLeftEquipmentSlots[i]].Y;
 
-		slotPositions[(INVLOC_AMULET * 2) + 0] = 209;
-		slotPositions[(INVLOC_AMULET * 2) + 1] = 76;
+		InvDrawSlotBack(out, x, y, slotSize[i].X * INV_SLOT_SIZE_PX, slotSize[i].Y * INV_SLOT_SIZE_PX);
 
-		slotPositions[(INVLOC_HAND_LEFT * 2) + 0] = 16;
-		slotPositions[(INVLOC_HAND_LEFT * 2) + 1] = 102;
-
-		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 16;
-		slotPositions[(INVLOC_HAND_RIGHT * 2) + 1] = 204;
-
-		slotPositions[(INVLOC_CHEST * 2) + 0] = 250;
-		slotPositions[(INVLOC_CHEST * 2) + 1] = 169;
-	} else {
-		slotPositions[(INVLOC_HEAD * 2) + 0] = 133;
-		slotPositions[(INVLOC_HEAD * 2) + 1] = 59;
-
-		slotPositions[(INVLOC_RING_LEFT * 2) + 0] = 48;
-		slotPositions[(INVLOC_RING_LEFT * 2) + 1] = 205;
-
-		slotPositions[(INVLOC_RING_RIGHT * 2) + 0] = 249;
-		slotPositions[(INVLOC_RING_RIGHT * 2) + 1] = 205;
-
-		slotPositions[(INVLOC_AMULET * 2) + 0] = 205;
-		slotPositions[(INVLOC_AMULET * 2) + 1] = 60;
-
-		slotPositions[(INVLOC_HAND_LEFT * 2) + 0] = 17;
-		slotPositions[(INVLOC_HAND_LEFT * 2) + 1] = 160;
-
-		slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] = 248;
-		slotPositions[(INVLOC_HAND_RIGHT * 2) + 1] = 160;
-
-		slotPositions[(INVLOC_CHEST * 2) + 0] = 133;
-		slotPositions[(INVLOC_CHEST * 2) + 1] = 160;
-	}
-
-	if (!plr[myplr].InvBody[INVLOC_HEAD].isEmpty()) {
-		x = slotPositions[(INVLOC_HEAD * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_HEAD * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 2 * INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_HEAD]._iCurs + CURSOR_FIRSTITEM;
+		frame = plr[myplr].InvBody[i]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
 
-		if (pcursinvitem == INVITEM_HEAD) {
+		// Calculate item offsets for items smaller than the equipment slot (Fluffy TODO: We could make this fully dynamic rather than hardcoding it only for 2x3 slots)
+		if (slotSize[i].X == 2 && frame_width == INV_SLOT_SIZE_PX)
+			x += 14;
+		if (slotSize[i].Y == 3 && InvItemHeight [frame] != (3 * INV_SLOT_SIZE_PX))
+			y -= 14;
+
+		if (pcursinvitem == i) { //Fluffy: This normally compares to something like INVITEM_HEAD, but they match up with the NUM_INVLOC enum
 			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_HEAD]._iMagical != ITEM_QUALITY_NORMAL) {
+			if (plr[myplr].InvBody[i]._iMagical != ITEM_QUALITY_NORMAL) {
 				color = ICOL_BLUE;
 			}
-			if (!plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag) {
+			if (!plr[myplr].InvBody[i]._iStatFlag) {
 				color = ICOL_RED;
 			}
 		}
-		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HEAD]._iStatFlag == 0, pcursinvitem == INVITEM_HEAD, color); //Fluffy
-	}
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[i]._iStatFlag == 0, pcursinvitem == i, color);
 
-	if (!plr[myplr].InvBody[INVLOC_RING_LEFT].isEmpty()) {
-		x = slotPositions[(INVLOC_RING_LEFT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_RING_LEFT * 2) + 1];
+		if (i == INVLOC_HAND_LEFT) { //Check if we should render two-handed weapons in right hand slot
+			if (plr[myplr].InvBody[i]._iLoc == ILOC_TWOHAND) {
+				x = slotPositions[bottomLeftEquipmentSlots[INVLOC_HAND_RIGHT]].X + RIGHT_PANEL_X;
+				y = slotPositions[bottomLeftEquipmentSlots[INVLOC_HAND_RIGHT]].Y;
 
-		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_RING_LEFT]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-
-		if (pcursinvitem == INVITEM_RING_LEFT) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_RING_LEFT]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag) {
-				color = ICOL_RED;
-			}
-		}
-		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_LEFT, color); //Fluffy
-	}
-
-	if (!plr[myplr].InvBody[INVLOC_RING_RIGHT].isEmpty()) {
-		x = slotPositions[(INVLOC_RING_RIGHT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_RING_RIGHT * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_RING_RIGHT]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-
-		if (pcursinvitem == INVITEM_RING_RIGHT) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_RING_RIGHT]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag) {
-				color = ICOL_RED;
+				if (plr[myplr]._pClass != PC_BARBARIAN
+				    || (plr[myplr].InvBody[i]._itype != ITYPE_SWORD
+				        && plr[myplr].InvBody[i]._itype != ITYPE_MACE)) {
+					InvDrawSlotBack(out, x, y, slotSize[INVLOC_HAND_RIGHT].X * INV_SLOT_SIZE_PX, slotSize[INVLOC_HAND_RIGHT].Y * INV_SLOT_SIZE_PX);
+					light_table_index = 0;
+					if (frame_width == INV_SLOT_SIZE_PX)
+						x += 12;
+					if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
+						y -= 14;
+					DrawCursorItemWrapper(out, x, y, frame, frame_width, false, false, false, 0, true);
+				}
 			}
 		}
-		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_RING_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_RING_RIGHT, color); //Fluffy
-	}
-
-	if (!plr[myplr].InvBody[INVLOC_AMULET].isEmpty()) {
-		x = slotPositions[(INVLOC_AMULET * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_AMULET * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_AMULET]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-
-		if (pcursinvitem == INVITEM_AMULET) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_AMULET]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag) {
-				color = ICOL_RED;
-			}
-		}
-		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_AMULET]._iStatFlag == 0, pcursinvitem == INVITEM_AMULET, color); //Fluffy
-	}
-
-	if (!plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
-		x = slotPositions[(INVLOC_HAND_LEFT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_HAND_LEFT * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_HAND_LEFT]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-		// calc item offsets for weapons smaller than 2x3 slots
-		screen_x = x; //Fluffy
-		screen_y = y;
-		if (frame_width == INV_SLOT_SIZE_PX)
-			screen_x += 14;
-		if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
-			screen_y -= 14;
-
-		//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 31) : (RIGHT_PANEL_X + 17);
-		//screen_y = InvItemHeight[frame] == (3 * INV_SLOT_SIZE_PX) ? (160) : (146);
-
-		if (pcursinvitem == INVITEM_HAND_LEFT) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_HAND_LEFT]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_HAND_LEFT]._iStatFlag) {
-				color = ICOL_RED;
-			}
-		}
-		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_LEFT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_LEFT, color); //Fluffy
-
-		if (plr[myplr].InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND) {
-			x = slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] + RIGHT_PANEL_X;
-			y = slotPositions[(INVLOC_HAND_RIGHT * 2) + 1];
-
-			if (plr[myplr]._pClass != PC_BARBARIAN
-			    || (plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_SWORD
-			        && plr[myplr].InvBody[INVLOC_HAND_LEFT]._itype != ITYPE_MACE)) {
-				InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
-				light_table_index = 0;
-				screen_x = x; //Fluffy
-				screen_y = y;
-				if (frame_width == INV_SLOT_SIZE_PX)
-					screen_x += 12;
-				if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
-					screen_y -= 14;
-				//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-				//screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? 160 : 146;
-				DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, false, false, false, 0, true);
-			}
-		}
-	}
-	if (!plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
-		x = slotPositions[(INVLOC_HAND_RIGHT * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_HAND_RIGHT * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-		// calc item offsets for weapons smaller than 2x3 slots
-		screen_x = x; //Fluffy
-		screen_y = y;
-		if (frame_width == INV_SLOT_SIZE_PX)
-			screen_x += 12;
-		if (InvItemHeight[frame] != (3 * INV_SLOT_SIZE_PX))
-			screen_y -= 14;
-		//screen_x = frame_width == INV_SLOT_SIZE_PX ? (RIGHT_PANEL_X + 261) : (RIGHT_PANEL_X + 249);
-		//screen_y = InvItemHeight[frame] == 3 * INV_SLOT_SIZE_PX ? (160) : (146);
-
-		if (pcursinvitem == INVITEM_HAND_RIGHT) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iStatFlag) {
-				color = ICOL_RED;
-			}
-		}
-		DrawCursorItemWrapper(out, screen_x, screen_y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_HAND_RIGHT]._iStatFlag == 0, pcursinvitem == INVITEM_HAND_RIGHT, color); //Fluffy
-	}
-
-	if (!plr[myplr].InvBody[INVLOC_CHEST].isEmpty()) {
-		x = slotPositions[(INVLOC_CHEST * 2) + 0] + RIGHT_PANEL_X; //Fluffy
-		y = slotPositions[(INVLOC_CHEST * 2) + 1];
-
-		InvDrawSlotBack(out, x, y, 2 * INV_SLOT_SIZE_PX, 3 * INV_SLOT_SIZE_PX);
-
-		frame = plr[myplr].InvBody[INVLOC_CHEST]._iCurs + CURSOR_FIRSTITEM;
-		frame_width = InvItemWidth[frame];
-
-		if (pcursinvitem == INVITEM_CHEST) {
-			color = ICOL_WHITE;
-			if (plr[myplr].InvBody[INVLOC_CHEST]._iMagical != ITEM_QUALITY_NORMAL) {
-				color = ICOL_BLUE;
-			}
-			if (!plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag) {
-				color = ICOL_RED;
-			}
-		}
-		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].InvBody[INVLOC_CHEST]._iStatFlag == 0, pcursinvitem == INVITEM_CHEST, color); //Fluffy
 	}
 
 	for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
@@ -1107,6 +988,13 @@ void CheckInvPaste(int pnum, int mx, int my)
 	int il, cn, it, iv, ig, gt;
 	ItemStruct tempitem;
 
+	//Fluffy: Pointer to inventory slot positions
+	InvXY *slotPositions;
+	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE)
+		slotPositions = (InvXY *)InvRect_PaperDollInterface;
+	else
+		slotPositions = (InvXY *)InvRect;
+
 	SetICursor(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
 	i = mx + (icursW >> 1);
 	j = my + (icursH >> 1);
@@ -1121,8 +1009,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 			yo = PANEL_TOP;
 		}
 
-		if (i >= InvRect[r].X + xo && i < InvRect[r].X + xo + INV_SLOT_SIZE_PX) {
-			if (j >= InvRect[r].Y + yo - INV_SLOT_SIZE_PX - 1 && j < InvRect[r].Y + yo) {
+		if (i >= slotPositions[r].X + xo && i < slotPositions[r].X + xo + INV_SLOT_SIZE_PX) { //Fluffy: Added pointer
+			if (j >= slotPositions[r].Y + yo - INV_SLOT_SIZE_PX - 1 && j < slotPositions[r].Y + yo) {
 				done = TRUE;
 				r--;
 			}
@@ -1546,6 +1434,13 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 
 	done = FALSE;
 
+	//Fluffy: Pointer to inventory slot positions
+	InvXY *slotPositions;
+	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE)
+		slotPositions = (InvXY *)InvRect_PaperDollInterface;
+	else
+		slotPositions = (InvXY *)InvRect;
+
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
@@ -1555,10 +1450,10 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 		}
 
 		// check which inventory rectangle the mouse is in, if any
-		if (mx >= InvRect[r].X + xo
-		    && mx < InvRect[r].X + xo + (INV_SLOT_SIZE_PX + 1)
-		    && my >= InvRect[r].Y + yo - (INV_SLOT_SIZE_PX + 1)
-		    && my < InvRect[r].Y + yo) {
+		if (mx >= slotPositions[r].X + xo //Fluffy: Added pointer
+		    && mx < slotPositions[r].X + xo + (INV_SLOT_SIZE_PX + 1)
+		    && my >= slotPositions[r].Y + yo - (INV_SLOT_SIZE_PX + 1)
+		    && my < slotPositions[r].Y + yo) {
 			done = TRUE;
 			r--;
 		}
@@ -2498,6 +2393,13 @@ char CheckInvHLight()
 	PlayerStruct *p;
 	char rv;
 
+	//Fluffy: Pointer to inventory slot positions
+	InvXY *slotPositions;
+	if (options_hwUIRendering && sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE)
+		slotPositions = (InvXY *)InvRect_PaperDollInterface;
+	else
+		slotPositions = (InvXY *)InvRect;
+
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
@@ -2506,10 +2408,10 @@ char CheckInvHLight()
 			yo = PANEL_TOP;
 		}
 
-		if (MouseX >= InvRect[r].X + xo
-		    && MouseX < InvRect[r].X + xo + (INV_SLOT_SIZE_PX + 1)
-		    && MouseY >= InvRect[r].Y + yo - (INV_SLOT_SIZE_PX + 1)
-		    && MouseY < InvRect[r].Y + yo) {
+		if (MouseX >= slotPositions[r].X + xo //Fluffy: Added pointer
+		    && MouseX < slotPositions[r].X + xo + (INV_SLOT_SIZE_PX + 1)
+		    && MouseY >= slotPositions[r].Y + yo - (INV_SLOT_SIZE_PX + 1)
+		    && MouseY < slotPositions[r].Y + yo) {
 			break;
 		}
 	}
