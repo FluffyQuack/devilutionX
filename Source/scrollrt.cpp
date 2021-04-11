@@ -2317,7 +2317,7 @@ void DrawAndBlit()
 		 if(!sgOptions.Gameplay.bHotbar) //Fluffy: Draw hotbar rather than belt if hotbar is on
 			 DrawInvBelt(out);
 		 else
-			 Hotbar_Render();
+			 Hotbar_Render(out);
 	}
 
 	if (talkflag) {

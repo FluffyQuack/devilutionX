@@ -162,7 +162,7 @@ void InitInv()
 	drawsbarflag = FALSE;
 }
 
-static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
+void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 {
 	if (options_hwUIRendering) { //Fluffy
 		SDL_SetRenderDrawColor(renderer, 255, 125, 125, 255); //TODO: This colour is off. It should be brighter

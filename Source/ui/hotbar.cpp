@@ -1,5 +1,7 @@
 #include "../all.h"
 #include "hotbar.h"
+#include "../render/sdl-render.h"
+#include "../textures/textures.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -50,21 +52,73 @@ bool Hotbar_MouseDown(bool rightClick)
 	if (!rightClick) {
 		if(selectedHotbarSlot != -1)
 		{
-			selectedHotbarSlot_forLinking = selectedHotbarSlot;
+			if (selectedHotbarSlot_forLinking == selectedHotbarSlot)
+				selectedHotbarSlot_forLinking = -1;
+			else
+				selectedHotbarSlot_forLinking = selectedHotbarSlot;
 			return true;
 		} else if (selectedHotbarSlot_forLinking != -1) {
 			if (pcursinvitem != -1) {
-
-
+				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = pcursinvitem;
+				selectedHotbarSlot_forLinking = -1;
+				return true;
+			} else {
+				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
+				selectedHotbarSlot_forLinking = -1;
 			}
-			selectedHotbarSlot_forLinking = -1;
 		}
 	} 
 	return false;
 }
 
-void Hotbar_Render()
+void Hotbar_Render(CelOutputBuffer out)
 {
+	//Render hotbar slot linking
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarSlots[i].itemLink != -1) {
+			int frame;
+			int frame_width;
+			int x = PANEL_LEFT + hotBarSlotLocations[i].X;
+			int y = PANEL_TOP + hotBarSlotLocations[i].Y;
+
+			if (hotbarSlots[i].itemLink <= INVITEM_CHEST) {
+
+				int itemSlotNum = hotbarSlots[i].itemLink;
+				if (plr[myplr].InvBody[itemSlotNum].isEmpty())
+					continue;
+				frame = plr[myplr].InvBody[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
+
+			} else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST) {
+				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_INV_FIRST;
+				if (plr[myplr].InvList[itemSlotNum].isEmpty())
+					continue;
+				frame = plr[myplr].InvList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
+
+			} else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST) {
+
+				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_BELT_FIRST;
+				if (plr[myplr].SpdList[itemSlotNum].isEmpty())
+					continue;
+				frame = plr[myplr].SpdList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
+
+			}
+
+			frame_width = InvItemWidth[frame];
+			InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+
+			if (options_hwUIRendering) {
+				int textureNum = TEXTURE_CURSOR;
+				if (frame > 179) {
+					textureNum = TEXTURE_CURSOR2;
+					frame -= 179;
+				}
+				Render_Texture_FromBottom(x, y, textureNum, frame - 1);
+			} else {
+				//Fluffy TODO
+			}
+		}
+	}
+
 	//Draw an outline for the selected hotbar slot
 	for (int i = 0; i < 2; i++) {
 		int slotNum;

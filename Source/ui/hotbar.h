@@ -15,6 +15,6 @@ extern int selectedHotbarSlot;
 void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
 bool Hotbar_MouseDown(bool rightClick);
-void Hotbar_Render();
+void Hotbar_Render(CelOutputBuffer out);
 
 DEVILUTION_END_NAMESPACE

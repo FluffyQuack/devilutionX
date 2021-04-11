@@ -31,6 +31,7 @@ extern InvXY InvRect[73]; //Fluffy: Changed from const to non-const for dynamic 
 void CalculateBeltSlotPositions(); //Fluffy
 void FreeInvGFX();
 void InitInv();
+void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H); //Fluffy
 void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline = 0, int outlineColor = 0, bool transparent = 0);
 
 /**
