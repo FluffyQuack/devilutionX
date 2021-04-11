@@ -374,6 +374,7 @@ void CheckCursMove()
 	uitemflag = FALSE;
 	panelflag = FALSE;
 	trigflag = FALSE;
+	selectedHotbarSlot = -1; //Fluffy
 
 	if (plr[myplr]._pInvincible) {
 		return;
