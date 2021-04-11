@@ -19,7 +19,7 @@ const InvXY hotBarSlotLocations[HOTBAR_SLOTS] = {
 	{ 408, 33 }
 };
 
-void Hotbar_ResetSlots()
+void Hotbar_ResetSlots() //Reset everything to do with the hotbar
 {
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
 		hotbarSlots[i].itemLink = -1;
@@ -28,7 +28,7 @@ void Hotbar_ResetSlots()
 	selectedHotbarSlot_forLinking = -1;
 }
 
-bool Hotbar_SlotSelection()
+bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 {
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
 		int xo = PANEL_LEFT;
@@ -47,9 +47,9 @@ bool Hotbar_SlotSelection()
 	return false;
 }
 
-bool Hotbar_MouseDown(bool rightClick)
+bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action related to a hotbar slot
 {
-	if (!rightClick) {
+	if (!rightClick) { //Left click
 		if(selectedHotbarSlot != -1)
 		{
 			if (selectedHotbarSlot_forLinking == selectedHotbarSlot)
@@ -57,7 +57,7 @@ bool Hotbar_MouseDown(bool rightClick)
 			else
 				selectedHotbarSlot_forLinking = selectedHotbarSlot;
 			return true;
-		} else if (selectedHotbarSlot_forLinking != -1) {
+		} else if (selectedHotbarSlot_forLinking != -1) { //Try to link this hotbar slot to something (or set to -1 if we're selecting nothing or something invalid)
 			if (pcursinvitem != -1) {
 				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = pcursinvitem;
 				selectedHotbarSlot_forLinking = -1;
@@ -67,7 +67,7 @@ bool Hotbar_MouseDown(bool rightClick)
 				selectedHotbarSlot_forLinking = -1;
 			}
 		}
-	} else {
+	} else { //Right click
 		if (selectedHotbarSlot != -1) {
 			if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
 				//Fluffy TODO: Verify the slot isn't empty
@@ -80,7 +80,7 @@ bool Hotbar_MouseDown(bool rightClick)
 
 				int miscId = item->_iMiscId;
 				int spellId = item->_iSpell;
-				if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then remember its type and try to find another slot with the same item
+				if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
 					bool found = false;
 					for (int i = 0; i < MAXBELTITEMS; i++) {
 						if (!plr[myplr].SpdList[i].isEmpty()) {
