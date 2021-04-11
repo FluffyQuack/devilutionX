@@ -62,9 +62,6 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = pcursinvitem;
 				selectedHotbarSlot_forLinking = -1;
 				return true;
-			} else {
-				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
-				selectedHotbarSlot_forLinking = -1;
 			}
 		}
 	} else { //Right click

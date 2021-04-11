@@ -960,8 +960,7 @@ static BOOL LeftMouseDown(int wParam)
 
 	bool isShiftHeld = wParam & DVL_MK_SHIFT;
 
-	if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_MouseDown(false)) { //Fluffy
-	} else if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
+	if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
 		if (!gmenu_is_active() && !TryIconCurs()) {
 			if (questlog && MouseX > 32 && MouseX < 288 && MouseY > 32 && MouseY < 308) {
 				QuestlogESC();
@@ -990,7 +989,9 @@ static BOOL LeftMouseDown(int wParam)
 	} else {
 		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) //Fluffy: Added hotbar check
 			CheckInvScrn(isShiftHeld);
-		DoPanBtn();
+		else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_MouseDown(false)) { //Fluffy
+		} else 
+			DoPanBtn();
 		if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM)
 			NewCursor(CURSOR_HAND);
 	}
