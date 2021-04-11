@@ -55,6 +55,8 @@ extern int initialDropGoldValue;
 extern BOOL panbtndown;
 extern BOOL spselflag;
 
+extern char SpellITbl[]; //Fluffy: Added as extern for Hotbar rendering
+
 void DrawSpellList(CelOutputBuffer out);
 void SetSpell();
 void SetSpeedSpell(int slot);

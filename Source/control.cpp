@@ -8,6 +8,7 @@
 #include "render/sdl-render.h" //Fluffy: For rendering via SDL
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 #include "options.h" //Fluffy
+#include "ui/hotbar.h" //Fluffy: For linking spells to hotbar
 
 #include <cstddef>
 
@@ -2202,8 +2203,12 @@ void CheckSBook()
 			if (plr[myplr]._pAblSpells & GetSpellBitmask(sn)) {
 				st = RSPLTYPE_SKILL;
 			}
-			plr[myplr]._pRSpell = sn;
-			plr[myplr]._pRSplType = st;
+			if (sgOptions.Gameplay.bHotbar && selectedHotbarSlot_forLinking != -1) //Fluffy
+				Hotbar_LinkSpellToHotbar(sn, st);
+			else {
+				plr[myplr]._pRSpell = sn;
+				plr[myplr]._pRSplType = st;
+			}
 			force_redraw = 255;
 		}
 	}

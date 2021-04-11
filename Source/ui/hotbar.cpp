@@ -23,6 +23,8 @@ void Hotbar_ResetSlots() //Reset everything to do with the hotbar
 {
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
 		hotbarSlots[i].itemLink = -1;
+		hotbarSlots[i].spellLink = -1;
+		hotbarSlots[i].spellLinkType = 0;
 	}
 	selectedHotbarSlot = -1;
 	selectedHotbarSlot_forLinking = -1;
@@ -47,6 +49,16 @@ bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 	return false;
 }
 
+void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType)
+{
+	if (selectedHotbarSlot_forLinking != -1) {
+		hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
+		hotbarSlots[selectedHotbarSlot_forLinking].spellLink = spell;
+		hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = spellType;
+		selectedHotbarSlot_forLinking = -1;
+	}
+}
+
 bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action related to a hotbar slot
 {
 	if (!rightClick) { //Left click
@@ -60,6 +72,8 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 		} else if (selectedHotbarSlot_forLinking != -1) { //Try to link this hotbar slot to something (or set to -1 if we're selecting nothing or something invalid)
 			if (pcursinvitem != -1) {
 				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = pcursinvitem;
+				hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
+				hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
 				selectedHotbarSlot_forLinking = -1;
 				return true;
 			}
@@ -68,6 +82,8 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 		if (selectedHotbarSlot != -1) {
 			if (selectedHotbarSlot_forLinking == selectedHotbarSlot) {
 				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
+				hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
+				hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
 				selectedHotbarSlot_forLinking = -1;
 			}
 			else if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
@@ -114,6 +130,18 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 	return false;
 }
 
+static void RenderSpellIcon(CelOutputBuffer out, int x, int y, int spell, int spellType)
+{
+	if (options_hwUIRendering) {
+		int textureNum = TEXTURE_SMALLSPELLICONS;
+		int frame = SpellITbl[spell] - 1;
+		textureNum += spellType;
+		Render_Texture_Scale(x, y - INV_SLOT_SIZE_PX, textureNum, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX, frame);
+	} else {
+		//Fluffy TODO
+	}
+}
+
 void Hotbar_Render(CelOutputBuffer out)
 {
 	//Render hotbar slot linking and hotkey
@@ -131,12 +159,21 @@ void Hotbar_Render(CelOutputBuffer out)
 				if (plr[myplr].InvBody[itemSlotNum].isEmpty())
 					continue;
 
+				if (plr[myplr].InvBody[itemSlotNum]._iCharges > 0) { //This equipped item has spell charges, so render its spell icon on the hotbar instead of item icon
+					RenderSpellIcon(out, x, y, plr[myplr].InvBody[itemSlotNum]._iSpell, RSPLTYPE_CHARGES);
+					goto doneRenderingIcon;
+				}
 				frame = plr[myplr].InvBody[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			} else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST) {
 				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_INV_FIRST;
 
 				if (plr[myplr].InvList[itemSlotNum].isEmpty())
 					continue;
+
+				if (plr[myplr].InvList[itemSlotNum]._iMiscId == IMISC_SCROLL || plr[myplr].InvList[itemSlotNum]._iMiscId == IMISC_SCROLLT) { //This is a scroll so render its spell icon on the hotbar instead of item icon
+					RenderSpellIcon(out, x, y, plr[myplr].InvList[itemSlotNum]._iSpell, RSPLTYPE_SCROLL);
+					goto doneRenderingIcon;
+				}
 
 				/*bool found = false;
 				for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {
@@ -155,6 +192,11 @@ void Hotbar_Render(CelOutputBuffer out)
 				if (plr[myplr].SpdList[itemSlotNum].isEmpty())
 					continue;
 
+				if (plr[myplr].SpdList[itemSlotNum]._iMiscId == IMISC_SCROLL || plr[myplr].SpdList[itemSlotNum]._iMiscId == IMISC_SCROLLT) { //This is a scroll so render its spell icon on the hotbar instead of item icon
+					RenderSpellIcon(out, x, y, plr[myplr].SpdList[itemSlotNum]._iSpell, RSPLTYPE_SCROLL);
+					goto doneRenderingIcon;
+				}
+
 				frame = plr[myplr].SpdList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			}
 
@@ -171,11 +213,16 @@ void Hotbar_Render(CelOutputBuffer out)
 			} else {
 				//Fluffy TODO
 			}
+		} else if (hotbarSlots[i].spellLink != -1) {
+			activeLink = true;
+			RenderSpellIcon(out, x, y, hotbarSlots[i].spellLink, hotbarSlots[i].spellLinkType);
 		}
+		doneRenderingIcon:
 
 		//Draw hotkey
 		if (activeLink) {
 			Uint8 ff = fontframe[gbFontTransTbl[i + 49]];
+			PrintChar(out, x + INV_SLOT_SIZE_PX - fontkern[ff] - 1, y - 1, ff, COL_BLACK);
 			PrintChar(out, x + INV_SLOT_SIZE_PX - fontkern[ff], y, ff, COL_WHITE);
 		}
 	}
