@@ -968,7 +968,7 @@ static BOOL LeftMouseDown(int wParam)
 				stream_stop();
 			} else if (chrflag && MouseX < SPANEL_WIDTH && MouseY < SPANEL_HEIGHT) {
 				CheckChrBtns();
-			} else if (invflag && MouseX > RIGHT_PANEL && MouseY < SPANEL_HEIGHT) {
+			} else if (IsMouseOnInventoryScreen()) { //Fluffy
 				if (!dropGoldFlag)
 					CheckInvItem(isShiftHeld);
 			} else if (sbookflag && MouseX > RIGHT_PANEL && MouseY < SPANEL_HEIGHT) {
@@ -986,7 +986,7 @@ static BOOL LeftMouseDown(int wParam)
 			}
 		}
 	} else {
-		if (!talkflag && !dropGoldFlag && !gmenu_is_active())
+		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) //Fluffy: Added hotbar check
 			CheckInvScrn(isShiftHeld);
 		DoPanBtn();
 		if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM)

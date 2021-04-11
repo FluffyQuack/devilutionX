@@ -120,8 +120,8 @@ void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending
 	int startY;
 	const int slotDiff = 29;
 	if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
-		startX = 205;
-		startY = 33;
+		startX = 46; //Counting from left of panel (two pixels after the start of the "belt")
+		startY = 381; //Counting from top of panel to bottom of a slot (two pixels before end of the "belt")
 	} else { //These positions are related to control panel
 		startX = 205;
 		startY = 33;
@@ -284,6 +284,7 @@ void DrawInv(CelOutputBuffer out)
 		} else {
 			//Fluffy TODO
 		}
+		DrawInvBelt(out);
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_HEAD].isEmpty()) {
@@ -481,7 +482,20 @@ void DrawInvBelt(CelOutputBuffer out)
 			continue;
 		}
 
-		InvDrawSlotBack(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+		//Fluffy
+		int x;
+		int y;
+		if (sgOptions.Gameplay.bHotbar) {
+			x = InvRect[i + SLOTXY_BELT_FIRST].X + RIGHT_PANEL_X;
+			y = InvRect[i + SLOTXY_BELT_FIRST].Y - 1;
+
+		} else {
+			x = InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X;
+			y = InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1;
+		}
+		
+		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX); //Fluffy
+
 		frame = plr[myplr].SpdList[i]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
 
@@ -496,14 +510,14 @@ void DrawInvBelt(CelOutputBuffer out)
 				drawOutline = TRUE;
 			}
 		}
-		DrawCursorItemWrapper(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
 
 		if (AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
 		    && plr[myplr].SpdList[i]._iStatFlag
 		    && plr[myplr].SpdList[i]._itype != ITYPE_GOLD) {
 			fi = i + 49;
 			ff = fontframe[gbFontTransTbl[fi]];
-			PrintChar(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X + INV_SLOT_SIZE_PX - fontkern[ff], InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, ff, COL_WHITE);
+			PrintChar(out, x + INV_SLOT_SIZE_PX - fontkern[ff], y, ff, COL_WHITE); //Fluffy
 		}
 	}
 }
@@ -1056,7 +1070,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}
@@ -1489,7 +1504,7 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}
@@ -2441,7 +2456,7 @@ char CheckInvHLight()
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}

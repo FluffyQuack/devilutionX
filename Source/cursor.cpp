@@ -4,6 +4,7 @@
  * Implementation of cursor tracking functionality.
  */
 #include "all.h"
+#include "options.h" //Fluffy: For checking if Hotbar is on
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -214,6 +215,22 @@ void CheckRportal()
 	}
 }
 
+bool IsMouseOnInventoryScreen() //Fluffy: Modified this to check for the belt underneath inventory screen is hotbar is on
+{
+	if (!invflag)
+		return false;
+	if (sgOptions.Gameplay.bHotbar) {
+		if (MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT + 31) {
+			if (MouseY > SPANEL_HEIGHT && (MouseX < RIGHT_PANEL + 44 || MouseX > RIGHT_PANEL + 279)) //Check if mouse is to the left or right of the belt inventory
+				return false;
+			return true;
+		}
+	} else if (MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT)
+		return true;
+	
+	return false;
+}
+
 void CheckCursMove()
 {
 	int i, sx, sy, fx, fy, mx, my, tx, ty, px, py, xx, yy, mi, columns, rows, xo, yo;
@@ -373,7 +390,7 @@ void CheckCursMove()
 	if (doomflag) {
 		return;
 	}
-	if (invflag && MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT) {
+	if (IsMouseOnInventoryScreen()) { //Fluffy
 		pcursinvitem = CheckInvHLight();
 		return;
 	}
