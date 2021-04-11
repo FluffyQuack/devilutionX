@@ -518,8 +518,12 @@ void SetSpell()
 	spselflag = FALSE;
 	if (pSpell != SPL_INVALID) {
 		ClearPanel();
-		plr[myplr]._pRSpell = pSpell;
-		plr[myplr]._pRSplType = pSplType;
+		if (sgOptions.Gameplay.bHotbar && selectedHotbarSlot_forLinking != -1) //Fluffy
+			Hotbar_LinkSpellToHotbar(pSpell, pSplType);
+		else {
+			plr[myplr]._pRSpell = pSpell;
+			plr[myplr]._pRSplType = pSplType;
+		}
 		force_redraw = 255;
 	}
 }
