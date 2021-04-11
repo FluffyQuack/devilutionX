@@ -26,7 +26,7 @@ typedef enum item_color {
 extern BOOL invflag;
 extern BYTE *pInvCels; //Fluffy: Added extern of this so Diablo.cpp can make SDL texture out of this
 extern BOOL drawsbarflag;
-extern const InvXY InvRect[73];
+extern InvXY InvRect[73]; //Fluffy: Changed from const to non-const for dynamic belt slot positions
 
 void FreeInvGFX();
 void InitInv();

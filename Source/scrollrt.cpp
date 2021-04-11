@@ -2306,7 +2306,7 @@ void DrawAndBlit()
 	if (drawbtnflag) {
 		DrawCtrlBtns(out);
 	}
-	if (drawsbarflag) {
+	if (drawsbarflag && !sgOptions.Gameplay.bHotbar) { //Fluffy: Don't draw belt if hotbar is on
 		DrawInvBelt(out);
 	}
 	if (talkflag) {

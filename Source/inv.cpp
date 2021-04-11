@@ -31,7 +31,7 @@ int sgdwLastTime; // check name
  * 65 66 67 68 69 70 71 72
  * @see graphics/inv/inventory.png
  */
-const InvXY InvRect[] = {
+InvXY InvRect[] = { //Fluffy: Changed this from const to non-const we can dynamically alter the belt positions (based on whether Hotbar is on or not)
 	// clang-format off
 	//  X,   Y
 	{ 132,  31 }, // helmet
@@ -136,6 +136,24 @@ void InitInv()
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv_rog.CEL", NULL);
 	} else if (plr[myplr]._pClass == PC_BARBARIAN) {
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv.CEL", NULL);
+	}
+
+	//Fluffy: Change belt slot positions depending on the state of Hotbar
+	{
+		int startX;
+		int startY;
+		const int slotDiff = 29;
+		if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
+			startX = 205;
+			startY = 33;
+		} else { //These positions are related to control panel
+			startX = 205;
+			startY = 33;
+		}
+		for (int i = SLOTXY_BELT_FIRST; i <= SLOTXY_BELT_LAST; i++) {
+			InvRect[i].X = startX + ((i - SLOTXY_BELT_FIRST) * slotDiff);
+			InvRect[i].Y = startY;
+		}
 	}
 
 	invflag = FALSE;
@@ -255,6 +273,15 @@ void DrawInv(CelOutputBuffer out)
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_INVENTORY);
 	} else {
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pInvCels, 1, SPANEL_WIDTH);
+	}
+
+	//Fluffy: Draw belt underneath inventory if hotbar is on
+	if (sgOptions.Gameplay.bHotbar) {
+		if (options_hwUIRendering) {
+			Render_Texture_Crop(RIGHT_PANEL + 44, textures[TEXTURE_INVENTORY].frames[0].height, TEXTURE_HUDPANEL, 203, 4 + 16, 438, 35 + 16);
+		} else {
+			//Fluffy TODO
+		}
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_HEAD].isEmpty()) {
