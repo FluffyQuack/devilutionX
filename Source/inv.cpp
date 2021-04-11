@@ -122,7 +122,7 @@ void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending
 	if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
 		startX = 46; //Counting from left of panel (two pixels after the start of the "belt")
 		startY = 381; //Counting from top of panel to bottom of a slot (two pixels before end of the "belt")
-	} else { //These positions are related to control panel
+	} else { //These positions are relative to control panel
 		startX = 205;
 		startY = 33;
 	}
