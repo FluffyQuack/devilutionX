@@ -43,4 +43,22 @@ bool Hotbar_SlotSelection()
 	return false;
 }
 
+void Hotbar_Render()
+{
+	if (selectedHotbarSlot != -1) { //Draw an outline for the selected hotbar slot
+		if (options_hwUIRendering) {
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+			SDL_Rect rect;
+			rect.x = PANEL_LEFT + hotBarSlotLocations[selectedHotbarSlot].X;
+			rect.y = PANEL_TOP + hotBarSlotLocations[selectedHotbarSlot].Y - INV_SLOT_SIZE_PX;
+			rect.w = INV_SLOT_SIZE_PX;
+			rect.h = INV_SLOT_SIZE_PX;
+			SDL_RenderDrawRect(renderer, &rect);
+		} else {
+			//Fluffy TODO
+		}
+	}
+}
+
 DEVILUTION_END_NAMESPACE

@@ -14,5 +14,6 @@ extern int selectedHotbarSlot;
 
 void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
+void Hotbar_Render();
 
 DEVILUTION_END_NAMESPACE

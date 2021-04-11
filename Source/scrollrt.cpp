@@ -2313,9 +2313,13 @@ void DrawAndBlit()
 	if (drawbtnflag) {
 		DrawCtrlBtns(out);
 	}
-	if (drawsbarflag && !sgOptions.Gameplay.bHotbar) { //Fluffy: Don't draw belt if hotbar is on
-		DrawInvBelt(out);
+	if (drawsbarflag) {
+		 if(!sgOptions.Gameplay.bHotbar) //Fluffy: Draw hotbar rather than belt if hotbar is on
+			 DrawInvBelt(out);
+		 else
+			 Hotbar_Render();
 	}
+
 	if (talkflag) {
 		DrawTalkPan(out);
 		hgt = gnScreenHeight;
