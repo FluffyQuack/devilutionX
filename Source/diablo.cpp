@@ -558,6 +558,7 @@ static void SaveOptions()
 	setIniInt("Game", "Jog When Safe", sgOptions.Gameplay.bSafetyJog);
 	setIniInt("Game", "No Equipped Spell Is Attack", sgOptions.Gameplay.bNoEquippedSpellIsAttack);
 	setIniInt("Game", "Hold To Attack", sgOptions.Gameplay.bHoldToAttack);
+	setIniInt("Game", "Hotbar", sgOptions.Gameplay.bHotbar);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -657,6 +658,7 @@ static void LoadOptions()
 	sgOptions.Gameplay.bSafetyJog = getIniBool("Game", "Jog When Safe", true);
 	sgOptions.Gameplay.bNoEquippedSpellIsAttack = getIniBool("Game", "No Equipped Spell Is Attack", true);
 	sgOptions.Gameplay.bHoldToAttack = getIniBool("Game", "Hold To Attack", true);
+	sgOptions.Gameplay.bHotbar = getIniBool("Game", "Hotbar", true);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);

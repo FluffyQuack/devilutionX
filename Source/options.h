@@ -107,6 +107,7 @@ struct GameplayOptions {
 	bool bSafetyJog; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown) (this needs to be in sync between network players)
 	bool bNoEquippedSpellIsAttack; //Fluffy
 	bool bHoldToAttack; //Fluffy
+	bool bHotbar; //Fluffy: Replace the belt in the control bar with a hot bar
 };
 
 struct ControllerOptions {
