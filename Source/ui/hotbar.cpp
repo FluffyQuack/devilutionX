@@ -82,25 +82,26 @@ void Hotbar_Render(CelOutputBuffer out)
 			int y = PANEL_TOP + hotBarSlotLocations[i].Y;
 
 			if (hotbarSlots[i].itemLink <= INVITEM_CHEST) {
-
 				int itemSlotNum = hotbarSlots[i].itemLink;
+
 				if (plr[myplr].InvBody[itemSlotNum].isEmpty())
 					continue;
-				frame = plr[myplr].InvBody[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 
+				frame = plr[myplr].InvBody[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			} else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST) {
 				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_INV_FIRST;
+
 				if (plr[myplr].InvList[itemSlotNum].isEmpty())
 					continue;
+
 				frame = plr[myplr].InvList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
-
 			} else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST) {
-
 				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_BELT_FIRST;
+
 				if (plr[myplr].SpdList[itemSlotNum].isEmpty())
 					continue;
-				frame = plr[myplr].SpdList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 
+				frame = plr[myplr].SpdList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			}
 
 			frame_width = InvItemWidth[frame];
