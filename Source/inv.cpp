@@ -114,6 +114,24 @@ InvXY InvRect[] = { //Fluffy: Changed this from const to non-const we can dynami
 /** Specifies the starting inventory slots for placement of 2x2 items. */
 int AP2x2Tbl[10] = { 8, 28, 6, 26, 4, 24, 2, 22, 0, 20 };
 
+void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending on the state of Hotbar
+{
+	int startX;
+	int startY;
+	const int slotDiff = 29;
+	if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
+		startX = 205;
+		startY = 33;
+	} else { //These positions are related to control panel
+		startX = 205;
+		startY = 33;
+	}
+	for (int i = SLOTXY_BELT_FIRST; i <= SLOTXY_BELT_LAST; i++) {
+		InvRect[i].X = startX + ((i - SLOTXY_BELT_FIRST) * slotDiff);
+		InvRect[i].Y = startY;
+	}
+}
+
 void FreeInvGFX()
 {
 	MemFreeDbg(pInvCels);
@@ -138,23 +156,7 @@ void InitInv()
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv.CEL", NULL);
 	}
 
-	//Fluffy: Change belt slot positions depending on the state of Hotbar
-	{
-		int startX;
-		int startY;
-		const int slotDiff = 29;
-		if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
-			startX = 205;
-			startY = 33;
-		} else { //These positions are related to control panel
-			startX = 205;
-			startY = 33;
-		}
-		for (int i = SLOTXY_BELT_FIRST; i <= SLOTXY_BELT_LAST; i++) {
-			InvRect[i].X = startX + ((i - SLOTXY_BELT_FIRST) * slotDiff);
-			InvRect[i].Y = startY;
-		}
-	}
+	CalculateBeltSlotPositions(); //Fluffy
 
 	invflag = FALSE;
 	drawsbarflag = FALSE;

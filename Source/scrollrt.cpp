@@ -2119,6 +2119,9 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
 			RenderDebugLine(out, &x, &y, String);
 
+			snprintf(String, 100, "hotbar: %i", sgOptions.Gameplay.bHotbar);
+			RenderDebugLine(out, &x, &y, String);
+
 			if (sgOptions.Graphics.bInitHwUIRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);

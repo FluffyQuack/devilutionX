@@ -1698,6 +1698,10 @@ static void PressChar(WPARAM vkey)
 		if (sgOptions.Graphics.bInitLightmapping)
 			options_lightmapping = !options_lightmapping;
 		return;
+	case 'u': //Fluffy: Toggle hotbar on and off
+		sgOptions.Gameplay.bHotbar = !sgOptions.Gameplay.bHotbar;
+		CalculateBeltSlotPositions();
+		return;
 	}
 }
 

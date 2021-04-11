@@ -28,6 +28,7 @@ extern BYTE *pInvCels; //Fluffy: Added extern of this so Diablo.cpp can make SDL
 extern BOOL drawsbarflag;
 extern InvXY InvRect[73]; //Fluffy: Changed from const to non-const for dynamic belt slot positions
 
+void CalculateBeltSlotPositions(); //Fluffy
 void FreeInvGFX();
 void InitInv();
 void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline = 0, int outlineColor = 0, bool transparent = 0);
