@@ -512,7 +512,8 @@ void DrawInvBelt(CelOutputBuffer out)
 		}
 		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
 
-		if (AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
+		if (!sgOptions.Gameplay.bHotbar && //Fluffy: Added hotbar check
+			AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
 		    && plr[myplr].SpdList[i]._iStatFlag
 		    && plr[myplr].SpdList[i]._itype != ITYPE_GOLD) {
 			fi = i + 49;
