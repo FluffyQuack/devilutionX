@@ -216,20 +216,19 @@ void CheckRportal()
 	}
 }
 
+static bool inBounds(int x, int y, int xMin, int yMin, int xMax, int yMax)
+{
+	return (x > xMin && x <= xMax) && (y > yMin && y <= yMax);
+}
+
 bool IsMouseOnInventoryScreen() //Fluffy: Modified this to check for the belt underneath inventory screen is hotbar is on
 {
 	if (!invflag)
 		return false;
-	if (sgOptions.Gameplay.bHotbar) {
-		if (MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT + 31) {
-			if (MouseY > SPANEL_HEIGHT && (MouseX < RIGHT_PANEL + 44 || MouseX > RIGHT_PANEL + 279)) //Check if mouse is to the left or right of the belt inventory
-				return false;
-			return true;
-		}
-	} else if (MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT)
+	if (sgOptions.Gameplay.bHotbar && inBounds(MouseX, MouseY, RIGHT_PANEL + 43, SPANEL_HEIGHT, RIGHT_PANEL + 279, SPANEL_HEIGHT + 31))
 		return true;
-	
-	return false;
+	else
+		return inBounds(MouseX, MouseY, RIGHT_PANEL, 0, gnScreenWidth, SPANEL_HEIGHT);
 }
 
 void CheckCursMove()
