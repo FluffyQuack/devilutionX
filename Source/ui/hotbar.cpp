@@ -67,7 +67,49 @@ bool Hotbar_MouseDown(bool rightClick)
 				selectedHotbarSlot_forLinking = -1;
 			}
 		}
-	} 
+	} else {
+		if (selectedHotbarSlot != -1) {
+			if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
+				//Fluffy TODO: Verify the slot isn't empty
+				ItemStruct *item;
+				if (hotbarSlots[selectedHotbarSlot].itemLink <= INVITEM_INV_LAST) {
+					item = &plr[myplr].InvList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_INV_FIRST];
+				} else {
+					item = &plr[myplr].SpdList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_BELT_FIRST];
+				}
+
+				int miscId = item->_iMiscId;
+				int spellId = item->_iSpell;
+				if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then remember its type and try to find another slot with the same item
+					bool found = false;
+					for (int i = 0; i < MAXBELTITEMS; i++) {
+						if (!plr[myplr].SpdList[i].isEmpty()) {
+							if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
+								hotbarSlots[selectedHotbarSlot].itemLink = i + INVITEM_BELT_FIRST;
+								found = true;
+							}
+						}
+					}
+
+					if (!found) {
+						for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+							if (plr[myplr].InvGrid[i] > 0) {
+								int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
+								if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
+									hotbarSlots[selectedHotbarSlot].itemLink = invSlot + INVITEM_INV_FIRST;
+									found = true;
+								}
+							}
+						}
+					}
+
+					if (!found)
+						hotbarSlots[selectedHotbarSlot].itemLink = -1;
+				}
+			}
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -93,6 +135,16 @@ void Hotbar_Render(CelOutputBuffer out)
 
 				if (plr[myplr].InvList[itemSlotNum].isEmpty())
 					continue;
+
+				/*bool found = false;
+				for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {
+					if (plr[myplr].InvGrid[j] != 0 && abs(plr[myplr].InvGrid[j]) == itemSlotNum + 1) {
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					continue;*/
 
 				frame = plr[myplr].InvList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			} else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST) {
