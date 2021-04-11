@@ -115,14 +115,15 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 
 void Hotbar_Render(CelOutputBuffer out)
 {
-	//Render hotbar slot linking
+	//Render hotbar slot linking and hotkey
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
-		if (hotbarSlots[i].itemLink != -1) {
-			int frame;
-			int frame_width;
-			int x = PANEL_LEFT + hotBarSlotLocations[i].X;
-			int y = PANEL_TOP + hotBarSlotLocations[i].Y;
+		bool activeLink = false;
+		int x = PANEL_LEFT + hotBarSlotLocations[i].X;
+		int y = PANEL_TOP + hotBarSlotLocations[i].Y;
 
+		if (hotbarSlots[i].itemLink != -1) {
+			activeLink = true;
+			int frame, frame_width;
 			if (hotbarSlots[i].itemLink <= INVITEM_CHEST) {
 				int itemSlotNum = hotbarSlots[i].itemLink;
 
@@ -169,6 +170,12 @@ void Hotbar_Render(CelOutputBuffer out)
 			} else {
 				//Fluffy TODO
 			}
+		}
+
+		//Draw hotkey
+		if (activeLink) {
+			Uint8 ff = fontframe[gbFontTransTbl[i + 49]];
+			PrintChar(out, x + INV_SLOT_SIZE_PX - fontkern[ff], y, ff, COL_WHITE);
 		}
 	}
 
