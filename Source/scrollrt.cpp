@@ -8,6 +8,7 @@
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
 #include "render/lightmap.h" //Fluffy: For lightmap generation
 #include "options.h" //Fluffy
+#include "ui/hotbar.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -2120,6 +2121,9 @@ static void DrawFPS(CelOutputBuffer out)
 			RenderDebugLine(out, &x, &y, String);
 
 			snprintf(String, 100, "hotbar: %i", sgOptions.Gameplay.bHotbar);
+			RenderDebugLine(out, &x, &y, String);
+
+			snprintf(String, 100, "selectedHotbarSlot: %i", selectedHotbarSlot);
 			RenderDebugLine(out, &x, &y, String);
 
 			if (sgOptions.Graphics.bInitHwUIRendering) {

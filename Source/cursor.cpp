@@ -5,6 +5,7 @@
  */
 #include "all.h"
 #include "options.h" //Fluffy: For checking if Hotbar is on
+#include "ui/hotbar.h" //Fluffy: Hotbar input
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -384,6 +385,8 @@ void CheckCursMove()
 		return;
 	}
 	if (MouseY > PANEL_TOP && MouseX >= PANEL_LEFT && MouseX <= PANEL_LEFT + PANEL_WIDTH) {
+		if (sgOptions.Gameplay.bHotbar && Hotbar_SlotSelection()) //Fluffy: Check if mouse is on a hotbar slot
+			return;
 		CheckPanelInfo();
 		return;
 	}
