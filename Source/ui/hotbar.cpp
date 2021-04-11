@@ -69,7 +69,11 @@ bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action 
 		}
 	} else { //Right click
 		if (selectedHotbarSlot != -1) {
-			if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
+			if (selectedHotbarSlot_forLinking == selectedHotbarSlot) {
+				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
+				selectedHotbarSlot_forLinking = -1;
+			}
+			else if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
 				//Fluffy TODO: Verify the slot isn't empty
 				ItemStruct *item;
 				if (hotbarSlots[selectedHotbarSlot].itemLink <= INVITEM_INV_LAST) {
