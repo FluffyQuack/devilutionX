@@ -175,16 +175,6 @@ void Hotbar_Render(CelOutputBuffer out)
 					goto doneRenderingIcon;
 				}
 
-				/*bool found = false;
-				for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {
-					if (plr[myplr].InvGrid[j] != 0 && abs(plr[myplr].InvGrid[j]) == itemSlotNum + 1) {
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-					continue;*/
-
 				frame = plr[myplr].InvList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
 			} else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST) {
 				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_BELT_FIRST;
