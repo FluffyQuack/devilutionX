@@ -13,6 +13,7 @@
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 #include "render/lightmap.h" //Fluffy: For lightmap debugging
+#include "ui/hotbar.h" //Fluffy: For hotbar input
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -959,7 +960,8 @@ static BOOL LeftMouseDown(int wParam)
 
 	bool isShiftHeld = wParam & DVL_MK_SHIFT;
 
-	if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
+	if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_MouseDown(false)) { //Fluffy
+	} else if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
 		if (!gmenu_is_active() && !TryIconCurs()) {
 			if (questlog && MouseX > 32 && MouseX < 288 && MouseY > 32 && MouseY < 308) {
 				QuestlogESC();
@@ -1026,7 +1028,8 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
+					if (sgOptions.Gameplay.bHotbar && Hotbar_MouseDown(true)) { //Fluffy
+					} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
 						ClearReadiedSpell(plr[myplr]);
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
 						CheckPlrSpell(true);
