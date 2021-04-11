@@ -7,6 +7,7 @@
 #include "options.h"
 #include "textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
+#include "ui/hotbar.h" //Fluffy: For linking items to hotbar
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -1811,7 +1812,9 @@ void RemoveSpdBarItem(int pnum, int iv)
 
 void CheckInvItem(bool isShiftHeld)
 {
-	if (pcurs >= CURSOR_FIRSTITEM) {
+	if (sgOptions.Gameplay.bHotbar && selectedHotbarSlot_forLinking != -1)
+		Hotbar_MouseDown(false);
+	else if (pcurs >= CURSOR_FIRSTITEM) {
 		CheckInvPaste(myplr, MouseX, MouseY);
 	} else {
 		CheckInvCut(myplr, MouseX, MouseY, isShiftHeld);

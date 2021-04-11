@@ -11,6 +11,7 @@ struct hotbarSlot_s {
 };
 
 extern int selectedHotbarSlot;
+extern int selectedHotbarSlot_forLinking;
 
 void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
