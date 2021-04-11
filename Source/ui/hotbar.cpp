@@ -209,7 +209,23 @@ void Hotbar_Render(CelOutputBuffer out)
 					textureNum = TEXTURE_CURSOR2;
 					frame -= 179;
 				}
-				Render_Texture_FromBottom(x, y, textureNum, frame - 1);
+				int width = textures[textureNum].frames[frame].width;
+				int height = textures[textureNum].frames[frame].height;
+				if (width == INV_SLOT_SIZE_PX && height == INV_SLOT_SIZE_PX)
+					Render_Texture_FromBottom(x, y, textureNum, frame - 1);
+				else { //Scale item render
+					int renderX = INV_SLOT_SIZE_PX, renderY = INV_SLOT_SIZE_PX, offsetX = 0, offsetY = 0;
+					if (width > height) {
+						float scale = (float)height / width;
+						renderY = INV_SLOT_SIZE_PX * scale;
+						offsetY = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
+					} else if (width < height) {
+						float scale = (float)width / height;
+						renderX = INV_SLOT_SIZE_PX * scale;
+						offsetX = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
+					}
+					Render_Texture_Scale(x + offsetX, y + offsetY - INV_SLOT_SIZE_PX, textureNum, renderX, renderY, frame - 1);
+				}
 			} else {
 				//Fluffy TODO
 			}
