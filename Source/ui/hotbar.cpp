@@ -139,7 +139,7 @@ void Hotbar_UseSlot(int slot)
 			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
 		}
 
-		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) {
+		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
 			if (item->_iCharges > 0) { //If item has charges and is equipped, then equip its spell
 				plr[myplr]._pRSpell = item->_iSpell;
 				plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
@@ -148,7 +148,7 @@ void Hotbar_UseSlot(int slot)
 				ClearReadiedSpell(plr[myplr]);
 			}
 		}
-		else if (IsEquippableItem(item)) {
+		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
 			if (AutoEquip(myplr, *item))
 				RemoveItemFromInventory(plr[myplr], hotbarSlots[slot].itemLink - INVITEM_INV_FIRST);
 			//TODO
