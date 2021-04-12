@@ -84,6 +84,48 @@ bool Hotbar_LeftMouseDown()
 	return false;
 }
 
+void Hotbar_UseSlot(int slot)
+{
+	if (hotbarSlots[slot].itemLink != -1) {
+		//Fluffy TODO: Verify the slot isn't empty
+		ItemStruct *item;
+		if (hotbarSlots[slot].itemLink <= INVITEM_INV_LAST) {
+			item = &plr[myplr].InvList[hotbarSlots[slot].itemLink - INVITEM_INV_FIRST];
+		} else {
+			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
+		}
+
+		int miscId = item->_iMiscId;
+		int spellId = item->_iSpell;
+		if (UseInvItem(myplr, hotbarSlots[slot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
+			bool found = false;
+			for (int i = 0; i < MAXBELTITEMS; i++) {
+				if (!plr[myplr].SpdList[i].isEmpty()) {
+					if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
+						hotbarSlots[slot].itemLink = i + INVITEM_BELT_FIRST;
+						found = true;
+					}
+				}
+			}
+
+			if (!found) {
+				for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+					if (plr[myplr].InvGrid[i] > 0) {
+						int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
+						if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
+							hotbarSlots[slot].itemLink = invSlot + INVITEM_INV_FIRST;
+							found = true;
+						}
+					}
+				}
+			}
+
+			if (!found)
+				hotbarSlots[slot].itemLink = -1;
+		}
+	}
+}
+
 bool Hotbar_RightMouseDown()
 {
 	if (selectedHotbarSlot != -1) {
@@ -92,44 +134,9 @@ bool Hotbar_RightMouseDown()
 			hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
 			hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
 			selectedHotbarSlot_forLinking = -1;
-		} else if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
-			//Fluffy TODO: Verify the slot isn't empty
-			ItemStruct *item;
-			if (hotbarSlots[selectedHotbarSlot].itemLink <= INVITEM_INV_LAST) {
-				item = &plr[myplr].InvList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_INV_FIRST];
-			} else {
-				item = &plr[myplr].SpdList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_BELT_FIRST];
-			}
+		} else
+			Hotbar_UseSlot(selectedHotbarSlot);
 
-			int miscId = item->_iMiscId;
-			int spellId = item->_iSpell;
-			if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
-				bool found = false;
-				for (int i = 0; i < MAXBELTITEMS; i++) {
-					if (!plr[myplr].SpdList[i].isEmpty()) {
-						if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
-							hotbarSlots[selectedHotbarSlot].itemLink = i + INVITEM_BELT_FIRST;
-							found = true;
-						}
-					}
-				}
-
-				if (!found) {
-					for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
-						if (plr[myplr].InvGrid[i] > 0) {
-							int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
-							if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
-								hotbarSlots[selectedHotbarSlot].itemLink = invSlot + INVITEM_INV_FIRST;
-								found = true;
-							}
-						}
-					}
-				}
-
-				if (!found)
-					hotbarSlots[selectedHotbarSlot].itemLink = -1;
-			}
-		}
 		return true;
 	}
 
