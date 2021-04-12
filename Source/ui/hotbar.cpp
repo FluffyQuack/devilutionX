@@ -95,34 +95,44 @@ void Hotbar_UseSlot(int slot)
 			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
 		}
 
-		int miscId = item->_iMiscId;
-		int spellId = item->_iSpell;
-		if (UseInvItem(myplr, hotbarSlots[slot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
-			bool found = false;
-			for (int i = 0; i < MAXBELTITEMS; i++) {
-				if (!plr[myplr].SpdList[i].isEmpty()) {
-					if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
-						hotbarSlots[slot].itemLink = i + INVITEM_BELT_FIRST;
-						found = true;
-					}
-				}
-			}
-
-			if (!found) {
-				for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
-					if (plr[myplr].InvGrid[i] > 0) {
-						int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
-						if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
-							hotbarSlots[slot].itemLink = invSlot + INVITEM_INV_FIRST;
+		if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
+			plr[myplr]._pRSpell = item->_iSpell;
+			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;
+			force_redraw = 255;
+		} else {
+			int miscId = item->_iMiscId;
+			int spellId = item->_iSpell;
+			if (UseInvItem(myplr, hotbarSlots[slot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
+				bool found = false;
+				for (int i = 0; i < MAXBELTITEMS; i++) {
+					if (!plr[myplr].SpdList[i].isEmpty()) {
+						if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
+							hotbarSlots[slot].itemLink = i + INVITEM_BELT_FIRST;
 							found = true;
 						}
 					}
 				}
-			}
 
-			if (!found)
-				hotbarSlots[slot].itemLink = -1;
+				if (!found) {
+					for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+						if (plr[myplr].InvGrid[i] > 0) {
+							int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
+							if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
+								hotbarSlots[slot].itemLink = invSlot + INVITEM_INV_FIRST;
+								found = true;
+							}
+						}
+					}
+				}
+
+				if (!found)
+					hotbarSlots[slot].itemLink = -1;
+			}
 		}
+	} else if (hotbarSlots[slot].spellLink != -1) {
+		plr[myplr]._pRSpell = (spell_id) hotbarSlots[slot].spellLink;
+		plr[myplr]._pRSplType = (spell_type) hotbarSlots[slot].spellLinkType;
+		force_redraw = 255;
 	}
 }
 
