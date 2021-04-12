@@ -95,7 +95,11 @@ void Hotbar_UseSlot(int slot)
 			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
 		}
 
-		if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
+		if (item->_iCharges > 0 && hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //If item has charges and is equipped, then equip its spell
+			plr[myplr]._pRSpell = item->_iSpell;
+			plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
+			force_redraw = 255;
+		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;
 			force_redraw = 255;
