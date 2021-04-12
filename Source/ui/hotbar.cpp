@@ -59,74 +59,80 @@ void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType)
 	}
 }
 
-bool Hotbar_MouseDown(bool rightClick) //Returns true if we completed an action related to a hotbar slot
+bool Hotbar_LinkItemToHotbar(int invItem)
 {
-	if (!rightClick) { //Left click
-		if(selectedHotbarSlot != -1)
-		{
-			if (selectedHotbarSlot_forLinking == selectedHotbarSlot)
-				selectedHotbarSlot_forLinking = -1;
-			else
-				selectedHotbarSlot_forLinking = selectedHotbarSlot;
-			return true;
-		} else if (selectedHotbarSlot_forLinking != -1) { //Try to link this hotbar slot to something (or set to -1 if we're selecting nothing or something invalid)
-			if (pcursinvitem != -1) {
-				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = pcursinvitem;
-				hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
-				hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
-				selectedHotbarSlot_forLinking = -1;
-				return true;
+	if (selectedHotbarSlot_forLinking != -1 && invItem != -1) {
+		hotbarSlots[selectedHotbarSlot_forLinking].itemLink = invItem;
+		hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
+		hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
+		selectedHotbarSlot_forLinking = -1;
+		return true;
+	}
+
+	return false;
+}
+
+bool Hotbar_LeftMouseDown()
+{
+	if (selectedHotbarSlot != -1) {
+		if (selectedHotbarSlot_forLinking == selectedHotbarSlot)
+			selectedHotbarSlot_forLinking = -1;
+		else
+			selectedHotbarSlot_forLinking = selectedHotbarSlot;
+		return true;
+	}
+	return false;
+}
+
+bool Hotbar_RightMouseDown()
+{
+	if (selectedHotbarSlot != -1) {
+		if (selectedHotbarSlot_forLinking == selectedHotbarSlot) {
+			hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
+			hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
+			hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
+			selectedHotbarSlot_forLinking = -1;
+		} else if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
+			//Fluffy TODO: Verify the slot isn't empty
+			ItemStruct *item;
+			if (hotbarSlots[selectedHotbarSlot].itemLink <= INVITEM_INV_LAST) {
+				item = &plr[myplr].InvList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_INV_FIRST];
+			} else {
+				item = &plr[myplr].SpdList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_BELT_FIRST];
 			}
-		}
-	} else { //Right click
-		if (selectedHotbarSlot != -1) {
-			if (selectedHotbarSlot_forLinking == selectedHotbarSlot) {
-				hotbarSlots[selectedHotbarSlot_forLinking].itemLink = -1;
-				hotbarSlots[selectedHotbarSlot_forLinking].spellLink = -1;
-				hotbarSlots[selectedHotbarSlot_forLinking].spellLinkType = 0;
-				selectedHotbarSlot_forLinking = -1;
-			}
-			else if (hotbarSlots[selectedHotbarSlot].itemLink != -1) {
-				//Fluffy TODO: Verify the slot isn't empty
-				ItemStruct *item;
-				if (hotbarSlots[selectedHotbarSlot].itemLink <= INVITEM_INV_LAST) {
-					item = &plr[myplr].InvList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_INV_FIRST];
-				} else {
-					item = &plr[myplr].SpdList[hotbarSlots[selectedHotbarSlot].itemLink - INVITEM_BELT_FIRST];
+
+			int miscId = item->_iMiscId;
+			int spellId = item->_iSpell;
+			if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
+				bool found = false;
+				for (int i = 0; i < MAXBELTITEMS; i++) {
+					if (!plr[myplr].SpdList[i].isEmpty()) {
+						if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
+							hotbarSlots[selectedHotbarSlot].itemLink = i + INVITEM_BELT_FIRST;
+							found = true;
+						}
+					}
 				}
 
-				int miscId = item->_iMiscId;
-				int spellId = item->_iSpell;
-				if (UseInvItem(myplr, hotbarSlots[selectedHotbarSlot].itemLink)) { //Fluffy: If item was consumed, then try to find another slot containing an item of the same or similar type
-					bool found = false;
-					for (int i = 0; i < MAXBELTITEMS; i++) {
-						if (!plr[myplr].SpdList[i].isEmpty()) {
-							if (plr[myplr].SpdList[i]._iMiscId == miscId && plr[myplr].SpdList[i]._iSpell == spellId) {
-								hotbarSlots[selectedHotbarSlot].itemLink = i + INVITEM_BELT_FIRST;
+				if (!found) {
+					for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+						if (plr[myplr].InvGrid[i] > 0) {
+							int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
+							if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
+								hotbarSlots[selectedHotbarSlot].itemLink = invSlot + INVITEM_INV_FIRST;
 								found = true;
 							}
 						}
 					}
-
-					if (!found) {
-						for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
-							if (plr[myplr].InvGrid[i] > 0) {
-								int invSlot = abs(plr[myplr].InvGrid[i]) - 1;
-								if (plr[myplr].InvList[invSlot]._iMiscId == miscId && plr[myplr].InvList[invSlot]._iSpell == spellId) {
-									hotbarSlots[selectedHotbarSlot].itemLink = invSlot + INVITEM_INV_FIRST;
-									found = true;
-								}
-							}
-						}
-					}
-
-					if (!found)
-						hotbarSlots[selectedHotbarSlot].itemLink = -1;
 				}
+
+				if (!found)
+					hotbarSlots[selectedHotbarSlot].itemLink = -1;
 			}
-			return true;
 		}
+		return true;
 	}
+
 	return false;
 }
 

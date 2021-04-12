@@ -989,7 +989,7 @@ static BOOL LeftMouseDown(int wParam)
 	} else {
 		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) //Fluffy: Added hotbar check
 			CheckInvScrn(isShiftHeld);
-		else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_MouseDown(false)) { //Fluffy
+		else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_LeftMouseDown()) { //Fluffy
 		} else 
 			DoPanBtn();
 		if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM)
@@ -1029,7 +1029,7 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (sgOptions.Gameplay.bHotbar && Hotbar_MouseDown(true)) { //Fluffy
+					if (sgOptions.Gameplay.bHotbar && Hotbar_RightMouseDown()) { //Fluffy
 					} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
 						ClearReadiedSpell(plr[myplr]);
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))

@@ -1813,7 +1813,7 @@ void RemoveSpdBarItem(int pnum, int iv)
 void CheckInvItem(bool isShiftHeld)
 {
 	if (sgOptions.Gameplay.bHotbar && selectedHotbarSlot_forLinking != -1) //Fluffy
-		Hotbar_MouseDown(false);
+		Hotbar_LinkItemToHotbar(pcursinvitem);
 	else if (pcurs >= CURSOR_FIRSTITEM) {
 		CheckInvPaste(myplr, MouseX, MouseY);
 	} else {
