@@ -85,13 +85,49 @@ bool Hotbar_LeftMouseDown()
 	return false;
 }
 
-static bool IsEquippableItem(ItemStruct *item)
+static bool IsLeftEquippableItem(ItemStruct *item)
 {
-	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD || item->_itype == ITYPE_LARMOR
-	    || item->_itype == ITYPE_HELM || item->_itype == ITYPE_MARMOR || item->_itype == ITYPE_HARMOR || item->_itype == ITYPE_STAFF || item->_itype == ITYPE_RING || item->_itype == ITYPE_AMULET)
+	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_STAFF) //Is this an item for the left hand? (TODO: We need to do checks for Bard and Barbarian classes too)
 		return true;
 	return false;
 }
+
+static bool IsWeapon(ItemStruct *item)
+{
+	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD || item->_itype == ITYPE_STAFF)
+		return true;
+	return false;
+}
+
+static bool IsRing(ItemStruct *item)
+{
+	return item->_itype == ITYPE_RING;
+}
+
+static bool IsAmulet(ItemStruct *item)
+{
+	return item->_itype == ITYPE_AMULET;
+}
+
+static bool IsHelmet(ItemStruct *item)
+{
+	return item->_itype == ITYPE_HELM;
+}
+
+static bool IsArmour(ItemStruct *item)
+{
+	if (item->_itype == ITYPE_LARMOR || item->_itype == ITYPE_MARMOR || item->_itype == ITYPE_HARMOR)
+		return true;
+	return false;
+}
+
+static bool IsEquippableItem(ItemStruct *item)
+{
+	if (IsWeapon(item) || IsRing(item) || IsAmulet(item) || IsHelmet(item) || IsArmour(item))
+		return true;
+	return false;
+}
+
 void Hotbar_UseSlot(int slot)
 {
 	if (hotbarSlots[slot].itemLink != -1) {
@@ -108,13 +144,14 @@ void Hotbar_UseSlot(int slot)
 				plr[myplr]._pRSpell = item->_iSpell;
 				plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
 				force_redraw = 255;
-			} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD)) {
+			} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsWeapon(item)) {
 				ClearReadiedSpell(plr[myplr]);
 			}
 		}
 		else if (IsEquippableItem(item)) {
+			if (AutoEquip(myplr, *item))
+				RemoveItemFromInventory(plr[myplr], hotbarSlots[slot].itemLink - INVITEM_INV_FIRST);
 			//TODO
-			//if (item->_itype == )
 		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;

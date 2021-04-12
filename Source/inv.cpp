@@ -1484,6 +1484,34 @@ void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, ui
 	CalcPlrInv(pnum, TRUE);
 }
 
+void RemoveItemFromInventory(PlayerStruct &player, int iv) //Fluffy: Removes an item from the inventory (iv should match the item slot number in InvList array). This is based on code from CheckInvCut()
+{
+	iv++;
+
+	for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+		if (player.InvGrid[i] == iv || player.InvGrid[i] == -iv) {
+			player.InvGrid[i] = 0;
+		}
+	}
+
+	iv--;
+
+	player._pNumInv--;
+
+	if (player._pNumInv > 0 && player._pNumInv != iv) {
+		player.InvList[iv] = player.InvList[player._pNumInv];
+
+		for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {
+			if (player.InvGrid[j] == player._pNumInv + 1) {
+				player.InvGrid[j] = iv + 1;
+			}
+			if (player.InvGrid[j] == -(player._pNumInv + 1)) {
+				player.InvGrid[j] = -iv - 1;
+			}
+		}
+	}
+}
+
 void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 {
 	int r;
@@ -1650,28 +1678,7 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			}
 
 			if (!automaticMove || automaticallyMoved) {
-				for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
-					if (player.InvGrid[i] == iv || player.InvGrid[i] == -iv) {
-						player.InvGrid[i] = 0;
-					}
-				}
-
-				iv--;
-
-				player._pNumInv--;
-
-				if (player._pNumInv > 0 && player._pNumInv != iv) {
-					player.InvList[iv] = player.InvList[player._pNumInv];
-
-					for (j = 0; j < NUM_INV_GRID_ELEM; j++) {
-						if (player.InvGrid[j] == player._pNumInv + 1) {
-							player.InvGrid[j] = iv + 1;
-						}
-						if (player.InvGrid[j] == -(player._pNumInv + 1)) {
-							player.InvGrid[j] = -iv - 1;
-						}
-					}
-				}
+				RemoveItemFromInventory(player, iv - 1); //Fluffy: Turned code here into its own function
 			}
 		}
 	}
