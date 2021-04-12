@@ -154,85 +154,76 @@ void Hotbar_Render(CelOutputBuffer out)
 			activeLink = true;
 			int frame, frame_width;
 			bool meetRequirements = true;
-			if (hotbarSlots[i].itemLink <= INVITEM_CHEST) {
-				int itemSlotNum = hotbarSlots[i].itemLink;
 
-				if (plr[myplr].InvBody[itemSlotNum].isEmpty())
-					continue;
+			ItemStruct *item;
+			if (hotbarSlots[i].itemLink <= INVITEM_CHEST)
+				item = &plr[myplr].InvBody[hotbarSlots[i].itemLink];
+			else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST)
+				item = &plr[myplr].InvList[hotbarSlots[i].itemLink - INVITEM_INV_FIRST];
+			else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST)
+				item = &plr[myplr].SpdList[hotbarSlots[i].itemLink - INVITEM_BELT_FIRST];
+			else
+				assert(false);
 
-				meetRequirements = plr[myplr].InvBody[itemSlotNum]._iStatFlag;
+			if (item->isEmpty())
+				continue;
 
-				if (plr[myplr].InvBody[itemSlotNum]._iCharges > 0) { //This equipped item has spell charges, so render its spell icon on the hotbar instead of item icon //TODO: Should we use meetRequirements in this check?
-					RenderSpellIcon(out, x, y, plr[myplr].InvBody[itemSlotNum]._iSpell, RSPLTYPE_CHARGES);
-					goto doneRenderingIcon;
-				}
-				frame = plr[myplr].InvBody[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
-			} else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST) {
-				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_INV_FIRST;
-
-				if (plr[myplr].InvList[itemSlotNum].isEmpty())
-					continue;
-
-				meetRequirements = plr[myplr].InvList[itemSlotNum]._iStatFlag;
-
-				if (meetRequirements && (plr[myplr].InvList[itemSlotNum]._iMiscId == IMISC_SCROLL || plr[myplr].InvList[itemSlotNum]._iMiscId == IMISC_SCROLLT)) { //This is a scroll so render its spell icon on the hotbar instead of item icon
-					RenderSpellIcon(out, x, y, plr[myplr].InvList[itemSlotNum]._iSpell, RSPLTYPE_SCROLL);
-					goto doneRenderingIcon;
-				}
-
-				frame = plr[myplr].InvList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
-			} else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST) {
-				int itemSlotNum = hotbarSlots[i].itemLink - INVITEM_BELT_FIRST;
-
-				if (plr[myplr].SpdList[itemSlotNum].isEmpty())
-					continue;
-
-				meetRequirements = plr[myplr].SpdList[itemSlotNum]._iStatFlag;
-
-				if (meetRequirements && (plr[myplr].SpdList[itemSlotNum]._iMiscId == IMISC_SCROLL || plr[myplr].SpdList[itemSlotNum]._iMiscId == IMISC_SCROLLT)) { //This is a scroll so render its spell icon on the hotbar instead of item icon
-					RenderSpellIcon(out, x, y, plr[myplr].SpdList[itemSlotNum]._iSpell, RSPLTYPE_SCROLL);
-					goto doneRenderingIcon;
-				}
-
-				frame = plr[myplr].SpdList[itemSlotNum]._iCurs + CURSOR_FIRSTITEM;
-			}
-
-			frame_width = InvItemWidth[frame];
 			InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
 
-			if (options_hwUIRendering) {
-				int textureNum = TEXTURE_CURSOR;
-				if (frame > 179) {
-					textureNum = TEXTURE_CURSOR2;
-					frame -= 179;
+			meetRequirements = item->_iStatFlag;
+
+			bool skipRenderingIcon = false;
+			if (hotbarSlots[i].itemLink <= INVITEM_CHEST) {
+				if (item->_iCharges > 0) { //This equipped item has spell charges, so render its spell icon on the hotbar instead of item icon //TODO: Should we use meetRequirements in this check?
+					RenderSpellIcon(out, x, y, item->_iSpell, RSPLTYPE_CHARGES);
+					skipRenderingIcon = true;
 				}
-				frame -= 1;
-
-				if (!meetRequirements) //Render item as red if we can't use it
-					SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 207, 0, 0);
-
-				int width = textures[textureNum].frames[frame].width;
-				int height = textures[textureNum].frames[frame].height;
-				if (width == INV_SLOT_SIZE_PX && height == INV_SLOT_SIZE_PX)
-					Render_Texture_FromBottom(x, y, textureNum, frame);
-				else { //Scale item render
-					int renderX = INV_SLOT_SIZE_PX, renderY = INV_SLOT_SIZE_PX, offsetX = 0, offsetY = 0;
-					if (width > height) {
-						float scale = (float)height / width;
-						renderY = INV_SLOT_SIZE_PX * scale;
-						offsetY = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
-					} else if (width < height) {
-						float scale = (float)width / height;
-						renderX = INV_SLOT_SIZE_PX * scale;
-						offsetX = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
-					}
-					Render_Texture_Scale(x + offsetX, y + offsetY - INV_SLOT_SIZE_PX, textureNum, renderX, renderY, frame);
-				}
-
-				if (!meetRequirements)
-					SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
 			} else {
-				//Fluffy TODO
+				if (meetRequirements && (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT)) { //This is a scroll so render its spell icon on the hotbar instead of item icon
+					RenderSpellIcon(out, x, y, item->_iSpell, RSPLTYPE_SCROLL);
+					skipRenderingIcon = true;
+				}
+			}
+
+			if (!skipRenderingIcon) {
+				frame = item->_iCurs + CURSOR_FIRSTITEM;
+				frame_width = InvItemWidth[frame];
+
+				if (options_hwUIRendering) {
+					int textureNum = TEXTURE_CURSOR;
+					if (frame > 179) {
+						textureNum = TEXTURE_CURSOR2;
+						frame -= 179;
+					}
+					frame -= 1;
+
+					if (!meetRequirements) //Render item as red if we can't use it
+						SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 207, 0, 0);
+
+					int width = textures[textureNum].frames[frame].width;
+					int height = textures[textureNum].frames[frame].height;
+					if (width == INV_SLOT_SIZE_PX && height == INV_SLOT_SIZE_PX)
+						Render_Texture_FromBottom(x, y, textureNum, frame);
+					else { //Scale item render
+						int renderX = INV_SLOT_SIZE_PX, renderY = INV_SLOT_SIZE_PX, offsetX = 0, offsetY = 0;
+						if (width > height) {
+							float scale = (float)height / width;
+							renderY = INV_SLOT_SIZE_PX * scale;
+							offsetY = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
+						} else if (width < height) {
+							float scale = (float)width / height;
+							renderX = INV_SLOT_SIZE_PX * scale;
+							offsetX = (INV_SLOT_SIZE_PX / 2) * (1.0f - scale);
+						}
+						Render_Texture_Scale(x + offsetX, y + offsetY - INV_SLOT_SIZE_PX, textureNum, renderX, renderY, frame);
+					}
+
+					if (!meetRequirements)
+						SDL_SetTextureColorMod(textures[textureNum].frames[frame].frame, 255, 255, 255);
+				} else {
+					//Fluffy TODO
+				}
+
 			}
 		} else if (hotbarSlots[i].spellLink != -1) {
 			activeLink = true;
