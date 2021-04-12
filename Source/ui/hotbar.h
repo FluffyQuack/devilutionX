@@ -19,6 +19,7 @@ bool Hotbar_SlotSelection();
 void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType);
 bool Hotbar_LinkItemToHotbar(int invItem);
 bool Hotbar_LeftMouseDown();
+void Hotbar_UseSlot(int slot);
 bool Hotbar_RightMouseDown();
 void Hotbar_Render(CelOutputBuffer out);
 

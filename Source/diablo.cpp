@@ -1550,43 +1550,57 @@ static void PressChar(WPARAM vkey)
 #ifndef LIGHTMAP_SUBTILE_EDITOR
 	case '!':
 	case '1':
-		if (!plr[myplr].SpdList[0].isEmpty() && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(0);
+		else if (!plr[myplr].SpdList[0].isEmpty() && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST);
 		}
 		return;
 	case '@':
 	case '2':
-		if (!plr[myplr].SpdList[1].isEmpty() && plr[myplr].SpdList[1]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(1);
+		else if (!plr[myplr].SpdList[1].isEmpty() && plr[myplr].SpdList[1]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 1);
 		}
 		return;
 	case '#':
 	case '3':
-		if (!plr[myplr].SpdList[2].isEmpty() && plr[myplr].SpdList[2]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(2);
+		else if (!plr[myplr].SpdList[2].isEmpty() && plr[myplr].SpdList[2]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 2);
 		}
 		return;
 	case '$':
 	case '4':
-		if (!plr[myplr].SpdList[3].isEmpty() && plr[myplr].SpdList[3]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(3);
+		else if (!plr[myplr].SpdList[3].isEmpty() && plr[myplr].SpdList[3]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 3);
 		}
 		return;
 	case '%':
 	case '5':
-		if (!plr[myplr].SpdList[4].isEmpty() && plr[myplr].SpdList[4]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(4);
+		else if (!plr[myplr].SpdList[4].isEmpty() && plr[myplr].SpdList[4]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 4);
 		}
 		return;
 	case '^':
 	case '6':
-		if (!plr[myplr].SpdList[5].isEmpty() && plr[myplr].SpdList[5]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(5);
+		else if (!plr[myplr].SpdList[5].isEmpty() && plr[myplr].SpdList[5]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 5);
 		}
 		return;
 	case '&':
 	case '7':
-		if (!plr[myplr].SpdList[6].isEmpty() && plr[myplr].SpdList[6]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(6);
+		else if (!plr[myplr].SpdList[6].isEmpty() && plr[myplr].SpdList[6]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 6);
 		}
 		return;
@@ -1598,7 +1612,9 @@ static void PressChar(WPARAM vkey)
 			return;
 		}
 #endif
-		if (!plr[myplr].SpdList[7].isEmpty() && plr[myplr].SpdList[7]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(7);
+		else if (!plr[myplr].SpdList[7].isEmpty() && plr[myplr].SpdList[7]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 7);
 		}
 		return;
