@@ -2,6 +2,7 @@
 #include "hotbar.h"
 #include "../render/sdl-render.h"
 #include "../textures/textures.h"
+#include "../options.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -84,6 +85,13 @@ bool Hotbar_LeftMouseDown()
 	return false;
 }
 
+static bool IsEquippableItem(ItemStruct *item)
+{
+	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD || item->_itype == ITYPE_LARMOR
+	    || item->_itype == ITYPE_HELM || item->_itype == ITYPE_MARMOR || item->_itype == ITYPE_HARMOR || item->_itype == ITYPE_STAFF || item->_itype == ITYPE_RING || item->_itype == ITYPE_AMULET)
+		return true;
+	return false;
+}
 void Hotbar_UseSlot(int slot)
 {
 	if (hotbarSlots[slot].itemLink != -1) {
@@ -95,10 +103,18 @@ void Hotbar_UseSlot(int slot)
 			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
 		}
 
-		if (item->_iCharges > 0 && hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //If item has charges and is equipped, then equip its spell
-			plr[myplr]._pRSpell = item->_iSpell;
-			plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
-			force_redraw = 255;
+		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) {
+			if (item->_iCharges > 0) { //If item has charges and is equipped, then equip its spell
+				plr[myplr]._pRSpell = item->_iSpell;
+				plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
+				force_redraw = 255;
+			} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD)) {
+				ClearReadiedSpell(plr[myplr]);
+			}
+		}
+		else if (IsEquippableItem(item)) {
+			//TODO
+			//if (item->_itype == )
 		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;
