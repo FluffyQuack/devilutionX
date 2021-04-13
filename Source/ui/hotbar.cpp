@@ -336,7 +336,6 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 			PlaySFX(random_(0, 3) + PS_WARR14);
 		}
 		return;
-
 	}
 
 	//TODO: Now as we've figured out target slot and everything, we do the actual swap
