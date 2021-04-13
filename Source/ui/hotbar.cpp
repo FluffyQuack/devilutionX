@@ -485,7 +485,8 @@ void Hotbar_UseSlot(int slot)
 	if (hotbarSlots[slot].itemLink != -1) {
 		//Fluffy TODO: Verify the slot isn't empty
 		ItemStruct *item = ReturnItemUsingItemLink(slot);
-		assert(item != nullptr);
+		if (item == nullptr)
+			return;
 
 		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
 			SetSpellBasedOnWeapon(item);
@@ -599,15 +600,9 @@ void Hotbar_Render(CelOutputBuffer out)
 			int frame, frame_width;
 			bool meetRequirements = true;
 
-			ItemStruct *item;
-			if (hotbarSlots[i].itemLink <= INVITEM_CHEST)
-				item = &plr[myplr].InvBody[hotbarSlots[i].itemLink];
-			else if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST)
-				item = &plr[myplr].InvList[Hotbar_ReturnInvListPositionUsingItemLink(i)];
-			else if (hotbarSlots[i].itemLink >= INVITEM_BELT_FIRST && hotbarSlots[i].itemLink <= INVITEM_BELT_LAST)
-				item = &plr[myplr].SpdList[hotbarSlots[i].itemLink - INVITEM_BELT_FIRST];
-			else
-				assert(false);
+			ItemStruct *item = ReturnItemUsingItemLink(i);
+			if (item == nullptr)
+				continue;
 
 			if (item->isEmpty())
 				continue;
