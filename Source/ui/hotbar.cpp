@@ -294,7 +294,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 			if (curSlot == -1) //If -1, then we have failed to find a slot for this item
 				break;
 
-			if (migratingSlot2 != -1) { //We have two items we need to find space for, so let's find something for item 2
+			if (migratingItem2_from != -1) { //We have two items we need to find space for, so let's find something for item 2
 
 				//We make yet another clone of invGrid, but this time with migratingSlot1 added in
 				Sint8 InvGrid_withMigratingSlot1[NUM_INV_GRID_ELEM];
