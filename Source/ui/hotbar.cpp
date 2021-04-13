@@ -476,6 +476,8 @@ static ItemStruct *ReturnItemUsingItemLink(int slot)
 		return &plr[myplr].InvList[Hotbar_ReturnInvListPositionUsingItemLink(slot)];
 	} else if (hotbarSlots[slot].itemLink <= INVITEM_BELT_LAST) {
 		return &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
+	} else if (hotbarSlots[slot].itemLink == HOLDITEM_LINK) {
+		return &plr[myplr].HoldItem;
 	} else
 		return nullptr;
 }

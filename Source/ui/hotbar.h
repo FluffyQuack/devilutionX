@@ -3,6 +3,7 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 #define HOTBAR_SLOTS 8
+#define HOLDITEM_LINK 54 //This is one higher than INVITEM_BELT_LAST
 
 struct hotbarSlot_s {
 
