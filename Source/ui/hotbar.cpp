@@ -177,17 +177,17 @@ static int FindSpotForItemInInvGrid(Sint8 *invGrid, int startAt, int sizeX, int 
 	return -1;
 }
 
-static void AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int invListLink)
+static void AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int invListLink) //Slot corresponds to the topleft position of the item we're adding
 {
 	const int pitch = 10; //TODO: Put this somewhere else
-	int startingPos = slot + (pitch * sizeY);
+	int startingPos = slot + (pitch * (sizeY - 1));
 	for (int y = 0; y < sizeY; y++) {
 		for (int x = 0; x < sizeX; x++) {
 			int position = startingPos + x - (y * pitch);
 			if (x == 0 & y == 0)
-				invGrid[position] = invListLink;
+				invGrid[position] = (invListLink + 1);
 			else
-				invGrid[position] = -invListLink;
+				invGrid[position] = -(invListLink + 1);
 		}
 	}
 }
@@ -241,6 +241,7 @@ struct migratingItem_s {
 	int bodyLoc; //Location on body the item currently resides (-1 means there's nothing to migrate)
 	int invGridTarget; //Target location we want the item to reside in invGrid
 	InvXY size; //Size of item on inventory grid
+	int invListPosition; //Position item now has in invList after migrating
 };
 
 static void TryToEquipItem(int invListIndex, ItemStruct *item)
@@ -254,6 +255,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 	migratingItems[0].invGridTarget = -1;
 	migratingItems[0].size.X = 0;
 	migratingItems[0].size.Y = 0;
+	migratingItems[0].invListPosition = -1;
 	migratingItems[1] = migratingItems[0];
 
 	//Figure out which slot this goes into
@@ -272,11 +274,12 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 
 		//When equipping a weapon, it's possible we need to move what's in the second hand
 		if (targetSlot != -1 && IsTwoHanded(item)) {
-			migratingItems[1].active = true;
 			if (targetSlot == INVLOC_HAND_LEFT)
 				migratingItems[1].bodyLoc = plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty() ? -1 : INVLOC_HAND_RIGHT;
 			else
 				migratingItems[1].bodyLoc = plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty() ? -1 : INVLOC_HAND_LEFT;
+			if (migratingItems[1].bodyLoc != -1)
+				migratingItems[1].active = true;
 		}
 	}
 
@@ -315,13 +318,13 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 
 			if (migratingItems[1].active) { //We have two items we need to find space for, so let's find something for item 2
 
-				//We make yet another clone of invGrid, but this time with migratingSlot1 added in
-				Sint8 InvGrid_withMigratingSlot1[NUM_INV_GRID_ELEM];
-				memcpy(InvGrid_withMigratingSlot1, InvGrid_withoutReplacingItem, NUM_INV_GRID_ELEM);
-				AddItemToInvGrid(InvGrid_withMigratingSlot1, curSlot, migratingItems[0].size.X, migratingItems[0].size.Y, 1); //The last parameter isn't important so we use a dummy value
+				//We make yet another clone of invGrid, but this time with first migrating item added in
+				Sint8 InvGrid_withMigratingItem[NUM_INV_GRID_ELEM];
+				memcpy(InvGrid_withMigratingItem, InvGrid_withoutReplacingItem, NUM_INV_GRID_ELEM);
+				AddItemToInvGrid(InvGrid_withMigratingItem, curSlot, migratingItems[0].size.X, migratingItems[0].size.Y, 1); //The last parameter isn't important so we use a dummy value
 
 				//Search for a fitting slot for migratingSlot2
-				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingSlot1, 0, migratingItems[1].size.X, migratingItems[1].size.Y);
+				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingItem, 0, migratingItems[1].size.X, migratingItems[1].size.Y);
 
 				if (freeSlot == -1) //If -1, we didn't find a free slot, so we continue the loop
 					continue;
@@ -358,16 +361,26 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 	ItemStruct itemTemp = *item; //Save info about item before removing it
 	RemoveItemFromInventory(plr[myplr], invListIndex); //Remove item from inventory (note: this invalidates the local "item" pointer)
 
-	if (migratingItems[0].active) {
+	//Move "migrating" items from body to inventory
+	for (int i = 0; i < 2; i++) {
+		migratingItem_s *migratingItem = &migratingItems[i];
+		if (migratingItem->active) {
+			plr[myplr].InvList[plr[myplr]._pNumInv] = plr[myplr].InvBody[migratingItem->bodyLoc]; //Move item to end of invList array
+			migratingItem->invListPosition = plr[myplr]._pNumInv;                                 //Remember position it now has in invList
+			plr[myplr]._pNumInv++; //Increase quantity of items held
+			AddItemToInvGrid(plr[myplr].InvGrid, migratingItem->invGridTarget, migratingItem->size.X, migratingItem->size.Y, migratingItem->invListPosition); //Place item in invGrid
+
+			if (migratingItem->bodyLoc != targetSlot) {
+				NetSendCmdDelItem(FALSE, migratingItem->bodyLoc); //Let other clients know that the item in this body inventory slot is now getting deleted (TODO: Check if this works)
+				plr[myplr].InvBody[migratingItem->bodyLoc]._itype = ITYPE_NONE; //Remove item for local client
+			}
+		}
 	}
 	
-	plr[myplr].InvBody[targetSlot] = itemTemp;         //Place item into slot
+	plr[myplr].InvBody[targetSlot] = itemTemp; //Place item into slot
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]);                              //Play sound for item being equipped
-	NetSendCmdChItem_ItemPointer(FALSE, targetSlot, &plr[myplr].InvBody[targetSlot]); //Send network command letting other players know about the new item we just equipped
+	NetSendCmdChItem_ItemPointer(FALSE, targetSlot, &plr[myplr].InvBody[targetSlot]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
-	
-	
-	return;
 }
 
 void Hotbar_UseSlot(int slot)
