@@ -155,11 +155,13 @@ static int FindSpotForItemInInvGrid(Sint8 *invGrid, int startAt, int sizeX, int 
 	//The "real" position of an item is at their bottomleft-most grid position
 	const int pitch = 10; //TODO: Put this somewhere else
 	for (int i = startAt; i < NUM_INV_GRID_ELEM; i++) {
-		int verticalOffset = 0;
+		
 		if ((i + (sizeX - 1)) % pitch < i % pitch) //Check if item's horizontal size would exceed x boundary when on this grid tile
 			continue;
 		if (i + (sizeX - 1) + ((sizeY - 1) * pitch) >= NUM_INV_GRID_ELEM) //Check if item would exceed vertical and total boundary if on this grid tile
-			continue;
+			break;
+
+		int verticalOffset = 0;
 		for (int y = 0; y < sizeY; y++) {
 			for (int x = 0; x < sizeX; x++) {
 				if (invGrid[i + x + verticalOffset] != 0) //Check if slot is already occupied
