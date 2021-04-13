@@ -305,7 +305,7 @@ struct migratingItem_s {
 	InvXY size; //Size of item on inventory grid
 };
 
-static void TryToEquipItem(int invGridPosition, ItemStruct *item)
+static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 {
 	//TODO: During this process, we also need to check if we meet the stat requirement for the item we're replacing (in case the item we're replacing increases the stat needed to equip this item)
 
@@ -344,7 +344,7 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 	}
 
 	if (invBodyTarget == -1) //We failed to find a slot to equip item in
-		return;
+		return false;
 
 	//Set up items which need to be migrated
 	if (targetSlotIsOccupied) {
@@ -402,20 +402,16 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 
 	if ((migratingItems[0].active && migratingItems[0].invGridTarget == -1)
 		|| (migratingItems[1].active && migratingItems[1].invGridTarget == -1)) { //We failed to find inventory space for the migrating items
-		if (plr[myplr]._pClass == PC_WARRIOR) {
+		if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
 			PlaySFX(random_(0, 3) + PS_WARR14);
-		} else if (plr[myplr]._pClass == PC_ROGUE) {
+		} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
 			PlaySFX(random_(0, 3) + PS_ROGUE14);
 		} else if (plr[myplr]._pClass == PC_SORCERER) {
 			PlaySFX(random_(0, 3) + PS_MAGE14);
 		} else if (plr[myplr]._pClass == PC_MONK) {
 			PlaySFX(random_(0, 3) + PS_MONK14);
-		} else if (plr[myplr]._pClass == PC_BARD) {
-			PlaySFX(random_(0, 3) + PS_ROGUE14);
-		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
-			PlaySFX(random_(0, 3) + PS_WARR14);
 		}
-		return;
+		return false;
 	}
 
 	//Now as we've figured out target slot and everything, we do the actual swap. First off, remove item from inventory
@@ -447,34 +443,60 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
 	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
 	UpdateHotbarWithTemporaryArray();
+	return true;
+}
+
+static void SetSpellBasedOnWeapon(ItemStruct *item)
+{
+	if (item->_iCharges > 0) { //If item has charges and is equipped, then equip its spell
+		plr[myplr]._pRSpell = item->_iSpell;
+		plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
+		force_redraw = 255;
+	} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsWeapon(item)) {
+		ClearReadiedSpell(plr[myplr]);
+	}
+}
+
+static ItemStruct *ReturnItemBasedOnItemLink(int slot)
+{
+	if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) {
+		return &plr[myplr].InvBody[hotbarSlots[slot].itemLink];
+	} else if (hotbarSlots[slot].itemLink <= INVITEM_INV_LAST) {
+		return &plr[myplr].InvList[Hotbar_ReturnInvListPositionUsingItemLink(slot)];
+	} else if (hotbarSlots[slot].itemLink <= INVITEM_BELT_LAST) {
+		return &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
+	} else
+		return nullptr;
 }
 
 void Hotbar_UseSlot(int slot)
 {
 	if (hotbarSlots[slot].itemLink != -1) {
 		//Fluffy TODO: Verify the slot isn't empty
-		ItemStruct *item;
-		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) {
-			item = &plr[myplr].InvBody[hotbarSlots[slot].itemLink];
-		} else if (hotbarSlots[slot].itemLink <= INVITEM_INV_LAST) {
-			item = &plr[myplr].InvList[Hotbar_ReturnInvListPositionUsingItemLink(slot)];
-		} else {
-			item = &plr[myplr].SpdList[hotbarSlots[slot].itemLink - INVITEM_BELT_FIRST];
-		}
+		ItemStruct *item = ReturnItemBasedOnItemLink(slot);
+		assert(item != nullptr);
 
 		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
-			if (item->_iCharges > 0) { //If item has charges and is equipped, then equip its spell
-				plr[myplr]._pRSpell = item->_iSpell;
-				plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
-				force_redraw = 255;
-			} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsWeapon(item)) {
-				ClearReadiedSpell(plr[myplr]);
-			}
+			SetSpellBasedOnWeapon(item);
 		}
 		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
-			//TODO: Don't try to equip if the player is in a state where they can't change. Or maybe queue up the action and do it when the player is available? (I saw other code do this check "player._pmode > PM_WALK3")
-			TryToEquipItem(hotbarSlots[slot].itemLink - INVITEM_INV_FIRST, item);
-			//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
+			if (plr[myplr]._pmode <= PM_WALK3) { //Only equip items if player is standing or walking
+				if (TryToEquipItem(hotbarSlots[slot].itemLink - INVITEM_INV_FIRST, item)) {
+					item = ReturnItemBasedOnItemLink(slot); //Re-acquire item as the pointer we created above would have changed during TryToEquipItem()
+					SetSpellBasedOnWeapon(item);
+				}
+				//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
+			} else { //I'm not sure how to handle behaviour if it's not allowed to equip. I think the ideal solution would be to "queue" up the action but that would take a lot of work to implement
+				if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+					PlaySFX(random_(0, 2) + PS_WARR37);
+				} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+					PlaySFX(random_(0, 2) + PS_ROGUE37);
+				} else if (plr[myplr]._pClass == PC_SORCERER) {
+					PlaySFX(random_(0, 2) + PS_MAGE37);
+				} else if (plr[myplr]._pClass == PC_MONK) {
+					PlaySFX(random_(0, 2) + PS_MONK37);
+				}
+			}
 		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;
