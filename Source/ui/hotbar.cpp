@@ -364,6 +364,7 @@ void Hotbar_UseSlot(int slot)
 			}
 		}
 		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
+			//TODO: Don't try to equip if the player is in a state where they can't change. Or maybe queue up the action and do it when the player is available? (I saw other code do this check "player._pmode > PM_WALK3")
 			TryToEquipItem(hotbarSlots[slot].itemLink, item);
 			//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
 
