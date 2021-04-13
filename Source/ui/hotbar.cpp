@@ -183,10 +183,11 @@ static void AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int
 	int startingPos = slot + (pitch * sizeY);
 	for (int y = 0; y < sizeY; y++) {
 		for (int x = 0; x < sizeX; x++) {
+			int position = startingPos + x - (y * pitch);
 			if (x == 0 & y == 0)
-				invGrid[startingPos + x - (y * pitch)] = invListLink;
+				invGrid[position] = invListLink;
 			else
-				invGrid[startingPos + x - (y * pitch)] = -invListLink;
+				invGrid[position] = -invListLink;
 		}
 	}
 }
