@@ -457,7 +457,7 @@ static void SetSpellBasedOnWeapon(ItemStruct *item)
 	}
 }
 
-static ItemStruct *ReturnItemBasedOnItemLink(int slot)
+static ItemStruct *ReturnItemUsingItemLink(int slot)
 {
 	if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) {
 		return &plr[myplr].InvBody[hotbarSlots[slot].itemLink];
@@ -473,7 +473,7 @@ void Hotbar_UseSlot(int slot)
 {
 	if (hotbarSlots[slot].itemLink != -1) {
 		//Fluffy TODO: Verify the slot isn't empty
-		ItemStruct *item = ReturnItemBasedOnItemLink(slot);
+		ItemStruct *item = ReturnItemUsingItemLink(slot);
 		assert(item != nullptr);
 
 		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
@@ -482,7 +482,7 @@ void Hotbar_UseSlot(int slot)
 		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
 			if (plr[myplr]._pmode <= PM_WALK3) { //Only equip items if player is standing or walking
 				if (TryToEquipItem(hotbarSlots[slot].itemLink - INVITEM_INV_FIRST, item)) {
-					item = ReturnItemBasedOnItemLink(slot); //Re-acquire item as the pointer we created above would have changed during TryToEquipItem()
+					item = ReturnItemUsingItemLink(slot); //Re-acquire item as the pointer we created above would have changed during TryToEquipItem()
 					SetSpellBasedOnWeapon(item);
 				}
 				//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
