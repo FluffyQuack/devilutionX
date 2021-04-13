@@ -126,13 +126,6 @@ bool Hotbar_LeftMouseDown()
 	return false;
 }
 
-static bool IsWeapon(ItemStruct *item)
-{
-	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD || item->_itype == ITYPE_STAFF)
-		return true;
-	return false;
-}
-
 static bool IsRing(ItemStruct *item)
 {
 	return item->_itype == ITYPE_RING;
@@ -141,25 +134,6 @@ static bool IsRing(ItemStruct *item)
 static bool IsAmulet(ItemStruct *item)
 {
 	return item->_itype == ITYPE_AMULET;
-}
-
-static bool IsHelmet(ItemStruct *item)
-{
-	return item->_itype == ITYPE_HELM;
-}
-
-static bool IsArmour(ItemStruct *item)
-{
-	if (item->_itype == ITYPE_LARMOR || item->_itype == ITYPE_MARMOR || item->_itype == ITYPE_HARMOR)
-		return true;
-	return false;
-}
-
-static bool IsEquippableItem(ItemStruct *item)
-{
-	if (IsWeapon(item) || IsRing(item) || IsAmulet(item) || IsHelmet(item) || IsArmour(item))
-		return true;
-	return false;
 }
 
 static int TargetBodySlot(int from, int to, bool *targetSlotIsOccupied) 
@@ -332,13 +306,13 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 	bool targetSlotIsOccupied = false;
 	if (IsRing(item))
 		invBodyTarget = TargetBodySlot(INVLOC_RING_LEFT, INVLOC_RING_RIGHT, &targetSlotIsOccupied);
-	else if (IsHelmet(item))
+	else if (item->isHelm())
 		invBodyTarget = TargetBodySlot(INVLOC_HEAD, INVLOC_HEAD, &targetSlotIsOccupied);
 	else if (IsAmulet(item))
 		invBodyTarget = TargetBodySlot(INVLOC_AMULET, INVLOC_AMULET, &targetSlotIsOccupied);
-	else if (IsArmour(item))
+	else if (item->isArmor())
 		invBodyTarget = TargetBodySlot(INVLOC_CHEST, INVLOC_CHEST, &targetSlotIsOccupied);
-	else if (IsWeapon(item)) {
+	else if (item->isWeapon() || item->isShield()) {
 		invBodyTarget = TargetHandSlot(&targetSlotIsOccupied, item);
 
 		//When equipping a weapon, it's possible we need to move what's in the second hand
@@ -463,7 +437,7 @@ static void SetSpellBasedOnWeapon(ItemStruct *item)
 		plr[myplr]._pRSpell = item->_iSpell;
 		plr[myplr]._pRSplType = RSPLTYPE_CHARGES;
 		force_redraw = 255;
-	} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsWeapon(item)) {
+	} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && (item->isWeapon() || item->isShield())) {
 		ClearReadiedSpell(plr[myplr]);
 	}
 }
@@ -505,7 +479,7 @@ void Hotbar_UseSlot(int slot)
 		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
 			SetSpellBasedOnWeapon(item);
 		}
-		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
+		else if (item->isEquipment()) { //Item is something which can be equipped to a body slot
 			if (plr[myplr]._pmode <= PM_WALK3) { //Only equip items if player is standing or walking
 				if (TryToEquipItem(hotbarSlots[slot].itemLink - INVITEM_INV_FIRST, item)) {
 					item = ReturnItemUsingItemLink(slot); //Re-acquire item as the pointer we created above would have changed during TryToEquipItem()
