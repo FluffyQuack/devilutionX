@@ -48,7 +48,15 @@ BOOL SpecialAutoPlace(int pnum, int ii, const ItemStruct &item);
 BOOL GoldAutoPlace(int pnum);
 void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, uint32_t dwBuff);
 void inv_update_rem_item(int pnum, BYTE iv);
-void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls = true); //Fluffy: Added calcPlrScrolls argument
+
+/**
+ * @brief Remove an item from player inventory
+ * @param pnum Player index
+ * @param iv invList index of item to be removed
+ * @param calcPlrScrolls If true, CalcPlrScrolls() gets called after removing item
+ */
+void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls = true);
+
 void RemoveSpdBarItem(int pnum, int iv);
 void CheckInvItem(bool isShiftHeld = false);
 void CheckInvScrn(bool isShiftHeld);
