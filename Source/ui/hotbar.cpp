@@ -61,6 +61,15 @@ bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 	return false;
 }
 
+void Hotbar_RemoveItemLinkToInventory(int invGridIndex)
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarSlots[i].itemLink >= INVITEM_INV_FIRST && hotbarSlots[i].itemLink <= INVITEM_INV_LAST && hotbarSlots[i].itemLink - INVITEM_INV_FIRST == invGridIndex) {
+			hotbarSlots[i].itemLink = -1;
+		}
+	}
+}
+
 void Hotbar_UpdateItemLink(int oldLink, int newLink)
 {
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
@@ -414,12 +423,15 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 		return false;
 	}
 
-	//Now as we've figured out target slot and everything, we do the actual swap. First off, remove item from inventory
-	ItemStruct itemTemp = *item; //Save info about item before removing it
+	//Now as we've figured out target slot and everything, we do the actual swap. First off, prepare changes to hotbar
+	ResetHotbarChangesArray();
+	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
+
+	//Remove item from inventory
+	ItemStruct itemTemp = *item;                                          //Save info about item before removing it
 	RemoveInvItem(myplr, plr[myplr].InvGrid[invGridPosition] - 1, false); //Remove item from inventory (note: this invalidates the function's "item" pointer)
 
 	//Move "migrating" items from body to inventory
-	ResetHotbarChangesArray();
 	for (int i = 0; i < 2; i++) {
 		migratingItem_s *migratingItem = &migratingItems[i];
 		if (migratingItem->active) {
@@ -441,7 +453,6 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]); //Play sound for item being equipped
 	NetSendCmdChItem_ItemPointer(FALSE, invBodyTarget, &plr[myplr].InvBody[invBodyTarget]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
-	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
 	UpdateHotbarWithTemporaryArray();
 	return true;
 }

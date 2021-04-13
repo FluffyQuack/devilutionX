@@ -1759,6 +1759,10 @@ void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls)
 	//Iterate through invGrid and remove every reference to item
 	for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
 		if (plr[pnum].InvGrid[i] == iv || plr[pnum].InvGrid[i] == -iv) {
+
+			if (plr[pnum].InvGrid[i] > 0)
+				Hotbar_RemoveItemLinkToInventory(i); //Fluffy: If this is linked in hotbar, remove the link
+
 			plr[pnum].InvGrid[i] = 0;
 		}
 	}
