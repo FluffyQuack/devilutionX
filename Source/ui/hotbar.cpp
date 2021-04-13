@@ -488,6 +488,18 @@ void Hotbar_UseSlot(int slot)
 		if (item == nullptr)
 			return;
 
+		if (!item->_iStatFlag) { //We can't use item if we don't meet the requirements for it
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN)
+				PlaySFX(PS_WARR13);
+			else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD)
+				PlaySFX(PS_ROGUE13);
+			else if (plr[myplr]._pClass == PC_SORCERER)
+				PlaySFX(PS_MAGE13);
+			else if (plr[myplr]._pClass == PC_MONK)
+				PlaySFX(PS_MONK13);
+			return;
+		}
+
 		if (hotbarSlots[slot].itemLink <= INVITEM_CHEST) { //Item linked is an equipped item
 			SetSpellBasedOnWeapon(item);
 		}
