@@ -47,9 +47,8 @@ BOOL AutoPlace(int pnum, int ii, int sx, int sy, BOOL saveflag);
 BOOL SpecialAutoPlace(int pnum, int ii, const ItemStruct &item);
 BOOL GoldAutoPlace(int pnum);
 void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, uint32_t dwBuff);
-void RemoveItemFromInventory(PlayerStruct &player, int iv); //Fluffy
 void inv_update_rem_item(int pnum, BYTE iv);
-void RemoveInvItem(int pnum, int iv);
+void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls = true); //Fluffy: Added calcPlrScrolls argument
 void RemoveSpdBarItem(int pnum, int iv);
 void CheckInvItem(bool isShiftHeld = false);
 void CheckInvScrn(bool isShiftHeld);

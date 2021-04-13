@@ -1484,34 +1484,6 @@ void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, ui
 	CalcPlrInv(pnum, TRUE);
 }
 
-void RemoveItemFromInventory(PlayerStruct &player, int iv) //Fluffy: Removes an item from the inventory (iv should match the item slot number in InvList array). This is based on code from CheckInvCut()
-{
-	iv++;
-
-	for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
-		if (player.InvGrid[i] == iv || player.InvGrid[i] == -iv) {
-			player.InvGrid[i] = 0;
-		}
-	}
-
-	iv--;
-
-	player._pNumInv--;
-
-	if (player._pNumInv > 0 && player._pNumInv != iv) { //The item we removed isn't at the end of the invList array, which means we need to modify the invList item which used to be at the end to take up the value of the item we just deleted
-		player.InvList[iv] = player.InvList[player._pNumInv];
-
-		for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {
-			if (player.InvGrid[j] == player._pNumInv + 1) {
-				player.InvGrid[j] = iv + 1;
-			}
-			if (player.InvGrid[j] == -(player._pNumInv + 1)) {
-				player.InvGrid[j] = -iv - 1;
-			}
-		}
-	}
-}
-
 void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 {
 	int r;
@@ -1678,7 +1650,7 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			}
 
 			if (!automaticMove || automaticallyMoved) {
-				RemoveItemFromInventory(player, iv - 1); //Fluffy: Turned code here into its own function
+				RemoveInvItem(pnum, iv - 1, false); //Fluffy: Made this use a function rather than duplicated code
 			}
 		}
 	}
@@ -1778,7 +1750,7 @@ void inv_update_rem_item(int pnum, BYTE iv)
 	}
 }
 
-void RemoveInvItem(int pnum, int iv)
+void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls) //Removes an item from the inventory (iv should match the item slot number in InvList array). (Fluffy: Added calcPlrScrolls argument)
 {
 	int i, j;
 
@@ -1793,7 +1765,7 @@ void RemoveInvItem(int pnum, int iv)
 	iv--;
 	plr[pnum]._pNumInv--;
 
-	if (plr[pnum]._pNumInv > 0 && plr[pnum]._pNumInv != iv) {
+	if (plr[pnum]._pNumInv > 0 && plr[pnum]._pNumInv != iv) { //The item we removed isn't at the end of the invList array, which means we need to modify the invList item which used to be at the end to take up the value of the item we just deleted
 		plr[pnum].InvList[iv] = plr[pnum].InvList[plr[pnum]._pNumInv];
 
 		for (j = 0; j < NUM_INV_GRID_ELEM; j++) {
@@ -1806,7 +1778,8 @@ void RemoveInvItem(int pnum, int iv)
 		}
 	}
 
-	CalcPlrScrolls(pnum);
+	if (calcPlrScrolls)
+		CalcPlrScrolls(pnum);
 }
 
 void RemoveSpdBarItem(int pnum, int iv)

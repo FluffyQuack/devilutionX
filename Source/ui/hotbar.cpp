@@ -416,7 +416,7 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 
 	//Now as we've figured out target slot and everything, we do the actual swap. First off, remove item from inventory
 	ItemStruct itemTemp = *item; //Save info about item before removing it
-	RemoveItemFromInventory(plr[myplr], plr[myplr].InvGrid[invGridPosition] - 1); //Remove item from inventory (note: this invalidates the function's "item" pointer)
+	RemoveInvItem(myplr, plr[myplr].InvGrid[invGridPosition] - 1, false); //Remove item from inventory (note: this invalidates the function's "item" pointer)
 
 	//Move "migrating" items from body to inventory
 	ResetHotbarChangesArray();
