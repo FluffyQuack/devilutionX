@@ -288,7 +288,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 		//Create alternate version of invGrid which has "item" removed
 		Sint8 InvGrid_withoutReplacingItem[NUM_INV_GRID_ELEM];
 		memcpy(InvGrid_withoutReplacingItem, plr[myplr].InvGrid, NUM_INV_GRID_ELEM);
-		RemoveItemFromInvGrid(InvGrid_withoutReplacingItem, invListIndex - INVITEM_INV_FIRST + 1);
+		RemoveItemFromInvGrid(InvGrid_withoutReplacingItem, invListIndex + 1);
 
 		//We scan through invGrid for free space for the item (prefer slots which are the most topleft)
 		int curSlot = -1;
@@ -338,7 +338,19 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 		return;
 	}
 
-	//TODO: Now as we've figured out target slot and everything, we do the actual swap
+	//Now as we've figured out target slot and everything, we do the actual swap. First off, remove item from inventory
+	ItemStruct itemTemp = *item; //Save info about item before removing it
+	RemoveItemFromInventory(plr[myplr], invListIndex); //Remove item from inventory (note: this invalidates the local "item" pointer)
+
+	if (migratingItem1_from != -1) {
+	}
+	
+	plr[myplr].InvBody[targetSlot] = itemTemp;         //Place item into slot
+	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]);                              //Play sound for item being equipped
+	NetSendCmdChItem_ItemPointer(FALSE, targetSlot, &plr[myplr].InvBody[targetSlot]); //Send network command letting other players know about the new item we just equipped
+	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
+	
+	
 	return;
 }
 
@@ -364,12 +376,8 @@ void Hotbar_UseSlot(int slot)
 		}
 		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
 			//TODO: Don't try to equip if the player is in a state where they can't change. Or maybe queue up the action and do it when the player is available? (I saw other code do this check "player._pmode > PM_WALK3")
-			TryToEquipItem(hotbarSlots[slot].itemLink, item);
+			TryToEquipItem(hotbarSlots[slot].itemLink - INVITEM_INV_FIRST, item);
 			//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
-
-			/*if (AutoEquip(myplr, *item))
-				RemoveItemFromInventory(plr[myplr], hotbarSlots[slot].itemLink - INVITEM_INV_FIRST);*/
-			//TODO
 		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;

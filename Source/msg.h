@@ -325,6 +325,7 @@ void NetSendCmdParam3(BOOL bHiPri, BYTE bCmd, WORD wParam1, WORD wParam2, WORD w
 void NetSendCmdQuest(BOOL bHiPri, BYTE q);
 void NetSendCmdGItem(BOOL bHiPri, BYTE bCmd, BYTE mast, BYTE pnum, BYTE ii);
 void NetSendCmdPItem(BOOL bHiPri, BYTE bCmd, BYTE x, BYTE y);
+void NetSendCmdChItem_ItemPointer(BOOL bHiPri, BYTE bLoc, ItemStruct *item); //Fluffy
 void NetSendCmdChItem(BOOL bHiPri, BYTE bLoc);
 void NetSendCmdDelItem(BOOL bHiPri, BYTE bLoc);
 void NetSendCmdDItem(BOOL bHiPri, int ii);

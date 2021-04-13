@@ -1112,6 +1112,24 @@ void NetSendCmdPItem(BOOL bHiPri, BYTE bCmd, BYTE x, BYTE y)
 		NetSendLoPri((BYTE *)&cmd, sizeof(cmd));
 }
 
+void NetSendCmdChItem_ItemPointer(BOOL bHiPri, BYTE bLoc, ItemStruct *item) //Fluffy: Variant of NetSendCmdChItem() which makes it possible to use info from an item pointer, rather than always using HoldItem
+{
+	TCmdChItem cmd;
+
+	cmd.bCmd = CMD_CHANGEPLRITEMS;
+	cmd.bLoc = bLoc;
+	cmd.wIndx = item->IDidx;
+	cmd.wCI = item->_iCreateInfo;
+	cmd.dwSeed = item->_iSeed;
+	cmd.bId = item->_iIdentified;
+	cmd.dwBuff = item->dwBuff;
+
+	if (bHiPri)
+		NetSendHiPri((BYTE *)&cmd, sizeof(cmd));
+	else
+		NetSendLoPri((BYTE *)&cmd, sizeof(cmd));
+}
+
 void NetSendCmdChItem(BOOL bHiPri, BYTE bLoc)
 {
 	TCmdChItem cmd;
