@@ -85,13 +85,6 @@ bool Hotbar_LeftMouseDown()
 	return false;
 }
 
-static bool IsLeftEquippableItem(ItemStruct *item)
-{
-	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_STAFF) //Is this an item for the left hand? (TODO: We need to do checks for Bard and Barbarian classes too)
-		return true;
-	return false;
-}
-
 static bool IsWeapon(ItemStruct *item)
 {
 	if (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_AXE || item->_itype == ITYPE_BOW || item->_itype == ITYPE_MACE || item->_itype == ITYPE_SHIELD || item->_itype == ITYPE_STAFF)
@@ -128,6 +121,225 @@ static bool IsEquippableItem(ItemStruct *item)
 	return false;
 }
 
+static int TargetBodySlot(int from, int to, bool *targetSlotIsOccupied) 
+{
+	for (int i = from; i <= to; i++) {
+		ItemStruct *bodySlot = &plr[myplr].InvBody[i];
+		if (bodySlot->isEmpty()) {
+			*targetSlotIsOccupied = false;
+			return i;
+		}
+	}
+	*targetSlotIsOccupied = true;
+	return from;
+}
+
+static bool IsTwoHanded(ItemStruct *item)
+{
+	if (item->_iLoc == ILOC_TWOHAND && !(plr[myplr]._pClass == PC_BARBARIAN && (item->_itype == ITYPE_SWORD || item->_itype == ITYPE_MACE))) //Barbarian always hold swords and maces in one hand
+		return true;
+	return false;
+}
+
+static void RemoveItemFromInvGrid(Sint8 *invGrid, int item)
+{
+	for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+		if (invGrid[i] == item || invGrid[i] == -item)
+			invGrid[i] = 0;
+	}
+}
+
+static int FindSpotForItemInInvGrid(Sint8 *invGrid, int startAt, int sizeX, int sizeY)
+{
+	//Position 0 equals to topleft. NUM_INV_GRID_ELEM - 1 is bottomright
+	//The "real" position of an item is at their bottomleft-most grid position
+	const int pitch = 10; //TODO: Put this somewhere else
+	for (int i = startAt; i < NUM_INV_GRID_ELEM; i++) {
+		int verticalOffset = 0;
+		for (int y = 0; y < sizeY; y++) {
+			for (int x = 0; x < sizeX; x++) {
+				if ((x + i) % pitch < i % pitch) //Check if we're exceeding X boundary
+					goto skip;
+				if (i + x + verticalOffset >= NUM_INV_GRID_ELEM) //Check if we're exceeding Y boundary
+					goto skip;
+				if (invGrid[i + x + verticalOffset] != 0) //Check if slot is already occupied
+					goto skip;
+			}
+			if (y == sizeY - 1) //If we get this far, then this position is a valid spot for the item
+				return i /*+ verticalOffset*/;
+			verticalOffset += pitch;
+		}
+	skip:
+		continue;
+	}
+	return -1;
+}
+
+static void AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int invListLink)
+{
+	const int pitch = 10; //TODO: Put this somewhere else
+	int startingPos = slot + (pitch * sizeY);
+	for (int y = 0; y < sizeY; y++) {
+		for (int x = 0; x < sizeX; x++) {
+			if (x == 0 & y == 0)
+				invGrid[startingPos + x + (y - pitch)] = invListLink;
+			else
+				invGrid[startingPos + x + (y - pitch)] = -invListLink;
+		}
+	}
+}
+
+static int TargetHandSlot(bool *targetSlotIsOccupied, ItemStruct *replacingItem)
+{
+	//If the weapon we're replacing with is two-handed, it always goes into the left slot
+	if (IsTwoHanded(replacingItem)) {
+		*targetSlotIsOccupied = !plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty();
+		return INVLOC_HAND_LEFT;
+	}
+
+	//Check if either slot contains a two-handed weapon, if so, we replace that slot
+	for (int i = INVLOC_HAND_LEFT; i <= INVLOC_HAND_RIGHT; i++) {
+		ItemStruct *hand = &plr[myplr].InvBody[i];
+		if (!hand->isEmpty() && IsTwoHanded(hand)) {
+			*targetSlotIsOccupied = true;
+			return i;
+		}
+	}
+
+	//Check if the type of item is weapon or shield. If equal to replacing item, we replace that slot. If different, we replace the other slot. 
+	if (plr[myplr]._pClass != PC_BARD) { //Bards can wield two weapons, so this check doesn't apply
+		bool replacingItemIsAShield = replacingItem->_itype == ITYPE_SHIELD;
+		for (int i = INVLOC_HAND_LEFT; i <= INVLOC_HAND_RIGHT; i++) {
+			ItemStruct *hand = &plr[myplr].InvBody[i];
+			if (!hand->isEmpty()) {
+				bool equippedItemIsShield = hand->_itype == ITYPE_SHIELD;
+				int targetSlot;
+				if (replacingItemIsAShield != equippedItemIsShield) { //These are differing types, so we should replace the other slot
+					if (i == INVLOC_HAND_LEFT)
+						targetSlot = INVLOC_HAND_RIGHT;
+					else
+						targetSlot = INVLOC_HAND_LEFT;
+				} else //Types match, so we replace this slot
+					targetSlot = i;
+
+				*targetSlotIsOccupied = !plr[myplr].InvBody[targetSlot].isEmpty();
+				return targetSlot;
+			}
+		}
+	}
+
+	//If all the above fail then we go with default behaviour
+	return TargetBodySlot(INVLOC_HAND_LEFT, INVLOC_HAND_RIGHT, targetSlotIsOccupied);
+
+}
+
+static void TryToEquipItem(int invListIndex, ItemStruct *item)
+{
+	//TODO: During this process, we also need to check if we meet the stat requirement for the item we're replacing (in case the item we're replacing increases the stat needed to equip this item)
+	// 
+	//Figure out which slot this goes into
+	int targetSlot = -1;
+	bool targetSlotIsOccupied = false;
+	int migratingSlot2 = -1;
+	if (IsRing(item))
+		targetSlot = TargetBodySlot(INVLOC_RING_LEFT, INVLOC_RING_RIGHT, &targetSlotIsOccupied);
+	else if (IsHelmet(item))
+		targetSlot = TargetBodySlot(INVLOC_HEAD, INVLOC_HEAD, &targetSlotIsOccupied);
+	else if (IsAmulet(item))
+		targetSlot = TargetBodySlot(INVLOC_AMULET, INVLOC_AMULET, &targetSlotIsOccupied);
+	else if (IsArmour(item))
+		targetSlot = TargetBodySlot(INVLOC_CHEST, INVLOC_CHEST, &targetSlotIsOccupied);
+	else if (IsWeapon(item)) {
+		targetSlot = TargetHandSlot(&targetSlotIsOccupied, item);
+
+		//When equipping a weapon, it's possible we need to move what's in the second hand
+		if (targetSlot != -1 && IsTwoHanded(item)) {
+			if (targetSlot == INVLOC_HAND_LEFT)
+				migratingSlot2 = plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty() ? -1 : INVLOC_HAND_RIGHT;
+			else
+				migratingSlot2 = plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty() ? -1 : INVLOC_HAND_LEFT;
+		}
+	}
+
+	if (targetSlot == -1) //We failed to find a slot to equip item in
+		return;
+
+	//Initialize variables used for items we need to move out of the way
+	int migratingSlot1 = -1, migratingSlot1_to = -1, migratingSlot2_to = -1;
+	if (targetSlotIsOccupied)
+		migratingSlot1 = targetSlot;
+	if (migratingSlot1 == -1 && migratingSlot2 != -1) { //If we have a slot2 to move but no slot1, then move that info over to slot1
+		migratingSlot1 = migratingSlot2;
+		migratingSlot2 = -1;
+	}
+
+	//Attain information about the sizes of the items we need to move out of the way
+	InvXY migratingSlot1_size = { 0, 0 }, migratingSlot2_size = { 0, 0 };
+	if (migratingSlot1 != -1)
+		migratingSlot1_size = GetInventorySize(plr[myplr].InvBody[migratingSlot1]);
+	if (migratingSlot2 != -1)
+		migratingSlot2_size = GetInventorySize(plr[myplr].InvBody[migratingSlot2]);
+	
+	if (migratingSlot1 != -1) {
+
+		//Create alternate version of invGrid which has "item" removed
+		Sint8 InvGrid_withoutReplacingItem[NUM_INV_GRID_ELEM];
+		memcpy(InvGrid_withoutReplacingItem, plr[myplr].InvGrid, NUM_INV_GRID_ELEM);
+		RemoveItemFromInvGrid(InvGrid_withoutReplacingItem, invListIndex - INVITEM_INV_FIRST + 1);
+
+		//We scan through invGrid for free space for the item (prefer slots which are the most topleft)
+		int curSlot = -1;
+		while (1) {
+			curSlot = FindSpotForItemInInvGrid(InvGrid_withoutReplacingItem, curSlot + 1, migratingSlot1_size.X, migratingSlot1_size.Y);
+			if (curSlot == -1) //If -1, then we have failed to find a slot for this item
+				break;
+
+			if (migratingSlot2 != -1) { //We have two items we need to find space for, so let's find something for item 2
+
+				//We make yet another clone of invGrid, but this time with migratingSlot1 added in
+				Sint8 InvGrid_withMigratingSlot1[NUM_INV_GRID_ELEM];
+				memcpy(InvGrid_withMigratingSlot1, InvGrid_withoutReplacingItem, NUM_INV_GRID_ELEM);
+				AddItemToInvGrid(InvGrid_withMigratingSlot1, curSlot, migratingSlot1_size.X, migratingSlot1_size.Y, 1); //The last parameter isn't important so we use a dummy value
+
+				//Search for a fitting slot for migratingSlot2
+				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingSlot1, 0, migratingSlot2_size.X, migratingSlot2_size.Y);
+
+				if (freeSlot == -1) //If -1, we didn't find a free slot, so we continue the loop
+					continue;
+
+				//Set slot for migrating item 2
+				migratingSlot2_to = freeSlot;
+			}
+
+			//Set slot for migrating item 1
+			migratingSlot1_to = curSlot;
+			break;
+		}
+	}
+
+	if ((migratingSlot1 != -1 && migratingSlot1_to == -1)
+		|| (migratingSlot2 != -1 && migratingSlot2_to == -1)) { //We failed to find inventory space for the migrating items
+		if (plr[myplr]._pClass == PC_WARRIOR) {
+			PlaySFX(random_(0, 3) + PS_WARR14);
+		} else if (plr[myplr]._pClass == PC_ROGUE) {
+			PlaySFX(random_(0, 3) + PS_ROGUE14);
+		} else if (plr[myplr]._pClass == PC_SORCERER) {
+			PlaySFX(random_(0, 3) + PS_MAGE14);
+		} else if (plr[myplr]._pClass == PC_MONK) {
+			PlaySFX(random_(0, 3) + PS_MONK14);
+		} else if (plr[myplr]._pClass == PC_BARD) {
+			PlaySFX(random_(0, 3) + PS_ROGUE14);
+		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
+			PlaySFX(random_(0, 3) + PS_WARR14);
+		}
+		return;
+
+	}
+
+	//TODO: Now as we've figured out target slot and everything, we do the actual swap
+	return;
+}
+
 void Hotbar_UseSlot(int slot)
 {
 	if (hotbarSlots[slot].itemLink != -1) {
@@ -149,8 +361,11 @@ void Hotbar_UseSlot(int slot)
 			}
 		}
 		else if (IsEquippableItem(item)) { //Item is something which can be equipped to a body slot
-			if (AutoEquip(myplr, *item))
-				RemoveItemFromInventory(plr[myplr], hotbarSlots[slot].itemLink - INVITEM_INV_FIRST);
+			TryToEquipItem(hotbarSlots[slot].itemLink, item);
+			//TryToEquipItem(hotbarSlots[slot].itemLink2, item2); //TODO: This should avoid replacing the item we just moved
+
+			/*if (AutoEquip(myplr, *item))
+				RemoveItemFromInventory(plr[myplr], hotbarSlots[slot].itemLink - INVITEM_INV_FIRST);*/
 			//TODO
 		} else if (item->_iMiscId == IMISC_SCROLL || item->_iMiscId == IMISC_SCROLLT) { //Equip as spell rather than use directly
 			plr[myplr]._pRSpell = item->_iSpell;

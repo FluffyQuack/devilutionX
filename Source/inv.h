@@ -40,6 +40,7 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 void DrawInv(CelOutputBuffer out);
 
 void DrawInvBelt(CelOutputBuffer out);
+InvXY GetInventorySize(const ItemStruct &item); //Fluffy: Added this to header file
 bool AutoEquipEnabled(const PlayerStruct &player, const ItemStruct &item);
 bool AutoEquip(int playerNumber, const ItemStruct &item, bool persistItem = true);
 BOOL AutoPlace(int pnum, int ii, int sx, int sy, BOOL saveflag);
