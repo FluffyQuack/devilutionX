@@ -319,22 +319,22 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 	migratingItems[1] = migratingItems[0];
 
 	//Figure out which slot this goes into
-	int targetSlot = -1;
+	int invBodyTarget = -1;
 	bool targetSlotIsOccupied = false;
 	if (IsRing(item))
-		targetSlot = TargetBodySlot(INVLOC_RING_LEFT, INVLOC_RING_RIGHT, &targetSlotIsOccupied);
+		invBodyTarget = TargetBodySlot(INVLOC_RING_LEFT, INVLOC_RING_RIGHT, &targetSlotIsOccupied);
 	else if (IsHelmet(item))
-		targetSlot = TargetBodySlot(INVLOC_HEAD, INVLOC_HEAD, &targetSlotIsOccupied);
+		invBodyTarget = TargetBodySlot(INVLOC_HEAD, INVLOC_HEAD, &targetSlotIsOccupied);
 	else if (IsAmulet(item))
-		targetSlot = TargetBodySlot(INVLOC_AMULET, INVLOC_AMULET, &targetSlotIsOccupied);
+		invBodyTarget = TargetBodySlot(INVLOC_AMULET, INVLOC_AMULET, &targetSlotIsOccupied);
 	else if (IsArmour(item))
-		targetSlot = TargetBodySlot(INVLOC_CHEST, INVLOC_CHEST, &targetSlotIsOccupied);
+		invBodyTarget = TargetBodySlot(INVLOC_CHEST, INVLOC_CHEST, &targetSlotIsOccupied);
 	else if (IsWeapon(item)) {
-		targetSlot = TargetHandSlot(&targetSlotIsOccupied, item);
+		invBodyTarget = TargetHandSlot(&targetSlotIsOccupied, item);
 
 		//When equipping a weapon, it's possible we need to move what's in the second hand
-		if (targetSlot != -1 && IsTwoHanded(item)) {
-			if (targetSlot == INVLOC_HAND_LEFT)
+		if (invBodyTarget != -1 && IsTwoHanded(item)) {
+			if (invBodyTarget == INVLOC_HAND_LEFT)
 				migratingItems[1].bodyLoc = plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty() ? -1 : INVLOC_HAND_RIGHT;
 			else
 				migratingItems[1].bodyLoc = plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty() ? -1 : INVLOC_HAND_LEFT;
@@ -343,13 +343,13 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 		}
 	}
 
-	if (targetSlot == -1) //We failed to find a slot to equip item in
+	if (invBodyTarget == -1) //We failed to find a slot to equip item in
 		return;
 
 	//Set up items which need to be migrated
 	if (targetSlotIsOccupied) {
 		migratingItems[0].active = true;
-		migratingItems[0].bodyLoc = targetSlot;
+		migratingItems[0].bodyLoc = invBodyTarget;
 	}
 	if (!migratingItems[0].active && migratingItems[1].active) { //We have a second migrating item but not a first one, so make second the first
 		migratingItems[0] = migratingItems[1];
@@ -432,7 +432,7 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 			plr[myplr]._pNumInv++; //Increase quantity of items held
 			AddItemToInvGrid(plr[myplr].InvGrid, migratingItem->invGridTarget, migratingItem->size.X, migratingItem->size.Y, invListPosition); //Place item in invGrid
 
-			if (migratingItem->bodyLoc != targetSlot) {
+			if (migratingItem->bodyLoc != invBodyTarget) {
 				NetSendCmdDelItem(FALSE, migratingItem->bodyLoc); //Let other clients know that the item in this body inventory slot is now getting deleted (TODO: Check if this works)
 				plr[myplr].InvBody[migratingItem->bodyLoc]._itype = ITYPE_NONE; //Remove item for local client
 			}
@@ -441,11 +441,11 @@ static void TryToEquipItem(int invGridPosition, ItemStruct *item)
 		}
 	}
 	
-	plr[myplr].InvBody[targetSlot] = itemTemp; //Place item into slot
+	plr[myplr].InvBody[invBodyTarget] = itemTemp; //Place item into slot
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]); //Play sound for item being equipped
-	NetSendCmdChItem_ItemPointer(FALSE, targetSlot, &plr[myplr].InvBody[targetSlot]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
+	NetSendCmdChItem_ItemPointer(FALSE, invBodyTarget, &plr[myplr].InvBody[invBodyTarget]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
-	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, targetSlot);
+	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
 	UpdateHotbarWithTemporaryArray();
 }
 
