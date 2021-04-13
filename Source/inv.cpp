@@ -1499,9 +1499,6 @@ void RemoveItemFromInventory(PlayerStruct &player, int iv) //Fluffy: Removes an 
 	player._pNumInv--;
 
 	if (player._pNumInv > 0 && player._pNumInv != iv) { //The item we removed isn't at the end of the invList array, which means we need to modify the invList item which used to be at the end to take up the value of the item we just deleted
-
-		Hotbar_UpdateItemLink(player._pNumInv + INVITEM_INV_FIRST, iv + INVITEM_INV_FIRST); //Fluffy: If this is linked in the hotbar, then update the link
-
 		player.InvList[iv] = player.InvList[player._pNumInv];
 
 		for (int j = 0; j < NUM_INV_GRID_ELEM; j++) {

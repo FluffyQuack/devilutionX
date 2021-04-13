@@ -5,6 +5,13 @@ DEVILUTION_BEGIN_NAMESPACE
 #define HOTBAR_SLOTS 8
 
 struct hotbarSlot_s {
+
+	/*
+	* The item links correspond to this enum list: NUM_INVELEM
+	* Equipped items link to invBody[]
+	* Items in inventory link to invGrid[]
+	* Items in belt link to SpdList[]
+	*/
 	Sint32 itemLink; //Links to something in player's inventory
 	//Sint32 itemLink2; //Links to a second item in player inventory (used for weapon swaps)
 	Uint32 spellLink; //Links to a spell or skill
