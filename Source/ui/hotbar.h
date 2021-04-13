@@ -5,12 +5,13 @@ DEVILUTION_BEGIN_NAMESPACE
 #define HOTBAR_SLOTS 8
 
 struct hotbarSlot_s {
-	Uint32 itemLink; //Links to something in player's inventory
-	//Uint32 itemLink2; //Links to a second item in player inventory (used for weapon swaps)
+	Sint32 itemLink; //Links to something in player's inventory
+	//Sint32 itemLink2; //Links to a second item in player inventory (used for weapon swaps)
 	Uint32 spellLink; //Links to a spell or skill
 	Uint32 spellLinkType; //What type of type is linked (spell, charge, or skill)
 };
 
+extern hotbarSlot_s hotbarSlots[HOTBAR_SLOTS];
 extern int selectedHotbarSlot;
 extern int selectedHotbarSlot_forLinking;
 

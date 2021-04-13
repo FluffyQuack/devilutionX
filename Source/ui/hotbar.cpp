@@ -7,9 +7,10 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 hotbarSlot_s hotbarSlots[HOTBAR_SLOTS];
+static Sint32 hotbarChanges[HOTBAR_SLOTS]; //For temporarily storing changes for the hotbar
 int selectedHotbarSlot = -1;
 int selectedHotbarSlot_forLinking = -1;
-const InvXY hotBarSlotLocations[HOTBAR_SLOTS] = {
+const InvXY hotbarSlotLocations[HOTBAR_SLOTS] = {
 	{ 205, 33 },
 	{ 234, 33 },
 	{ 263, 33 },
@@ -37,10 +38,10 @@ bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 		int xo = PANEL_LEFT;
 		int yo = PANEL_TOP;
 
-		if (MouseX >= hotBarSlotLocations[i].X + xo
-		    && MouseX < hotBarSlotLocations[i].X + xo + (INV_SLOT_SIZE_PX + 1)
-		    && MouseY >= hotBarSlotLocations[i].Y + yo - (INV_SLOT_SIZE_PX + 1)
-		    && MouseY < hotBarSlotLocations[i].Y + yo) {
+		if (MouseX >= hotbarSlotLocations[i].X + xo
+		    && MouseX < hotbarSlotLocations[i].X + xo + (INV_SLOT_SIZE_PX + 1)
+		    && MouseY >= hotbarSlotLocations[i].Y + yo - (INV_SLOT_SIZE_PX + 1)
+		    && MouseY < hotbarSlotLocations[i].Y + yo) {
 			selectedHotbarSlot = i;
 			return true;
 		}
@@ -48,6 +49,14 @@ bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 
 	selectedHotbarSlot = -1;
 	return false;
+}
+
+void Hotbar_UpdateItemLink(int oldLink, int newLink)
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarSlots[i].itemLink == oldLink)
+			hotbarSlots[i].itemLink = newLink;
+	}
 }
 
 void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType)
@@ -168,7 +177,7 @@ static int FindSpotForItemInInvGrid(Sint8 *invGrid, int startAt, int sizeX, int 
 					goto skip;
 			}
 			if (y == sizeY - 1) //If we get this far, then this position is a valid spot for the item
-				return i /*+ verticalOffset*/;
+				return i;
 			verticalOffset += pitch;
 		}
 	skip:
@@ -234,6 +243,28 @@ static int TargetHandSlot(bool *targetSlotIsOccupied, ItemStruct *replacingItem)
 	//If all the above fail then we go with default behaviour
 	return TargetBodySlot(INVLOC_HAND_LEFT, INVLOC_HAND_RIGHT, targetSlotIsOccupied);
 
+}
+
+static void SaveHotBarItemLinkChange(int oldLink, int newLink)
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarSlots[i].itemLink == oldLink)
+			hotbarChanges[i] = newLink;
+	}
+}
+
+static void ResetHotbarChangesArray()
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++)
+		hotbarChanges[i] = -1;
+}
+
+static void UpdateHotbarWithTemporaryArray()
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarChanges[i] != -1)
+			hotbarSlots[i].itemLink = hotbarChanges[i];
+	}
 }
 
 struct migratingItem_s {
@@ -362,6 +393,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 	RemoveItemFromInventory(plr[myplr], invListIndex); //Remove item from inventory (note: this invalidates the local "item" pointer)
 
 	//Move "migrating" items from body to inventory
+	ResetHotbarChangesArray();
 	for (int i = 0; i < 2; i++) {
 		migratingItem_s *migratingItem = &migratingItems[i];
 		if (migratingItem->active) {
@@ -374,6 +406,8 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 				NetSendCmdDelItem(FALSE, migratingItem->bodyLoc); //Let other clients know that the item in this body inventory slot is now getting deleted (TODO: Check if this works)
 				plr[myplr].InvBody[migratingItem->bodyLoc]._itype = ITYPE_NONE; //Remove item for local client
 			}
+
+			SaveHotBarItemLinkChange(migratingItem->bodyLoc, migratingItem->invListPosition + INVITEM_INV_FIRST); //Update hotbar link for this item
 		}
 	}
 	
@@ -381,6 +415,8 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]);                              //Play sound for item being equipped
 	NetSendCmdChItem_ItemPointer(FALSE, targetSlot, &plr[myplr].InvBody[targetSlot]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
+	SaveHotBarItemLinkChange(invListIndex + INVITEM_INV_FIRST, targetSlot);
+	UpdateHotbarWithTemporaryArray();
 }
 
 void Hotbar_UseSlot(int slot)
@@ -482,8 +518,8 @@ void Hotbar_Render(CelOutputBuffer out)
 	//Render hotbar slot linking and hotkey
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
 		bool activeLink = false;
-		int x = PANEL_LEFT + hotBarSlotLocations[i].X;
-		int y = PANEL_TOP + hotBarSlotLocations[i].Y;
+		int x = PANEL_LEFT + hotbarSlotLocations[i].X;
+		int y = PANEL_TOP + hotbarSlotLocations[i].Y;
 
 		if (hotbarSlots[i].itemLink != -1) {
 			activeLink = true;
@@ -591,8 +627,8 @@ void Hotbar_Render(CelOutputBuffer out)
 				SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
 			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 			SDL_Rect rect;
-			rect.x = PANEL_LEFT + hotBarSlotLocations[slotNum].X;
-			rect.y = PANEL_TOP + hotBarSlotLocations[slotNum].Y - INV_SLOT_SIZE_PX;
+			rect.x = PANEL_LEFT + hotbarSlotLocations[slotNum].X;
+			rect.y = PANEL_TOP + hotbarSlotLocations[slotNum].Y - INV_SLOT_SIZE_PX;
 			rect.w = INV_SLOT_SIZE_PX;
 			rect.h = INV_SLOT_SIZE_PX;
 			SDL_RenderDrawRect(renderer, &rect);
