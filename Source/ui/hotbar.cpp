@@ -240,7 +240,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 	//Figure out which slot this goes into
 	int targetSlot = -1;
 	bool targetSlotIsOccupied = false;
-	int migratingSlot2 = -1;
+	int migratingItem2_from = -1;
 	if (IsRing(item))
 		targetSlot = TargetBodySlot(INVLOC_RING_LEFT, INVLOC_RING_RIGHT, &targetSlotIsOccupied);
 	else if (IsHelmet(item))
@@ -255,9 +255,9 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 		//When equipping a weapon, it's possible we need to move what's in the second hand
 		if (targetSlot != -1 && IsTwoHanded(item)) {
 			if (targetSlot == INVLOC_HAND_LEFT)
-				migratingSlot2 = plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty() ? -1 : INVLOC_HAND_RIGHT;
+				migratingItem2_from = plr[myplr].InvBody[INVLOC_HAND_RIGHT].isEmpty() ? -1 : INVLOC_HAND_RIGHT;
 			else
-				migratingSlot2 = plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty() ? -1 : INVLOC_HAND_LEFT;
+				migratingItem2_from = plr[myplr].InvBody[INVLOC_HAND_LEFT].isEmpty() ? -1 : INVLOC_HAND_LEFT;
 		}
 	}
 
@@ -265,22 +265,22 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 		return;
 
 	//Initialize variables used for items we need to move out of the way
-	int migratingSlot1 = -1, migratingSlot1_to = -1, migratingSlot2_to = -1;
+	int migratingItem1_from = -1, migratingItem1_to = -1, migratingItem2_to = -1;
 	if (targetSlotIsOccupied)
-		migratingSlot1 = targetSlot;
-	if (migratingSlot1 == -1 && migratingSlot2 != -1) { //If we have a slot2 to move but no slot1, then move that info over to slot1
-		migratingSlot1 = migratingSlot2;
-		migratingSlot2 = -1;
+		migratingItem1_from = targetSlot;
+	if (migratingItem1_from == -1 && migratingItem2_from != -1) { //If we have a slot2 to move but no slot1, then move that info over to slot1
+		migratingItem1_from = migratingItem2_from;
+		migratingItem2_from = -1;
 	}
 
 	//Attain information about the sizes of the items we need to move out of the way
-	InvXY migratingSlot1_size = { 0, 0 }, migratingSlot2_size = { 0, 0 };
-	if (migratingSlot1 != -1)
-		migratingSlot1_size = GetInventorySize(plr[myplr].InvBody[migratingSlot1]);
-	if (migratingSlot2 != -1)
-		migratingSlot2_size = GetInventorySize(plr[myplr].InvBody[migratingSlot2]);
+	InvXY migratingItem1_size = { 0, 0 }, migratingItem2_size = { 0, 0 };
+	if (migratingItem1_from != -1)
+		migratingItem1_size = GetInventorySize(plr[myplr].InvBody[migratingItem1_from]);
+	if (migratingItem2_from != -1)
+		migratingItem2_size = GetInventorySize(plr[myplr].InvBody[migratingItem2_from]);
 	
-	if (migratingSlot1 != -1) {
+	if (migratingItem1_from != -1) {
 
 		//Create alternate version of invGrid which has "item" removed
 		Sint8 InvGrid_withoutReplacingItem[NUM_INV_GRID_ELEM];
@@ -290,7 +290,7 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 		//We scan through invGrid for free space for the item (prefer slots which are the most topleft)
 		int curSlot = -1;
 		while (1) {
-			curSlot = FindSpotForItemInInvGrid(InvGrid_withoutReplacingItem, curSlot + 1, migratingSlot1_size.X, migratingSlot1_size.Y);
+			curSlot = FindSpotForItemInInvGrid(InvGrid_withoutReplacingItem, curSlot + 1, migratingItem1_size.X, migratingItem1_size.Y);
 			if (curSlot == -1) //If -1, then we have failed to find a slot for this item
 				break;
 
@@ -299,26 +299,26 @@ static void TryToEquipItem(int invListIndex, ItemStruct *item)
 				//We make yet another clone of invGrid, but this time with migratingSlot1 added in
 				Sint8 InvGrid_withMigratingSlot1[NUM_INV_GRID_ELEM];
 				memcpy(InvGrid_withMigratingSlot1, InvGrid_withoutReplacingItem, NUM_INV_GRID_ELEM);
-				AddItemToInvGrid(InvGrid_withMigratingSlot1, curSlot, migratingSlot1_size.X, migratingSlot1_size.Y, 1); //The last parameter isn't important so we use a dummy value
+				AddItemToInvGrid(InvGrid_withMigratingSlot1, curSlot, migratingItem1_size.X, migratingItem1_size.Y, 1); //The last parameter isn't important so we use a dummy value
 
 				//Search for a fitting slot for migratingSlot2
-				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingSlot1, 0, migratingSlot2_size.X, migratingSlot2_size.Y);
+				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingSlot1, 0, migratingItem2_size.X, migratingItem2_size.Y);
 
 				if (freeSlot == -1) //If -1, we didn't find a free slot, so we continue the loop
 					continue;
 
 				//Set slot for migrating item 2
-				migratingSlot2_to = freeSlot;
+				migratingItem2_to = freeSlot;
 			}
 
 			//Set slot for migrating item 1
-			migratingSlot1_to = curSlot;
+			migratingItem1_to = curSlot;
 			break;
 		}
 	}
 
-	if ((migratingSlot1 != -1 && migratingSlot1_to == -1)
-		|| (migratingSlot2 != -1 && migratingSlot2_to == -1)) { //We failed to find inventory space for the migrating items
+	if ((migratingItem1_from != -1 && migratingItem1_to == -1)
+	    || (migratingItem2_from != -1 && migratingItem2_to == -1)) { //We failed to find inventory space for the migrating items
 		if (plr[myplr]._pClass == PC_WARRIOR) {
 			PlaySFX(random_(0, 3) + PS_WARR14);
 		} else if (plr[myplr]._pClass == PC_ROGUE) {
