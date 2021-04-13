@@ -17,6 +17,7 @@ extern int selectedHotbarSlot_forLinking;
 
 void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
+void Hotbar_UpdateItemLink(int oldLink, int newLink);
 void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType);
 bool Hotbar_LinkItemToHotbar(int invItem);
 bool Hotbar_LeftMouseDown();
