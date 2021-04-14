@@ -3,7 +3,7 @@
 DEVILUTION_BEGIN_NAMESPACE
 
 #define HOTBAR_SLOTS 8
-#define HOLDITEM_LINK 54 //This is one higher than INVITEM_BELT_LAST
+#define HOLDITEM_LINK 55 //This is one higher than INVITEM_BELT_LAST
 
 struct hotbarSlot_s {
 
@@ -23,6 +23,7 @@ extern hotbarSlot_s hotbarSlots[HOTBAR_SLOTS];
 extern int selectedHotbarSlot;
 extern int selectedHotbarSlot_forLinking;
 
+int FindItemOnInvGridUsingInvListIndex(int invListIndex);
 void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
 void Hotbar_RemoveItemLinkToInventory(int invGridIndex);

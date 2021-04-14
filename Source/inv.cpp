@@ -1214,6 +1214,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 	if (!done)
 		return;
 
+	int newHotbarLinkForHoldItem = -1; //Fluffy
+	int newHotbarLinkForReplacedItem = -1; //Fluffy: This is in case we do a type of swap where an item of a different invGrid gets added to HoldItem
+
 	if (pnum == myplr)
 		PlaySFX(ItemInvSnds[ItemCAnimTbl[plr[pnum].HoldItem._iCurs]]);
 
@@ -1226,6 +1229,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum].InvBody[INVLOC_HEAD] = plr[pnum].HoldItem;
 		else
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HEAD], &plr[pnum].HoldItem);
+
+		newHotbarLinkForHoldItem = INVITEM_HEAD; //Fluffy
 		break;
 	case ILOC_RING:
 		if (r == SLOTXY_RING_LEFT) {
@@ -1234,12 +1239,16 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum].InvBody[INVLOC_RING_LEFT] = plr[pnum].HoldItem;
 			else
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_RING_LEFT], &plr[pnum].HoldItem);
+
+			newHotbarLinkForHoldItem = INVITEM_RING_LEFT; //Fluffy
 		} else {
 			NetSendCmdChItem(FALSE, INVLOC_RING_RIGHT);
 			if (plr[pnum].InvBody[INVLOC_RING_RIGHT].isEmpty())
 				plr[pnum].InvBody[INVLOC_RING_RIGHT] = plr[pnum].HoldItem;
 			else
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_RING_RIGHT], &plr[pnum].HoldItem);
+
+			newHotbarLinkForHoldItem = INVITEM_RING_RIGHT; //Fluffy
 		}
 		break;
 	case ILOC_AMULET:
@@ -1248,6 +1257,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum].InvBody[INVLOC_AMULET] = plr[pnum].HoldItem;
 		else
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_AMULET], &plr[pnum].HoldItem);
+
+		newHotbarLinkForHoldItem = INVITEM_AMULET; //Fluffy
 		break;
 	case ILOC_ONEHAND:
 		if (r <= SLOTXY_HAND_LEFT_LAST) { //Left hand slot
@@ -1256,9 +1267,15 @@ void CheckInvPaste(int pnum, int mx, int my)
 				    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
 					plr[pnum].InvBody[INVLOC_HAND_LEFT] = plr[pnum].HoldItem; //Put HoldItem into left hand
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				} else {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 					cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 				}
 				break;
 			}
@@ -1266,11 +1283,17 @@ void CheckInvPaste(int pnum, int mx, int my)
 			    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+				newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				break;
 			}
 
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 			break;
 		}
 		if (plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //Same as above, but for right hand slot
@@ -1280,16 +1303,26 @@ void CheckInvPaste(int pnum, int mx, int my)
 				    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 					plr[pnum].InvBody[INVLOC_HAND_RIGHT] = plr[pnum].HoldItem;
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 					break;
 				}
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+				newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				break;
 			}
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_LEFT);
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 			SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].InvBody[INVLOC_HAND_LEFT]); //Swap what's in left and right hand slots
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+			newHotbarLinkForReplacedItem = INVITEM_HAND_LEFT; //Fluffy
+
 			break;
 		}
 
@@ -1297,15 +1330,22 @@ void CheckInvPaste(int pnum, int mx, int my)
 		    && !(plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 			break;
 		}
 		NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 		cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+		newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 		break;
 	case ILOC_TWOHAND: //Two-handed weapons always go into left slot
 		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
 		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //If both slots are occupied, then one item goes into mouse slot and the other is auto-placed into inventory
 			tempitem = plr[pnum].HoldItem;
+
 			if (plr[pnum].InvBody[INVLOC_HAND_RIGHT]._itype == ITYPE_SHIELD)
 				plr[pnum].HoldItem = plr[pnum].InvBody[INVLOC_HAND_RIGHT];
 			else
@@ -1315,8 +1355,14 @@ void CheckInvPaste(int pnum, int mx, int my)
 			else
 				SetICursor(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
 			done2h = FALSE;
-			for (i = 0; i < NUM_INV_GRID_ELEM && !done2h; i++)
+			for (i = 0; i < NUM_INV_GRID_ELEM && !done2h; i++) {
 				done2h = AutoPlace(pnum, i, icursW28, icursH28, TRUE);
+
+				if (done2h) { //Fluffy: We need to do hotbar link swap here
+					Hotbar_UpdateItemLink(plr[pnum].InvBody[INVLOC_HAND_RIGHT]._itype == ITYPE_SHIELD ? INVITEM_HAND_RIGHT : INVITEM_HAND_LEFT, (i + ((icursH28 - 1) * 10)) + INVITEM_INV_FIRST);
+				}
+
+			}
 			plr[pnum].HoldItem = tempitem;
 			if (pnum == myplr)
 				SetCursor_(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
@@ -1333,8 +1379,13 @@ void CheckInvPaste(int pnum, int mx, int my)
 
 		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty())
+			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
 				SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].InvBody[INVLOC_HAND_RIGHT]);
+
+				newHotbarLinkForReplacedItem = INVITEM_HAND_RIGHT; //Fluffy
+			} else
+				newHotbarLinkForReplacedItem = INVITEM_HAND_LEFT; //Fluffy
+
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
 		} else {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
@@ -1345,6 +1396,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum]._pRSplType = RSPLTYPE_CHARGES;
 			force_redraw = 255;
 		}
+
+		newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 		break;
 	case ILOC_ARMOR:
 		NetSendCmdChItem(FALSE, INVLOC_CHEST);
@@ -1352,12 +1406,18 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum].InvBody[INVLOC_CHEST] = plr[pnum].HoldItem; //Put HoldItem into armor slot
 		else
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_CHEST], &plr[pnum].HoldItem); //Swap what's in armor slot with HoldItem
+
+		newHotbarLinkForHoldItem = INVITEM_CHEST; //Fluffy
+
 		break;
 	case ILOC_UNEQUIPABLE: //Item goes into an inventory grid
 		if (plr[pnum].HoldItem._itype == ITYPE_GOLD && it == 0) { //Special behaviour if this is a gold item
 			ii = r - SLOTXY_INV_FIRST;
 			yy = 10 * (ii / 10);
 			xx = ii % 10;
+
+			newHotbarLinkForHoldItem = xx + yy + (10 * (sy - 1)) + INVITEM_INV_FIRST; //Fluffy
+
 			if (plr[pnum].InvGrid[yy + xx] > 0) {
 				il = plr[pnum].InvGrid[yy + xx];
 				il--;
@@ -1376,6 +1436,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 					// BUGFIX: incorrect values here are leftover from beta (fixed)
 					cn = GetGoldCursor(plr[pnum].HoldItem._ivalue);
 					cn += CURSOR_FIRSTITEM;
+
+					newHotbarLinkForHoldItem = HOLDITEM_LINK; //Fluffy: Don't change hold item
+
 				}
 			} else {
 				il = plr[pnum]._pNumInv;
@@ -1397,6 +1460,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 				cn = SwapItem(&plr[pnum].InvList[il], &plr[pnum].HoldItem); //Swap item in slot with HoldItem
 				if (plr[pnum].HoldItem._itype == ITYPE_GOLD)
 					plr[pnum]._pGold = CalculateGold(pnum);
+
+				newHotbarLinkForReplacedItem = FindItemOnInvGridUsingInvListIndex(il) + INVITEM_INV_FIRST; //Fluffy
+
 				for (i = 0; i < NUM_INV_GRID_ELEM; i++) { //Remove old item from invGrid
 					if (plr[pnum].InvGrid[i] == it)
 						plr[pnum].InvGrid[i] = 0;
@@ -1413,6 +1479,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 			if (xx < 0)
 				xx = 0;
 			AddItemToInvGrid(pnum, xx + yy, it, sx, sy);
+
+			newHotbarLinkForHoldItem = xx + yy + (10 * (sy - 1)) + INVITEM_INV_FIRST; //Fluffy
+
 		}
 		break;
 	case ILOC_BELT:
@@ -1452,6 +1521,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum]._pGold = CalculateGold(pnum);
 		}
 		drawsbarflag = TRUE;
+
+		newHotbarLinkForHoldItem = ii + INVITEM_BELT_FIRST; //Fluffy
+
 		break;
 	}
 	CalcPlrInv(pnum, TRUE);
@@ -1460,6 +1532,11 @@ void CheckInvPaste(int pnum, int mx, int my)
 			SetCursorPos(MouseX + (cursW >> 1), MouseY + (cursH >> 1));
 		SetCursor_(cn);
 	}
+
+	//Fluffy: Update hotbar links
+	Hotbar_UpdateItemLink(HOLDITEM_LINK, newHotbarLinkForHoldItem); //Fluffy: Update hotbar links to item); 
+	if (newHotbarLinkForReplacedItem != -1 && newHotbarLinkForHoldItem != newHotbarLinkForReplacedItem)
+		Hotbar_UpdateItemLink(newHotbarLinkForReplacedItem, HOLDITEM_LINK);
 }
 
 void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, uint32_t dwBuff)
@@ -1546,6 +1623,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HEAD, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HEAD);
 			headItem._itype = ITYPE_NONE;
@@ -1559,6 +1639,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_RING_LEFT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_RING_LEFT);
@@ -1574,6 +1657,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_RING_RIGHT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_RING_RIGHT);
 			rightRingItem._itype = ITYPE_NONE;
@@ -1587,6 +1673,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_AMULET, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_AMULET);
@@ -1602,6 +1691,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HAND_LEFT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_LEFT);
 			leftHandItem._itype = ITYPE_NONE;
@@ -1616,6 +1708,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HAND_RIGHT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
 			rightHandItem._itype = ITYPE_NONE;
@@ -1629,6 +1724,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_CHEST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_CHEST);
@@ -1654,6 +1752,12 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 				}
 			}
 
+			if (!automaticMove) {
+				int invGridIndex = FindItemOnInvGridUsingInvListIndex(iv - 1);
+				if (invGridIndex != -1)
+					Hotbar_UpdateItemLink(invGridIndex + INVITEM_INV_FIRST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+			}
+
 			if (!automaticMove || automaticallyMoved) {
 				RemoveInvItem(pnum, iv - 1, false); //Fluffy: Made this use a function rather than duplicated code
 			}
@@ -1667,6 +1771,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			if (automaticMove) {
 				automaticallyMoved = AutoPlaceItemInInventory(pnum, holdItem, true);
 			}
+
+			if (!automaticMove)
+				Hotbar_UpdateItemLink((r - SLOTXY_BELT_FIRST) + INVITEM_BELT_FIRST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 			if (!automaticMove || automaticallyMoved) {
 				beltItem._itype = ITYPE_NONE;

@@ -21,6 +21,15 @@ const InvXY hotbarSlotLocations[HOTBAR_SLOTS] = {
 	{ 408, 33 }
 };
 
+int FindItemOnInvGridUsingInvListIndex(int invListIndex)
+{
+	for (int i = 0; i < NUM_INV_GRID_ELEM; i++) {
+		if (plr[myplr].InvGrid[i] == invListIndex + 1)
+			return i;
+	}
+	return -1;
+}
+
 static int Hotbar_ReturnInvListPositionUsingItemLink(int slot)
 {
 	if (hotbarSlots[slot].itemLink < INVITEM_INV_FIRST || hotbarSlots[slot].itemLink > INVITEM_INV_LAST)
