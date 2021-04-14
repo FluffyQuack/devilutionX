@@ -1066,10 +1066,10 @@ void CheckInvPaste(int pnum, int mx, int my)
 	SetICursor(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
 	i = mx + (icursW >> 1);
 	j = my + (icursH >> 1);
-	sx = icursW28;
-	sy = icursH28;
+	sx = icursW28; //Horizontal size of item in inventory grid
+	sy = icursH28; //Vertical size of item in inventory grid
 	done = FALSE;
-	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
+	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) { //Figure out which inventory slot mouse is on (it gets stored in 'r')
 		int xo = RIGHT_PANEL;
 		int yo = 0;
 		
@@ -1131,7 +1131,7 @@ void CheckInvPaste(int pnum, int mx, int my)
 		}
 	}
 
-	if (il == ILOC_UNEQUIPABLE) {
+	if (il == ILOC_UNEQUIPABLE) { //I think this figures out if the tile(s) we're moving an item to has one item blocking it (it stores the result in "it" which is an invList index + 1)
 		done = TRUE;
 		it = 0;
 		ii = r - SLOTXY_INV_FIRST;
@@ -1205,6 +1205,7 @@ void CheckInvPaste(int pnum, int mx, int my)
 	if (pnum == myplr)
 		PlaySFX(ItemInvSnds[ItemCAnimTbl[plr[pnum].HoldItem._iCurs]]);
 
+	//Place the item (a potential item swap happens if there is an item in the way)
 	cn = CURSOR_HAND;
 	switch (il) {
 	case ILOC_HELM:
@@ -1237,30 +1238,30 @@ void CheckInvPaste(int pnum, int mx, int my)
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_AMULET], &plr[pnum].HoldItem);
 		break;
 	case ILOC_ONEHAND:
-		if (r <= SLOTXY_HAND_LEFT_LAST) {
+		if (r <= SLOTXY_HAND_LEFT_LAST) { //Left hand slot
 			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
 				if ((plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass != plr[pnum].HoldItem._iClass)
 				    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-					plr[pnum].InvBody[INVLOC_HAND_LEFT] = plr[pnum].HoldItem;
+					plr[pnum].InvBody[INVLOC_HAND_LEFT] = plr[pnum].HoldItem; //Put HoldItem into left hand
 				} else {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-					cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+					cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
 				}
 				break;
 			}
 			if ((plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass != plr[pnum].HoldItem._iClass)
 			    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
 				break;
 			}
 
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
 			break;
 		}
-		if (plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
+		if (plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //Same as above, but for right hand slot
 			if ((plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_LEFT]._iLoc != ILOC_TWOHAND)
 			    || (plr[pnum]._pClass == PC_BARBARIAN && (plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype == ITYPE_SWORD || plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype == ITYPE_MACE))) {
 				if ((plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass != plr[pnum].HoldItem._iClass)
@@ -1270,28 +1271,28 @@ void CheckInvPaste(int pnum, int mx, int my)
 					break;
 				}
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
 				break;
 			}
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_LEFT);
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-			SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].InvBody[INVLOC_HAND_LEFT]);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+			SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].InvBody[INVLOC_HAND_LEFT]); //Swap what's in left and right hand slots
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
 			break;
 		}
 
 		if ((!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == plr[pnum].HoldItem._iClass)
 		    && !(plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
 			break;
 		}
 		NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-		cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+		cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
 		break;
-	case ILOC_TWOHAND:
+	case ILOC_TWOHAND: //Two-handed weapons always go into left slot
 		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
-		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
+		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //If both slots are occupied, then one item goes into mouse slot and the other is auto-placed into inventory
 			tempitem = plr[pnum].HoldItem;
 			if (plr[pnum].InvBody[INVLOC_HAND_RIGHT]._itype == ITYPE_SHIELD)
 				plr[pnum].HoldItem = plr[pnum].InvBody[INVLOC_HAND_RIGHT];
@@ -1336,12 +1337,12 @@ void CheckInvPaste(int pnum, int mx, int my)
 	case ILOC_ARMOR:
 		NetSendCmdChItem(FALSE, INVLOC_CHEST);
 		if (plr[pnum].InvBody[INVLOC_CHEST].isEmpty())
-			plr[pnum].InvBody[INVLOC_CHEST] = plr[pnum].HoldItem;
+			plr[pnum].InvBody[INVLOC_CHEST] = plr[pnum].HoldItem; //Put HoldItem into armor slot
 		else
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_CHEST], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_CHEST], &plr[pnum].HoldItem); //Swap what's in armor slot with HoldItem
 		break;
-	case ILOC_UNEQUIPABLE:
-		if (plr[pnum].HoldItem._itype == ITYPE_GOLD && it == 0) {
+	case ILOC_UNEQUIPABLE: //Item goes into an inventory grid
+		if (plr[pnum].HoldItem._itype == ITYPE_GOLD && it == 0) { //Special behaviour if this is a gold item
 			ii = r - SLOTXY_INV_FIRST;
 			yy = 10 * (ii / 10);
 			xx = ii % 10;
@@ -1372,8 +1373,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum]._pGold += plr[pnum].HoldItem._ivalue;
 				SetPlrHandGoldCurs(&plr[pnum].InvList[il]);
 			}
-		} else {
-			if (it == 0) {
+		} else { //Non-gold item
+			if (it == 0) { //Slot is free, so place item and move on
 				plr[pnum].InvList[plr[pnum]._pNumInv] = plr[pnum].HoldItem;
 				plr[pnum]._pNumInv++;
 				it = plr[pnum]._pNumInv;
@@ -1381,16 +1382,18 @@ void CheckInvPaste(int pnum, int mx, int my)
 				il = it - 1;
 				if (plr[pnum].HoldItem._itype == ITYPE_GOLD)
 					plr[pnum]._pGold += plr[pnum].HoldItem._ivalue;
-				cn = SwapItem(&plr[pnum].InvList[il], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvList[il], &plr[pnum].HoldItem); //Swap item in slot with HoldItem
 				if (plr[pnum].HoldItem._itype == ITYPE_GOLD)
 					plr[pnum]._pGold = CalculateGold(pnum);
-				for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
+				for (i = 0; i < NUM_INV_GRID_ELEM; i++) { //Remove old item from invGrid
 					if (plr[pnum].InvGrid[i] == it)
 						plr[pnum].InvGrid[i] = 0;
 					if (plr[pnum].InvGrid[i] == -it)
 						plr[pnum].InvGrid[i] = 0;
 				}
 			}
+
+			//Update invGrid with new item
 			ii = r - SLOTXY_INV_FIRST;
 			yy = 10 * (ii / 10 - ((sy - 1) >> 1));
 			if (yy < 0)
