@@ -978,6 +978,7 @@ static BOOL LeftMouseDown(int wParam)
 				if (TryInvPut()) {
 					NetSendCmdPItem(TRUE, CMD_PUTITEM, cursmx, cursmy);
 					NewCursor(CURSOR_HAND);
+					Hotbar_UpdateItemLink(HOLDITEM_LINK, -1); //Fluffy: Remove hotbar links to item "connected" to cursor
 				}
 			} else {
 				if (plr[myplr]._pStatPts != 0 && !spselflag)
