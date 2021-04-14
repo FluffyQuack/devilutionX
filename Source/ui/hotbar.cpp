@@ -235,7 +235,7 @@ static int FindSpotForItemInInvGrid(Sint8 *invGrid, int *positionPointer, int si
 	return -1;
 }
 
-static void AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int invListLink) //Slot corresponds to the bottomleft position of the item we're adding
+static void Hotbar_AddItemToInvGrid(Sint8 *invGrid, int slot, int sizeX, int sizeY, int invListLink) //Slot corresponds to the bottomleft position of the item we're adding
 {
 	const int pitch = 10; //TODO: Put this somewhere else
 	int startingPos = slot;
@@ -378,7 +378,7 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 				//We make yet another clone of invGrid, but this time with first migrating item added in
 				Sint8 InvGrid_withMigratingItem[NUM_INV_GRID_ELEM];
 				memcpy(InvGrid_withMigratingItem, InvGrid_withoutReplacingItem, NUM_INV_GRID_ELEM);
-				AddItemToInvGrid(InvGrid_withMigratingItem, gridTargetSlot, migratingItems[0].size.X, migratingItems[0].size.Y, 1); //The last parameter isn't important so we use a dummy value
+				Hotbar_AddItemToInvGrid(InvGrid_withMigratingItem, gridTargetSlot, migratingItems[0].size.X, migratingItems[0].size.Y, 1); //The last parameter isn't important so we use a dummy value
 
 				//Search for a fitting slot for migratingSlot2
 				int freeSlot = FindSpotForItemInInvGrid(InvGrid_withMigratingItem, 0, migratingItems[1].size.X, migratingItems[1].size.Y);
@@ -425,7 +425,7 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 			plr[myplr].InvList[plr[myplr]._pNumInv] = plr[myplr].InvBody[migratingItem->bodyLoc]; //Move item to end of invList array
 			int invListPosition = plr[myplr]._pNumInv;                                 //Remember position it now has in invList
 			plr[myplr]._pNumInv++; //Increase quantity of items held
-			AddItemToInvGrid(plr[myplr].InvGrid, migratingItem->invGridTarget, migratingItem->size.X, migratingItem->size.Y, invListPosition); //Place item in invGrid
+			Hotbar_AddItemToInvGrid(plr[myplr].InvGrid, migratingItem->invGridTarget, migratingItem->size.X, migratingItem->size.Y, invListPosition); //Place item in invGrid
 
 			if (migratingItem->bodyLoc != invBodyTarget) {
 				NetSendCmdDelItem(FALSE, migratingItem->bodyLoc); //Let other clients know that the item in this body inventory slot is now getting deleted (TODO: Check if this works)
