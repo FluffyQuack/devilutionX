@@ -165,7 +165,7 @@ static void SwapTwoHotbarSlots(int slot1, int slot2)
 	hotbarSlots[slot2] = backup;
 }
 
-static bool DoesThisHotbarContainAnyLink(int slot)
+static bool DoesThisHotbarSlotContainAnyLink(int slot)
 {
 	return (hotbarSlots[slot].itemLink != -1 || hotbarSlots[slot].spellLink != -1);
 }
@@ -175,7 +175,7 @@ bool Hotbar_LeftMouseDown()
 	if (selectedHotbarSlot != -1) {
 		if (selectedHotbarSlot_forLinking == selectedHotbarSlot)
 			selectedHotbarSlot_forLinking = -1;
-		else if (selectedHotbarSlot_forLinking != -1 && (DoesThisHotbarContainAnyLink(selectedHotbarSlot) || DoesThisHotbarContainAnyLink(selectedHotbarSlot_forLinking))) {
+		else if (selectedHotbarSlot_forLinking != -1 && (DoesThisHotbarSlotContainAnyLink(selectedHotbarSlot) || DoesThisHotbarSlotContainAnyLink(selectedHotbarSlot_forLinking))) {
 			SwapTwoHotbarSlots(selectedHotbarSlot_forLinking, selectedHotbarSlot);
 			selectedHotbarSlot_forLinking = -1;
 		} else
