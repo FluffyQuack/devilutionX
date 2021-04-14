@@ -471,10 +471,11 @@ static ItemStruct *ReturnItemUsingItemLink(int slot)
 
 void Hotbar_UseSlot(int slot)
 {
-	if (hotbarSlots[slot].itemLink != -1) {
-		//Fluffy TODO: Verify the slot isn't empty
+	if (hotbarSlots[slot].itemLink != -1 && hotbarSlots[slot].itemLink != HOLDITEM_LINK) {
 		ItemStruct *item = ReturnItemUsingItemLink(slot);
 		if (item == nullptr)
+			return;
+		if (item->isEmpty())
 			return;
 
 		if (!item->_iStatFlag) { //We can't use item if we don't meet the requirements for it
@@ -514,7 +515,7 @@ void Hotbar_UseSlot(int slot)
 			plr[myplr]._pRSpell = item->_iSpell;
 			plr[myplr]._pRSplType = RSPLTYPE_SCROLL;
 			force_redraw = 255;
-		} else {
+		} else if (item->_itype == ITYPE_MISC) {
 			int miscId = item->_iMiscId;
 			int spellId = item->_iSpell;
 
