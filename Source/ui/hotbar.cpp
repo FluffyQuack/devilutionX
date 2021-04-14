@@ -61,6 +61,36 @@ bool Hotbar_SlotSelection() //Update hotbar selection based on mouse movement
 	return false;
 }
 
+static void ResetTemporaryHotbar()
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++)
+		hotbarChanges[i] = -1;
+}
+
+static void UpdateLinkInTemporaryHotbar(int oldLink, int newLink)
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarSlots[i].itemLink == oldLink)
+			hotbarChanges[i] = newLink;
+	}
+}
+
+static void UpdateHotbarWithTemporaryHotbar()
+{
+	for (int i = 0; i < HOTBAR_SLOTS; i++) {
+		if (hotbarChanges[i] != -1)
+			hotbarSlots[i].itemLink = hotbarChanges[i];
+	}
+}
+
+void Hotbar_SwapItemLinks(int itemLink1, int itemLink2)
+{
+	ResetTemporaryHotbar();
+	UpdateLinkInTemporaryHotbar(itemLink1, itemLink2);
+	UpdateLinkInTemporaryHotbar(itemLink2, itemLink1);
+	UpdateHotbarWithTemporaryHotbar();
+}
+
 void Hotbar_RemoveItemLinkToInventory(int invGridIndex)
 {
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
@@ -72,6 +102,11 @@ void Hotbar_RemoveItemLinkToInventory(int invGridIndex)
 
 void Hotbar_UpdateItemLink(int oldLink, int newLink)
 {
+	if (newLink != -1) {
+		Hotbar_SwapItemLinks(oldLink, newLink);
+		return;
+	}
+
 	for (int i = 0; i < HOTBAR_SLOTS; i++) {
 		if (hotbarSlots[i].itemLink == oldLink)
 			hotbarSlots[i].itemLink = newLink;
@@ -259,28 +294,6 @@ static int TargetHandSlot(bool *targetSlotIsOccupied, ItemStruct *replacingItem)
 
 }
 
-static void SaveHotBarItemLinkChange(int oldLink, int newLink)
-{
-	for (int i = 0; i < HOTBAR_SLOTS; i++) {
-		if (hotbarSlots[i].itemLink == oldLink)
-			hotbarChanges[i] = newLink;
-	}
-}
-
-static void ResetHotbarChangesArray()
-{
-	for (int i = 0; i < HOTBAR_SLOTS; i++)
-		hotbarChanges[i] = -1;
-}
-
-static void UpdateHotbarWithTemporaryArray()
-{
-	for (int i = 0; i < HOTBAR_SLOTS; i++) {
-		if (hotbarChanges[i] != -1)
-			hotbarSlots[i].itemLink = hotbarChanges[i];
-	}
-}
-
 struct migratingItem_s {
 	bool active; //Whether or not this is an item we need to migrate
 	int bodyLoc; //Location on body the item currently resides (-1 means there's nothing to migrate)
@@ -398,8 +411,8 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 	}
 
 	//Now as we've figured out target slot and everything, we do the actual swap. First off, prepare changes to hotbar
-	ResetHotbarChangesArray();
-	SaveHotBarItemLinkChange(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
+	ResetTemporaryHotbar();
+	UpdateLinkInTemporaryHotbar(invGridPosition + INVITEM_INV_FIRST, invBodyTarget);
 
 	//Remove item from inventory
 	ItemStruct itemTemp = *item;                                          //Save info about item before removing it
@@ -419,7 +432,7 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 				plr[myplr].InvBody[migratingItem->bodyLoc]._itype = ITYPE_NONE; //Remove item for local client
 			}
 
-			SaveHotBarItemLinkChange(migratingItem->bodyLoc, migratingItem->invGridTarget + INVITEM_INV_FIRST); //Update hotbar link for this item
+			UpdateLinkInTemporaryHotbar(migratingItem->bodyLoc, migratingItem->invGridTarget + INVITEM_INV_FIRST); //Update hotbar link for this item
 		}
 	}
 	
@@ -427,7 +440,7 @@ static bool TryToEquipItem(int invGridPosition, ItemStruct *item)
 	PlaySFX(ItemInvSnds[ItemCAnimTbl[itemTemp._iCurs]]); //Play sound for item being equipped
 	NetSendCmdChItem_ItemPointer(FALSE, invBodyTarget, &plr[myplr].InvBody[invBodyTarget]); //Send network command letting other players know about the new item we just equipped (TODO: Check if this works)
 	CalcPlrInv(myplr, TRUE); //Calculate player stats and item requirements now as we're wearing different gear
-	UpdateHotbarWithTemporaryArray();
+	UpdateHotbarWithTemporaryHotbar();
 	return true;
 }
 

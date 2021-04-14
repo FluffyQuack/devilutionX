@@ -27,6 +27,7 @@ void Hotbar_ResetSlots();
 bool Hotbar_SlotSelection();
 void Hotbar_RemoveItemLinkToInventory(int invGridIndex);
 void Hotbar_UpdateItemLink(int oldLink, int newLink);
+void Hotbar_SwapItemLinks(int itemLink1, int itemLink2);
 void Hotbar_LinkSpellToHotbar(Uint32 spell, Uint32 spellType);
 bool Hotbar_LinkItemToHotbar(int invItem);
 bool Hotbar_LeftMouseDown();
