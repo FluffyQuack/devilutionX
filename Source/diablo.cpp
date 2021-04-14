@@ -987,9 +987,9 @@ static BOOL LeftMouseDown(int wParam)
 			}
 		}
 	} else {
-		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) //Fluffy: Added hotbar check
+		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) { //Fluffy: Added hotbar check
 			CheckInvScrn(isShiftHeld);
-		else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_LeftMouseDown()) { //Fluffy
+		} else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_LeftMouseDown()) { //Fluffy
 		} else 
 			DoPanBtn();
 		if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM)
