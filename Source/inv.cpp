@@ -1342,7 +1342,6 @@ void CheckInvPaste(int pnum, int mx, int my)
 
 		break;
 	case ILOC_TWOHAND: //Two-handed weapons always go into left slot
-		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
 		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //If both slots are occupied, then one item goes into mouse slot and the other is auto-placed into inventory
 			tempitem = plr[pnum].HoldItem;
 
@@ -1376,6 +1375,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 			else
 				plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype = ITYPE_NONE;
 		}
+
+		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
 
 		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
