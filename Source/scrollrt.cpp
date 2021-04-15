@@ -2119,6 +2119,12 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
 			RenderDebugLine(out, &x, &y, String);
 
+			snprintf(String, 100, "AutoMapScale: %i", AutoMapScale);
+			RenderDebugLine(out, &x, &y, String);
+
+			snprintf(String, 100, "AutoMapXYOfs: %i %i", AutoMapXOfs, AutoMapYOfs);
+			RenderDebugLine(out, &x, &y, String);
+
 			if (sgOptions.Graphics.bInitHwUIRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);

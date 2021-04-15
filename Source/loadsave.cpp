@@ -5,6 +5,7 @@
  */
 #include "all.h"
 #include "IO/fluffy-savegame.h"
+#include "options.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -1156,6 +1157,10 @@ void LoadGame(BOOL firstflag)
 
 	automapflag = file.nextBool8();
 	AutoMapScale = file.nextBE<Sint32>();
+
+	if (sgOptions.Gameplay.bMiniMap && AutoMapScale > MINIMAPSCALE_SMALL) //Fluffy: Override this value if it doesn't match the range we use for tiny 
+		AutoMapScale = MINIMAPSCALE_TINY;
+
 	LoadGame_ExtendedData(); //Fluffy: Load extra data for FluffyMod
 	AutomapZoomReset();
 	ResyncQuests();
@@ -1898,7 +1903,12 @@ void SaveGame()
 		SavePremium(&file, i);
 
 	file.writeLE<Uint8>(automapflag);
-	file.writeBE<Sint32>(AutoMapScale);
+
+	Sint32 autoMapScaleValue = 50;
+	if (AutoMapScale < 50) //Fluffy: For now, make sure we don't store a value which default Diablo wouldn't use (related to sgOptions.Gameplay.bMiniMap)
+		autoMapScaleValue = AutoMapScale;
+
+	file.writeBE<Sint32>(autoMapScaleValue);
 
 	file.flush();
 
