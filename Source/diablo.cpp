@@ -102,6 +102,9 @@ int lastRightMouseButtonAction = MOUSEACTION_NONE; //Fluffy: These are for suppo
 unsigned long long lastLeftMouseButtonTime = 0;
 unsigned long long lastRightMouseButtonTime = 0;
 
+bool gbMouseOnHealthOrb = false; //Fluffy
+bool gbMouseOnManaOrb = false;   //Fluffy
+
 /* rdata */
 
 bool gbForceWindowed = false;
@@ -558,6 +561,8 @@ static void SaveOptions()
 	setIniInt("Game", "Jog When Safe", sgOptions.Gameplay.bSafetyJog);
 	setIniInt("Game", "No Equipped Spell Is Attack", sgOptions.Gameplay.bNoEquippedSpellIsAttack);
 	setIniInt("Game", "Hold To Attack", sgOptions.Gameplay.bHoldToAttack);
+	setIniInt("Game", "Always Show Health As Number", sgOptions.Gameplay.bAlwaysShowHealthAsNumber);
+	setIniInt("Game", "Always Show Mana As Number", sgOptions.Gameplay.bAlwaysShowManaAsNumber);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -657,6 +662,8 @@ static void LoadOptions()
 	sgOptions.Gameplay.bSafetyJog = getIniBool("Game", "Jog When Safe", true);
 	sgOptions.Gameplay.bNoEquippedSpellIsAttack = getIniBool("Game", "No Equipped Spell Is Attack", true);
 	sgOptions.Gameplay.bHoldToAttack = getIniBool("Game", "Hold To Attack", true);
+	sgOptions.Gameplay.bAlwaysShowHealthAsNumber = getIniBool("Game", "Always Show Health As Number", false);
+	sgOptions.Gameplay.bAlwaysShowManaAsNumber = getIniBool("Game", "Always Show Mana As Number", false);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);
@@ -957,7 +964,11 @@ static BOOL LeftMouseDown(int wParam)
 
 	bool isShiftHeld = wParam & DVL_MK_SHIFT;
 
-	if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
+	/*if (gbMouseOnHealthOrb) //Fluffy //Temporarily turned this off as I think this works better as a config toggle
+		sgOptions.Gameplay.bAlwaysShowHealthAsNumber = !sgOptions.Gameplay.bAlwaysShowHealthAsNumber;
+	else if (gbMouseOnManaOrb) //Fluffy
+		sgOptions.Gameplay.bAlwaysShowManaAsNumber = !sgOptions.Gameplay.bAlwaysShowManaAsNumber;
+	else*/ if (MouseY < PANEL_TOP || MouseX < PANEL_LEFT || MouseX >= PANEL_LEFT + PANEL_WIDTH) {
 		if (!gmenu_is_active() && !TryIconCurs()) {
 			if (questlog && MouseX > 32 && MouseX < 288 && MouseY > 32 && MouseY < 308) {
 				QuestlogESC();

@@ -72,6 +72,27 @@ void InitQol()
 	}
 }
 
+void PrintPlayerHealthAndMana(CelOutputBuffer out) //Fluffy
+{
+	const int x = gnScreenWidth / 2;
+	const int y = gnScreenHeight - 145;
+	char str[100];
+
+	if (gbMouseOnHealthOrb || sgOptions.Gameplay.bAlwaysShowHealthAsNumber) {
+		int healthX = x - 179;
+		snprintf(str, 100, "%i / %i", plr[myplr]._pHitPoints >> 6, plr[myplr]._pMaxHP >> 6);
+		healthX -= GetTextWidth(str) / 2;
+		PrintGameStr(out, healthX, y, str, COL_WHITE);
+	}
+
+	if (gbMouseOnManaOrb || sgOptions.Gameplay.bAlwaysShowManaAsNumber) {
+		int manaX = x + 183;
+		snprintf(str, 100, "%i / %i", plr[myplr]._pMana >> 6, plr[myplr]._pMaxMana >> 6);
+		manaX -= GetTextWidth(str) / 2;
+		PrintGameStr(out, manaX, y, str, COL_WHITE);
+	}
+}
+
 void DrawMonsterHealthBar(CelOutputBuffer out)
 {
 	if (!sgOptions.Gameplay.bEnemyHealthBar)

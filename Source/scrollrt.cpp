@@ -2314,6 +2314,7 @@ void DrawAndBlit()
 		hgt = gnScreenHeight;
 	}
 	DrawXPBar(out);
+	PrintPlayerHealthAndMana(out); //Fluffy
 	scrollrt_draw_cursor_item(out);
 
 	DrawFPS(out);
