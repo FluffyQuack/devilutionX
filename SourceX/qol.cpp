@@ -78,14 +78,14 @@ void PrintPlayerHealthAndMana(CelOutputBuffer out) //Fluffy
 	const int y = gnScreenHeight - 145;
 	char str[100];
 
-	if (gbMouseOnHealthOrb || gbAlwaysPrintPlayerHealth) {
+	if (gbMouseOnHealthOrb || sgOptions.Gameplay.bAlwaysShowHealthAsNumber) {
 		int healthX = x - 179;
 		snprintf(str, 100, "%i / %i", plr[myplr]._pHitPoints >> 6, plr[myplr]._pMaxHP >> 6);
 		healthX -= GetTextWidth(str) / 2;
 		PrintGameStr(out, healthX, y, str, COL_WHITE);
 	}
 
-	if (gbMouseOnManaOrb || gbAlwaysPrintManaHealth) {
+	if (gbMouseOnManaOrb || sgOptions.Gameplay.bAlwaysShowManaAsNumber) {
 		int manaX = x + 183;
 		snprintf(str, 100, "%i / %i", plr[myplr]._pMana >> 6, plr[myplr]._pMaxMana >> 6);
 		manaX -= GetTextWidth(str) / 2;
