@@ -10,6 +10,9 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+#define MINIMAPSCALE_TINY 13 //Fluffy
+#define MINIMAPSCALE_SMALL 25 //Fluffy
+
 #ifdef __cplusplus
 extern "C" {
 #endif

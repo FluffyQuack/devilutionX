@@ -4,6 +4,7 @@
  * Implementation of the in-game map overlay.
  */
 #include "all.h"
+#include "options.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -47,29 +48,43 @@ void DrawAutomapTile(CelOutputBuffer out, Sint32 sx, Sint32 sy, Uint16 automap_t
 	Uint8 flags = automap_type >> 8;
 
 	if (flags & MAPFLAG_DIRT) {
-		SetPixel(out, sx, sy, COLOR_DIM);
-		SetPixel(out, sx - AmLine8, sy - AmLine4, COLOR_DIM);
-		SetPixel(out, sx - AmLine8, sy + AmLine4, COLOR_DIM);
-		SetPixel(out, sx + AmLine8, sy - AmLine4, COLOR_DIM);
-		SetPixel(out, sx + AmLine8, sy + AmLine4, COLOR_DIM);
-		SetPixel(out, sx - AmLine16, sy, COLOR_DIM);
-		SetPixel(out, sx + AmLine16, sy, COLOR_DIM);
-		SetPixel(out, sx, sy - AmLine8, COLOR_DIM);
-		SetPixel(out, sx, sy + AmLine8, COLOR_DIM);
-		SetPixel(out, sx + AmLine8 - AmLine32, sy + AmLine4, COLOR_DIM);
-		SetPixel(out, sx - AmLine8 + AmLine32, sy + AmLine4, COLOR_DIM);
-		SetPixel(out, sx - AmLine16, sy + AmLine8, COLOR_DIM);
-		SetPixel(out, sx + AmLine16, sy + AmLine8, COLOR_DIM);
-		SetPixel(out, sx - AmLine8, sy + AmLine16 - AmLine4, COLOR_DIM);
-		SetPixel(out, sx + AmLine8, sy + AmLine16 - AmLine4, COLOR_DIM);
-		SetPixel(out, sx, sy + AmLine16, COLOR_DIM);
+		if (sgOptions.Gameplay.bMiniMap) { //Fluffy: Draw as solid tile
+			int mod = 100 / AutoMapScale;
+			if (mod < 1)
+				mod = 1;
+			for (int i = 0; i < 16; i++) {
+				if (i == 0)
+					DrawLineTo(out, sx - (32 / mod), sy, sx + (32 / mod), sy, COLOR_DIM);
+				else {
+					DrawLineTo(out, sx - ((32 - (i * 2)) / mod), sy + (i / mod), sx + ((32 - (i * 2)) / mod), sy + (i / mod), COLOR_DIM);
+					DrawLineTo(out, sx - ((32 - (i * 2)) / mod), sy - (i / mod), sx + ((32 - (i * 2)) / mod), sy - (i / mod), COLOR_DIM);
+				}
+			}
+		} else {
+			SetPixel(out, sx, sy, COLOR_DIM);
+			SetPixel(out, sx - AmLine8, sy - AmLine4, COLOR_DIM);
+			SetPixel(out, sx - AmLine8, sy + AmLine4, COLOR_DIM);
+			SetPixel(out, sx + AmLine8, sy - AmLine4, COLOR_DIM);
+			SetPixel(out, sx + AmLine8, sy + AmLine4, COLOR_DIM);
+			SetPixel(out, sx - AmLine16, sy, COLOR_DIM);
+			SetPixel(out, sx + AmLine16, sy, COLOR_DIM);
+			SetPixel(out, sx, sy - AmLine8, COLOR_DIM);
+			SetPixel(out, sx, sy + AmLine8, COLOR_DIM);
+			SetPixel(out, sx + AmLine8 - AmLine32, sy + AmLine4, COLOR_DIM);
+			SetPixel(out, sx - AmLine8 + AmLine32, sy + AmLine4, COLOR_DIM);
+			SetPixel(out, sx - AmLine16, sy + AmLine8, COLOR_DIM);
+			SetPixel(out, sx + AmLine16, sy + AmLine8, COLOR_DIM);
+			SetPixel(out, sx - AmLine8, sy + AmLine16 - AmLine4, COLOR_DIM);
+			SetPixel(out, sx + AmLine8, sy + AmLine16 - AmLine4, COLOR_DIM);
+			SetPixel(out, sx, sy + AmLine16, COLOR_DIM);
+		}
 	}
 
 	if (flags & MAPFLAG_STAIRS) {
 		DrawLineTo(out, sx - AmLine8, sy - AmLine8 - AmLine4, sx + AmLine8 + AmLine16, sy + AmLine4, COLOR_BRIGHT);
 		DrawLineTo(out, sx - AmLine16, sy - AmLine8, sx + AmLine16, sy + AmLine8, COLOR_BRIGHT);
 		DrawLineTo(out, sx - AmLine16 - AmLine8, sy - AmLine4, sx + AmLine8, sy + AmLine8 + AmLine4, COLOR_BRIGHT);
-		DrawLineTo(out, sx - AmLine32, sy, sx, sy + AmLine16, COLOR_BRIGHT);
+		DrawLineTo(out, sx - AmLine32, sy, sx, sy + AmLine16, COLOR_BRIGHT); //Line goes from left-most position to down-most position
 	}
 
 	bool do_vert = false;
@@ -315,10 +330,21 @@ void DrawAutomapPlr(CelOutputBuffer out, int pnum)
 		x = plr[pnum]._px;
 		y = plr[pnum]._py;
 	}
-	px = x - 2 * AutoMapXOfs - ViewX;
-	py = y - 2 * AutoMapYOfs - ViewY;
 
-	if (pnum == myplr) {
+	if(sgOptions.Gameplay.bMiniMap) { //Fluffy
+		x -= 16;
+		y -= 16;
+		px = x - 2 * AutoMapXOfs;
+		py = y - 2 * AutoMapYOfs;
+	} else {
+		px = x - 2 * AutoMapXOfs - ViewX;
+		py = y - 2 * AutoMapYOfs - ViewY;
+	}
+
+	if(sgOptions.Gameplay.bMiniMap) { //Fluffy
+		x = (plr[pnum]._pxoff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + gnScreenWidth / 2;
+		y = (plr[pnum]._pyoff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (gnScreenHeight - PANEL_HEIGHT) / 2;
+	} else if (pnum == myplr) {
 		x = (ScrollInfo.pxoffDiff * AutoMapScale / 100 >> 1) + (px - py) * AmLine16 + gnScreenWidth / 2; //Fluffy: Fixed legacy bug which caused player arrow to shake up and down whenever player moved diagonally
 		y = (ScrollInfo.pyoffDiff * AutoMapScale / 100 >> 1) + (px + py) * AmLine8 + (gnScreenHeight - PANEL_HEIGHT) / 2;
 	}
@@ -472,15 +498,44 @@ Sint32 AmLine16;
 Sint32 AmLine8;
 Sint32 AmLine4;
 
+static void CalculateAutomapScaleValues() //Fluffy
+{
+	AmLine64 = (AutoMapScale << 6) / 100;
+	AmLine32 = AmLine64 >> 1;
+	AmLine16 = AmLine32 >> 1;
+	AmLine8 = AmLine16 >> 1;
+	AmLine4 = AmLine8 >> 1;
+}
+
+static void CalculateMiniMapOffsets() //Fluffy
+{
+	//Fluffy TODO: Following code only works well with AutoMapScale 13
+	double scaleMod = 100 / (double)AutoMapScale;
+	double tileSizeY = TILE_HEIGHT / scaleMod;
+	double tileSizeX = TILE_WIDTH / scaleMod;
+	int heightOfAutomap = tileSizeY * DMAXY;
+	int widthOfAutomap = tileSizeX * DMAXX;
+	int emptySpaceY = (gnScreenHeight / 2) - (heightOfAutomap / 2);
+	int emptySpaceX = (gnScreenWidth / 2) - (widthOfAutomap / 2);
+
+	AutoMapXOfs = AutoMapYOfs = emptySpaceY / tileSizeY; //Top of screen
+	if (true) {                                         //Right side of screen
+		AutoMapXOfs -= emptySpaceX / tileSizeX;
+		AutoMapYOfs += emptySpaceX / tileSizeX;
+	} else {
+		AutoMapXOfs += emptySpaceX / tileSizeX;
+		AutoMapYOfs -= emptySpaceX / tileSizeX;
+	}
+}
+
 void InitAutomapOnce()
 {
 	automapflag = FALSE;
-	AutoMapScale = 50;
-	AmLine64 = 32;
-	AmLine32 = 16;
-	AmLine16 = 8;
-	AmLine8 = 4;
-	AmLine4 = 2;
+	if (sgOptions.Gameplay.bMiniMap) //Fluffy
+		AutoMapScale = MINIMAPSCALE_TINY;
+	else
+		AutoMapScale = 50;
+	CalculateAutomapScaleValues(); //Fluffy
 }
 
 void InitAutomap()
@@ -538,6 +593,10 @@ void StartAutomap()
 {
 	AutoMapXOfs = 0;
 	AutoMapYOfs = 0;
+
+	if (sgOptions.Gameplay.bMiniMap) //Fluffy
+		CalculateMiniMapOffsets();
+
 	automapflag = TRUE;
 }
 
@@ -568,24 +627,21 @@ void AutomapRight()
 void AutomapZoomIn()
 {
 	if (AutoMapScale < 200) {
-		AutoMapScale += 5;
-		AmLine64 = (AutoMapScale << 6) / 100;
-		AmLine32 = AmLine64 >> 1;
-		AmLine16 = AmLine32 >> 1;
-		AmLine8 = AmLine16 >> 1;
-		AmLine4 = AmLine8 >> 1;
+		AutoMapScale += sgOptions.Gameplay.bMiniMap ? 1 : 5; //Fluffy
+		if (sgOptions.Gameplay.bMiniMap)                     //Fluffy
+			CalculateMiniMapOffsets();
+		CalculateAutomapScaleValues(); //Fluffy
 	}
 }
 
 void AutomapZoomOut()
 {
-	if (AutoMapScale > 50) {
-		AutoMapScale -= 5;
-		AmLine64 = (AutoMapScale << 6) / 100;
-		AmLine32 = AmLine64 >> 1;
-		AmLine16 = AmLine32 >> 1;
-		AmLine8 = AmLine16 >> 1;
-		AmLine4 = AmLine8 >> 1;
+	if ((sgOptions.Gameplay.bMiniMap && AutoMapScale > 50) //Fluffy
+	    || sgOptions.Gameplay.bMiniMap && AutoMapScale > 5) {
+		AutoMapScale -= sgOptions.Gameplay.bMiniMap ? 1 : 5; //Fluffy
+		if (sgOptions.Gameplay.bMiniMap)                     //Fluffy
+			CalculateMiniMapOffsets();
+		CalculateAutomapScaleValues();                       //Fluffy
 	}
 }
 
@@ -601,19 +657,24 @@ void DrawAutomap(CelOutputBuffer out)
 		return;
 	}
 
-	AutoMapX = (ViewX - 16) >> 1;
-	while (AutoMapX + AutoMapXOfs < 0)
-		AutoMapXOfs++;
-	while (AutoMapX + AutoMapXOfs >= DMAXX)
-		AutoMapXOfs--;
-	AutoMapX += AutoMapXOfs;
+	if (sgOptions.Gameplay.bMiniMap) { //Fluffy
+		AutoMapX = AutoMapXOfs;
+		AutoMapY = AutoMapYOfs;
+	} else {
+		AutoMapX = (ViewX - 16) >> 1;
+		while (AutoMapX + AutoMapXOfs < 0)
+			AutoMapXOfs++;
+		while (AutoMapX + AutoMapXOfs >= DMAXX)
+			AutoMapXOfs--;
+		AutoMapX += AutoMapXOfs;
 
-	AutoMapY = (ViewY - 16) >> 1;
-	while (AutoMapY + AutoMapYOfs < 0)
-		AutoMapYOfs++;
-	while (AutoMapY + AutoMapYOfs >= DMAXY)
-		AutoMapYOfs--;
-	AutoMapY += AutoMapYOfs;
+		AutoMapY = (ViewY - 16) >> 1;
+		while (AutoMapY + AutoMapYOfs < 0)
+			AutoMapYOfs++;
+		while (AutoMapY + AutoMapYOfs >= DMAXY)
+			AutoMapYOfs--;
+		AutoMapY += AutoMapYOfs;
+	}
 
 	d = (AutoMapScale << 6) / 100;
 	cells = 2 * (gnScreenWidth / 2 / d) + 1;
@@ -634,17 +695,21 @@ void DrawAutomap(CelOutputBuffer out)
 		sx = gnScreenWidth / 2 - AmLine64 * (cells >> 1) + AmLine32;
 		sy = (gnScreenHeight - PANEL_HEIGHT) / 2 - AmLine32 * (cells >> 1) - AmLine16;
 	}
-	if (ViewX & 1) {
-		sx -= AmLine16;
-		sy -= AmLine8;
-	}
-	if (ViewY & 1) {
-		sx += AmLine16;
-		sy -= AmLine8;
+
+	if (!sgOptions.Gameplay.bMiniMap) { //Fluffy: A minimap has a static position, so it skips these changes
+		if (ViewX & 1) {
+			sx -= AmLine16;
+			sy -= AmLine8;
+		}
+		if (ViewY & 1) {
+			sx += AmLine16;
+			sy -= AmLine8;
+		}
+
+		sx += AutoMapScale * ScrollInfo._sxoff / 100 >> 1;
+		sy += AutoMapScale * ScrollInfo._syoff / 100 >> 1;
 	}
 
-	sx += AutoMapScale * ScrollInfo._sxoff / 100 >> 1;
-	sy += AutoMapScale * ScrollInfo._syoff / 100 >> 1;
 	if (PANELS_COVER) {
 		if (invflag || sbookflag) {
 			sx -= gnScreenWidth / 4;
@@ -763,11 +828,9 @@ void AutomapZoomReset()
 {
 	AutoMapXOfs = 0;
 	AutoMapYOfs = 0;
-	AmLine64 = (AutoMapScale << 6) / 100;
-	AmLine32 = AmLine64 >> 1;
-	AmLine16 = AmLine32 >> 1;
-	AmLine8 = AmLine16 >> 1;
-	AmLine4 = AmLine8 >> 1;
+	if (sgOptions.Gameplay.bMiniMap) //Fluffy
+		CalculateMiniMapOffsets();
+	CalculateAutomapScaleValues();
 }
 
 DEVILUTION_END_NAMESPACE

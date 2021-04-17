@@ -565,6 +565,7 @@ static void SaveOptions()
 	setIniInt("Game", "Always Show Health As Number", sgOptions.Gameplay.bAlwaysShowHealthAsNumber);
 	setIniInt("Game", "Always Show Mana As Number", sgOptions.Gameplay.bAlwaysShowManaAsNumber);
 	setIniInt("Game", "Hotbar", sgOptions.Gameplay.bHotbar);
+	setIniInt("Game", "Mini Map", sgOptions.Gameplay.bMiniMap);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -666,6 +667,7 @@ static void LoadOptions()
 	sgOptions.Gameplay.bHoldToAttack = getIniBool("Game", "Hold To Attack", true);
 	sgOptions.Gameplay.bAlwaysShowHealthAsNumber = getIniBool("Game", "Always Show Health As Number", false);
 	sgOptions.Gameplay.bAlwaysShowManaAsNumber = getIniBool("Game", "Always Show Mana As Number", false);
+	sgOptions.Gameplay.bMiniMap = getIniBool("Game", "Mini Map", true);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);
