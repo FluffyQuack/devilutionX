@@ -26,10 +26,12 @@ typedef enum item_color {
 extern BOOL invflag;
 extern BYTE *pInvCels; //Fluffy: Added extern of this so Diablo.cpp can make SDL texture out of this
 extern BOOL drawsbarflag;
-extern const InvXY InvRect[73];
+extern InvXY InvRect[73]; //Fluffy: Changed from const to non-const for dynamic belt slot positions
 
+void CalculateBeltSlotPositions(); //Fluffy
 void FreeInvGFX();
 void InitInv();
+void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H); //Fluffy
 void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int frameWidth, bool cursorRender, bool red, bool outline = 0, int outlineColor = 0, bool transparent = 0);
 
 /**
@@ -38,6 +40,7 @@ void DrawCursorItemWrapper(CelOutputBuffer out, int x, int y, int frame, int fra
 void DrawInv(CelOutputBuffer out);
 
 void DrawInvBelt(CelOutputBuffer out);
+InvXY GetInventorySize(const ItemStruct &item); //Fluffy: Added this to header file
 bool AutoEquipEnabled(const PlayerStruct &player, const ItemStruct &item);
 bool AutoEquip(int playerNumber, const ItemStruct &item, bool persistItem = true);
 BOOL AutoPlace(int pnum, int ii, int sx, int sy, BOOL saveflag);
@@ -45,7 +48,15 @@ BOOL SpecialAutoPlace(int pnum, int ii, const ItemStruct &item);
 BOOL GoldAutoPlace(int pnum);
 void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, uint32_t dwBuff);
 void inv_update_rem_item(int pnum, BYTE iv);
-void RemoveInvItem(int pnum, int iv);
+
+/**
+ * @brief Remove an item from player inventory
+ * @param pnum Player index
+ * @param iv invList index of item to be removed
+ * @param calcPlrScrolls If true, CalcPlrScrolls() gets called after removing item
+ */
+void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls = true);
+
 void RemoveSpdBarItem(int pnum, int iv);
 void CheckInvItem(bool isShiftHeld = false);
 void CheckInvScrn(bool isShiftHeld);

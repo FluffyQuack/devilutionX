@@ -7,6 +7,7 @@
 #include "controls/controller.h"
 #include "controls/controller_motion.h"
 #include "controls/game_controls.h"
+#include "ui/hotbar.h" //Fluffy
 
 #define SPLICONLENGTH 56
 
@@ -1157,6 +1158,9 @@ bool TryDropItem()
 		cursmy = plr[myplr]._pfuty + 1;
 		DropItemBeforeTrig();
 	}
+
+	if (pcurs == CURSOR_HAND)
+		Hotbar_UpdateItemLink(HOLDITEM_LINK, -1); //Fluffy: Remove hotbar links to item "connected" to cursor
 
 	return pcurs == CURSOR_HAND;
 }

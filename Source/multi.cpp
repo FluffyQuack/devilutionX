@@ -8,6 +8,7 @@
 #include "../3rdParty/Storm/Source/storm.h"
 #include "../DiabloUI/diabloui.h"
 #include <config.h>
+#include "ui/hotbar.h" //Fluffy: For resetting hotbar slots
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -833,6 +834,9 @@ BOOL NetInit(BOOL bSinglePlayer, BOOL *pfExitProgram)
 	gameSetup_safetyJog = sgGameInitInfo.safetyJog;
 	gSpeedMod = sgGameInitInfo.gSpeedMod; //Fluffy
 	gMonsterSpeedMod = sgGameInitInfo.gMonsterSpeedMod;
+
+	//Fluffy TODO: It's safe to reset hotbar status here, but maybe we should find a better place for it. This should get reset when starting a new game, joining a game, and loading a game (but it should be done before loading hotbar data from a savefile)
+	Hotbar_ResetSlots();
 
 	for (int i = 0; i < NUMLEVELS; i++) {
 		glSeedTbl[i] = AdvanceRndSeed();

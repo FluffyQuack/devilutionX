@@ -109,6 +109,7 @@ struct GameplayOptions {
 	bool bHoldToAttack; //Fluffy
 	bool bAlwaysShowHealthAsNumber; //Fluffy
 	bool bAlwaysShowManaAsNumber; //Fluffy
+	bool bHotbar; //Fluffy: Replace the belt in the control bar with a hot bar
 };
 
 struct ControllerOptions {

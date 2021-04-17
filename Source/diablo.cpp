@@ -13,6 +13,7 @@
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 #include "render/lightmap.h" //Fluffy: For lightmap debugging
+#include "ui/hotbar.h" //Fluffy: For hotbar input
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -563,6 +564,7 @@ static void SaveOptions()
 	setIniInt("Game", "Hold To Attack", sgOptions.Gameplay.bHoldToAttack);
 	setIniInt("Game", "Always Show Health As Number", sgOptions.Gameplay.bAlwaysShowHealthAsNumber);
 	setIniInt("Game", "Always Show Mana As Number", sgOptions.Gameplay.bAlwaysShowManaAsNumber);
+	setIniInt("Game", "Hotbar", sgOptions.Gameplay.bHotbar);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -977,7 +979,7 @@ static BOOL LeftMouseDown(int wParam)
 				stream_stop();
 			} else if (chrflag && MouseX < SPANEL_WIDTH && MouseY < SPANEL_HEIGHT) {
 				CheckChrBtns();
-			} else if (invflag && MouseX > RIGHT_PANEL && MouseY < SPANEL_HEIGHT) {
+			} else if (IsMouseOnInventoryScreen()) { //Fluffy
 				if (!dropGoldFlag)
 					CheckInvItem(isShiftHeld);
 			} else if (sbookflag && MouseX > RIGHT_PANEL && MouseY < SPANEL_HEIGHT) {
@@ -986,6 +988,7 @@ static BOOL LeftMouseDown(int wParam)
 				if (TryInvPut()) {
 					NetSendCmdPItem(TRUE, CMD_PUTITEM, cursmx, cursmy);
 					NewCursor(CURSOR_HAND);
+					Hotbar_UpdateItemLink(HOLDITEM_LINK, -1); //Fluffy: Remove hotbar links to item "connected" to cursor
 				}
 			} else {
 				if (plr[myplr]._pStatPts != 0 && !spselflag)
@@ -995,9 +998,11 @@ static BOOL LeftMouseDown(int wParam)
 			}
 		}
 	} else {
-		if (!talkflag && !dropGoldFlag && !gmenu_is_active())
+		if (!sgOptions.Gameplay.bHotbar && !talkflag && !dropGoldFlag && !gmenu_is_active()) { //Fluffy: Added hotbar check
 			CheckInvScrn(isShiftHeld);
-		DoPanBtn();
+		} else if (sgOptions.Gameplay.bHotbar && pcurs == CURSOR_HAND && Hotbar_LeftMouseDown()) { //Fluffy
+		} else 
+			DoPanBtn();
 		if (pcurs > CURSOR_HAND && pcurs < CURSOR_FIRSTITEM)
 			NewCursor(CURSOR_HAND);
 	}
@@ -1035,7 +1040,8 @@ static void RightMouseDown()
 			        && !TryIconCurs()
 			        && (pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))) {
 				if (pcurs == CURSOR_HAND) {
-					if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
+					if (sgOptions.Gameplay.bHotbar && Hotbar_RightMouseDown()) { //Fluffy
+					} else if (sgOptions.Gameplay.bNoEquippedSpellIsAttack && IsMouseOnRightSpellIcon()) { //Fluffy: Unselect "spell"
 						ClearReadiedSpell(plr[myplr]);
 					} else if(pcursinvitem == -1 || !UseInvItem(myplr, pcursinvitem))
 						CheckPlrSpell(true);
@@ -1555,43 +1561,57 @@ static void PressChar(WPARAM vkey)
 #ifndef LIGHTMAP_SUBTILE_EDITOR
 	case '!':
 	case '1':
-		if (!plr[myplr].SpdList[0].isEmpty() && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(0);
+		else if (!plr[myplr].SpdList[0].isEmpty() && plr[myplr].SpdList[0]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST);
 		}
 		return;
 	case '@':
 	case '2':
-		if (!plr[myplr].SpdList[1].isEmpty() && plr[myplr].SpdList[1]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(1);
+		else if (!plr[myplr].SpdList[1].isEmpty() && plr[myplr].SpdList[1]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 1);
 		}
 		return;
 	case '#':
 	case '3':
-		if (!plr[myplr].SpdList[2].isEmpty() && plr[myplr].SpdList[2]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(2);
+		else if (!plr[myplr].SpdList[2].isEmpty() && plr[myplr].SpdList[2]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 2);
 		}
 		return;
 	case '$':
 	case '4':
-		if (!plr[myplr].SpdList[3].isEmpty() && plr[myplr].SpdList[3]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(3);
+		else if (!plr[myplr].SpdList[3].isEmpty() && plr[myplr].SpdList[3]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 3);
 		}
 		return;
 	case '%':
 	case '5':
-		if (!plr[myplr].SpdList[4].isEmpty() && plr[myplr].SpdList[4]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(4);
+		else if (!plr[myplr].SpdList[4].isEmpty() && plr[myplr].SpdList[4]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 4);
 		}
 		return;
 	case '^':
 	case '6':
-		if (!plr[myplr].SpdList[5].isEmpty() && plr[myplr].SpdList[5]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(5);
+		else if (!plr[myplr].SpdList[5].isEmpty() && plr[myplr].SpdList[5]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 5);
 		}
 		return;
 	case '&':
 	case '7':
-		if (!plr[myplr].SpdList[6].isEmpty() && plr[myplr].SpdList[6]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(6);
+		else if (!plr[myplr].SpdList[6].isEmpty() && plr[myplr].SpdList[6]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 6);
 		}
 		return;
@@ -1603,7 +1623,9 @@ static void PressChar(WPARAM vkey)
 			return;
 		}
 #endif
-		if (!plr[myplr].SpdList[7].isEmpty() && plr[myplr].SpdList[7]._itype != ITYPE_GOLD) {
+		if (sgOptions.Gameplay.bHotbar) //Fluffy
+			Hotbar_UseSlot(7);
+		else if (!plr[myplr].SpdList[7].isEmpty() && plr[myplr].SpdList[7]._itype != ITYPE_GOLD) {
 			UseInvItem(myplr, INVITEM_BELT_FIRST + 7);
 		}
 		return;
@@ -1706,6 +1728,10 @@ static void PressChar(WPARAM vkey)
 	case 'k': //Fluffy: Toggle between normal and lightmap lighting
 		if (sgOptions.Graphics.bInitLightmapping)
 			options_lightmapping = !options_lightmapping;
+		return;
+	case 'u': //Fluffy: Toggle hotbar on and off
+		sgOptions.Gameplay.bHotbar = !sgOptions.Gameplay.bHotbar;
+		CalculateBeltSlotPositions();
 		return;
 	}
 }

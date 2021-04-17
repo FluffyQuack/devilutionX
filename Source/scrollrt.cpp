@@ -8,6 +8,7 @@
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
 #include "render/lightmap.h" //Fluffy: For lightmap generation
 #include "options.h" //Fluffy
+#include "ui/hotbar.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -2119,6 +2120,15 @@ static void DrawFPS(CelOutputBuffer out)
 			snprintf(String, 100, "safetyCounter: %i", plr[myplr].safetyCounter);
 			RenderDebugLine(out, &x, &y, String);
 
+			snprintf(String, 100, "hotbar: %i", sgOptions.Gameplay.bHotbar);
+			RenderDebugLine(out, &x, &y, String);
+
+			snprintf(String, 100, "selectedHotbarSlot: %i", selectedHotbarSlot);
+			RenderDebugLine(out, &x, &y, String);
+
+			snprintf(String, 100, "hotBarItemLinks: %i %i %i %i %i %i %i %i", hotbarSlots[0].itemLink, hotbarSlots[1].itemLink, hotbarSlots[2].itemLink, hotbarSlots[3].itemLink, hotbarSlots[4].itemLink, hotbarSlots[5].itemLink, hotbarSlots[6].itemLink, hotbarSlots[7].itemLink);
+			RenderDebugLine(out, &x, &y, String);
+
 			if (sgOptions.Graphics.bInitHwUIRendering) {
 				if (totalTextureSize < 1 << 10)
 					snprintf(String, 100, "loadedTextures: %u", totalTextureSize);
@@ -2307,8 +2317,12 @@ void DrawAndBlit()
 		DrawCtrlBtns(out);
 	}
 	if (drawsbarflag) {
-		DrawInvBelt(out);
+		 if(!sgOptions.Gameplay.bHotbar) //Fluffy: Draw hotbar rather than belt if hotbar is on
+			 DrawInvBelt(out);
+		 else
+			 Hotbar_Render(out);
 	}
+
 	if (talkflag) {
 		DrawTalkPan(out);
 		hgt = gnScreenHeight;

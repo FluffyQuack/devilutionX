@@ -4,6 +4,8 @@
  * Implementation of cursor tracking functionality.
  */
 #include "all.h"
+#include "options.h" //Fluffy: For checking if Hotbar is on
+#include "ui/hotbar.h" //Fluffy: Hotbar input
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -214,6 +216,21 @@ void CheckRportal()
 	}
 }
 
+static bool inBounds(int x, int y, int xMin, int yMin, int xMax, int yMax)
+{
+	return (x > xMin && x <= xMax) && (y > yMin && y <= yMax);
+}
+
+bool IsMouseOnInventoryScreen() //Fluffy: Modified this to check for the belt underneath inventory screen is hotbar is on
+{
+	if (!invflag)
+		return false;
+	if (sgOptions.Gameplay.bHotbar && inBounds(MouseX, MouseY, RIGHT_PANEL + 43, SPANEL_HEIGHT, RIGHT_PANEL + 279, SPANEL_HEIGHT + 31))
+		return true;
+	else
+		return inBounds(MouseX, MouseY, RIGHT_PANEL, 0, gnScreenWidth, SPANEL_HEIGHT);
+}
+
 void CheckCursMove()
 {
 	int i, sx, sy, fx, fy, mx, my, tx, ty, px, py, xx, yy, mi, columns, rows, xo, yo;
@@ -357,6 +374,7 @@ void CheckCursMove()
 	uitemflag = FALSE;
 	panelflag = FALSE;
 	trigflag = FALSE;
+	selectedHotbarSlot = -1; //Fluffy
 
 	if (plr[myplr]._pInvincible) {
 		return;
@@ -378,13 +396,15 @@ void CheckCursMove()
 	}
 
 	if (MouseY > PANEL_TOP && MouseX >= PANEL_LEFT && MouseX <= PANEL_LEFT + PANEL_WIDTH) {
+		if (sgOptions.Gameplay.bHotbar && Hotbar_SlotSelection()) //Fluffy: Check if mouse is on a hotbar slot
+			return;
 		CheckPanelInfo();
 		return;
 	}
 	if (doomflag) {
 		return;
 	}
-	if (invflag && MouseX > RIGHT_PANEL && MouseY <= SPANEL_HEIGHT) {
+	if (IsMouseOnInventoryScreen()) { //Fluffy
 		pcursinvitem = CheckInvHLight();
 		return;
 	}

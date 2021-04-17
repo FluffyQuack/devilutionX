@@ -7,6 +7,7 @@
 #include "options.h"
 #include "textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
+#include "ui/hotbar.h" //Fluffy: For linking items to hotbar
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -31,7 +32,7 @@ int sgdwLastTime; // check name
  * 65 66 67 68 69 70 71 72
  * @see graphics/inv/inventory.png
  */
-const InvXY InvRect[] = {
+InvXY InvRect[] = { //Fluffy: Changed this from const to non-const we can dynamically alter the belt positions (based on whether Hotbar is on or not)
 	// clang-format off
 	//  X,   Y
 	{ 132,  31 }, // helmet
@@ -114,6 +115,24 @@ const InvXY InvRect[] = {
 /** Specifies the starting inventory slots for placement of 2x2 items. */
 int AP2x2Tbl[10] = { 8, 28, 6, 26, 4, 24, 2, 22, 0, 20 };
 
+void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending on the state of Hotbar
+{
+	int startX;
+	int startY;
+	const int slotDiff = 29;
+	if (sgOptions.Gameplay.bHotbar) { //These positions are relative to inventory window
+		startX = 46; //Counting from left of panel (two pixels after the start of the "belt")
+		startY = 381; //Counting from top of panel to bottom of a slot (two pixels before end of the "belt")
+	} else { //These positions are relative to control panel
+		startX = 205;
+		startY = 33;
+	}
+	for (int i = SLOTXY_BELT_FIRST; i <= SLOTXY_BELT_LAST; i++) {
+		InvRect[i].X = startX + ((i - SLOTXY_BELT_FIRST) * slotDiff);
+		InvRect[i].Y = startY;
+	}
+}
+
 void FreeInvGFX()
 {
 	MemFreeDbg(pInvCels);
@@ -138,11 +157,13 @@ void InitInv()
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv.CEL", NULL);
 	}
 
+	CalculateBeltSlotPositions(); //Fluffy
+
 	invflag = FALSE;
 	drawsbarflag = FALSE;
 }
 
-static void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
+void InvDrawSlotBack(CelOutputBuffer out, int X, int Y, int W, int H)
 {
 	if (options_hwUIRendering) { //Fluffy
 		SDL_SetRenderDrawColor(renderer, 255, 125, 125, 255); //TODO: This colour is off. It should be brighter
@@ -255,6 +276,16 @@ void DrawInv(CelOutputBuffer out)
 		Render_Texture(RIGHT_PANEL, 0, TEXTURE_INVENTORY);
 	} else {
 		CelDrawTo(out, RIGHT_PANEL_X, 351, pInvCels, 1, SPANEL_WIDTH);
+	}
+
+	//Fluffy: Draw belt underneath inventory if hotbar is on
+	if (sgOptions.Gameplay.bHotbar) {
+		if (options_hwUIRendering) {
+			Render_Texture_Crop(RIGHT_PANEL + 44, textures[TEXTURE_INVENTORY].frames[0].height, TEXTURE_HUDPANEL, 203, 4 + 16, 438, 35 + 16);
+		} else {
+			//Fluffy TODO
+		}
+		DrawInvBelt(out);
 	}
 
 	if (!plr[myplr].InvBody[INVLOC_HEAD].isEmpty()) {
@@ -452,7 +483,20 @@ void DrawInvBelt(CelOutputBuffer out)
 			continue;
 		}
 
-		InvDrawSlotBack(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX);
+		//Fluffy
+		int x;
+		int y;
+		if (sgOptions.Gameplay.bHotbar) {
+			x = InvRect[i + SLOTXY_BELT_FIRST].X + RIGHT_PANEL_X;
+			y = InvRect[i + SLOTXY_BELT_FIRST].Y - 1;
+
+		} else {
+			x = InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X;
+			y = InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1;
+		}
+		
+		InvDrawSlotBack(out, x, y, INV_SLOT_SIZE_PX, INV_SLOT_SIZE_PX); //Fluffy
+
 		frame = plr[myplr].SpdList[i]._iCurs + CURSOR_FIRSTITEM;
 		frame_width = InvItemWidth[frame];
 
@@ -467,15 +511,38 @@ void DrawInvBelt(CelOutputBuffer out)
 				drawOutline = TRUE;
 			}
 		}
-		DrawCursorItemWrapper(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X, InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
+		DrawCursorItemWrapper(out, x, y, frame, frame_width, 0, plr[myplr].SpdList[i]._iStatFlag == 0, drawOutline, color); //Fluffy
 
-		if (AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
+		if (!sgOptions.Gameplay.bHotbar && //Fluffy: Added hotbar check
+			AllItemsList[plr[myplr].SpdList[i].IDidx].iUsable
 		    && plr[myplr].SpdList[i]._iStatFlag
 		    && plr[myplr].SpdList[i]._itype != ITYPE_GOLD) {
 			fi = i + 49;
 			ff = fontframe[gbFontTransTbl[fi]];
-			PrintChar(out, InvRect[i + SLOTXY_BELT_FIRST].X + PANEL_X + INV_SLOT_SIZE_PX - fontkern[ff], InvRect[i + SLOTXY_BELT_FIRST].Y + PANEL_Y - 1, ff, COL_WHITE);
+			PrintChar(out, x + INV_SLOT_SIZE_PX - fontkern[ff], y, ff, COL_WHITE); //Fluffy
 		}
+	}
+}
+
+/**
+ * @brief Adds an item to a player's InvGrid array
+ * @param playerNumber Player index
+ * @param invGridIndex Item's position in InvGrid (this should be the item's topleft grid tile)
+ * @param invListIndex The item's InvList index (it's expected this already has +1 added to it since InvGrid can't store a 0 index)
+ * @param sizeX Horizontal size of item
+ * @param sizeY Vertical size of item
+ */
+static void AddItemToInvGrid(int playerNumber, int invGridIndex, int invListIndex, int sizeX, int sizeY)
+{
+	const int pitch = 10;
+	for (int y = 0; y < sizeY; y++) {
+		for (int x = 0; x < sizeX; x++) {
+			if (x == 0 & y == sizeY - 1)
+				plr[playerNumber].InvGrid[invGridIndex + x] = invListIndex;
+			else
+				plr[playerNumber].InvGrid[invGridIndex + x] = -invListIndex;
+		}
+		invGridIndex += pitch;
 	}
 }
 
@@ -854,24 +921,14 @@ BOOL AutoPlace(int pnum, int ii, int sx, int sy, BOOL saveflag)
 		plr[pnum].InvList[plr[pnum]._pNumInv] = plr[pnum].HoldItem;
 		plr[pnum]._pNumInv++;
 		yy = 10 * (ii / 10);
+		xx = ii % 10;
 		if (yy < 0) {
 			yy = 0;
 		}
-		for (j = 0; j < sy; j++) {
-			xx = ii % 10;
-			if (xx < 0) {
-				xx = 0;
-			}
-			for (i = 0; i < sx; i++) {
-				if (i != 0 || j != sy - 1) {
-					plr[pnum].InvGrid[xx + yy] = -plr[pnum]._pNumInv;
-				} else {
-					plr[pnum].InvGrid[xx + yy] = plr[pnum]._pNumInv;
-				}
-				xx++;
-			}
-			yy += 10;
+		if (xx < 0) {
+			xx = 0;
 		}
+		AddItemToInvGrid(pnum, xx + yy, plr[pnum]._pNumInv, sx, sy);
 		CalcPlrScrolls(pnum);
 	}
 	return done;
@@ -1021,13 +1078,14 @@ void CheckInvPaste(int pnum, int mx, int my)
 	SetICursor(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
 	i = mx + (icursW >> 1);
 	j = my + (icursH >> 1);
-	sx = icursW28;
-	sy = icursH28;
+	sx = icursW28; //Horizontal size of item in inventory grid
+	sy = icursH28; //Vertical size of item in inventory grid
 	done = FALSE;
-	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
+	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) { //Figure out which inventory slot mouse is on (it gets stored in 'r')
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}
@@ -1085,7 +1143,7 @@ void CheckInvPaste(int pnum, int mx, int my)
 		}
 	}
 
-	if (il == ILOC_UNEQUIPABLE) {
+	if (il == ILOC_UNEQUIPABLE) { //I think this figures out if the tile(s) we're moving an item to has one item blocking it (it stores the result in "it" which is an invList index + 1)
 		done = TRUE;
 		it = 0;
 		ii = r - SLOTXY_INV_FIRST;
@@ -1156,9 +1214,13 @@ void CheckInvPaste(int pnum, int mx, int my)
 	if (!done)
 		return;
 
+	int newHotbarLinkForHoldItem = -1; //Fluffy
+	int newHotbarLinkForReplacedItem = -1; //Fluffy: This is in case we do a type of swap where an item of a different invGrid gets added to HoldItem
+
 	if (pnum == myplr)
 		PlaySFX(ItemInvSnds[ItemCAnimTbl[plr[pnum].HoldItem._iCurs]]);
 
+	//Place the item (a potential item swap happens if there is an item in the way)
 	cn = CURSOR_HAND;
 	switch (il) {
 	case ILOC_HELM:
@@ -1167,6 +1229,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum].InvBody[INVLOC_HEAD] = plr[pnum].HoldItem;
 		else
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HEAD], &plr[pnum].HoldItem);
+
+		newHotbarLinkForHoldItem = INVITEM_HEAD; //Fluffy
 		break;
 	case ILOC_RING:
 		if (r == SLOTXY_RING_LEFT) {
@@ -1175,12 +1239,16 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum].InvBody[INVLOC_RING_LEFT] = plr[pnum].HoldItem;
 			else
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_RING_LEFT], &plr[pnum].HoldItem);
+
+			newHotbarLinkForHoldItem = INVITEM_RING_LEFT; //Fluffy
 		} else {
 			NetSendCmdChItem(FALSE, INVLOC_RING_RIGHT);
 			if (plr[pnum].InvBody[INVLOC_RING_RIGHT].isEmpty())
 				plr[pnum].InvBody[INVLOC_RING_RIGHT] = plr[pnum].HoldItem;
 			else
 				cn = SwapItem(&plr[pnum].InvBody[INVLOC_RING_RIGHT], &plr[pnum].HoldItem);
+
+			newHotbarLinkForHoldItem = INVITEM_RING_RIGHT; //Fluffy
 		}
 		break;
 	case ILOC_AMULET:
@@ -1189,64 +1257,94 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum].InvBody[INVLOC_AMULET] = plr[pnum].HoldItem;
 		else
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_AMULET], &plr[pnum].HoldItem);
+
+		newHotbarLinkForHoldItem = INVITEM_AMULET; //Fluffy
 		break;
 	case ILOC_ONEHAND:
-		if (r <= SLOTXY_HAND_LEFT_LAST) {
+		if (r <= SLOTXY_HAND_LEFT_LAST) { //Left hand slot
 			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
 				if ((plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass != plr[pnum].HoldItem._iClass)
 				    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-					plr[pnum].InvBody[INVLOC_HAND_LEFT] = plr[pnum].HoldItem;
+					plr[pnum].InvBody[INVLOC_HAND_LEFT] = plr[pnum].HoldItem; //Put HoldItem into left hand
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				} else {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-					cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+					cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 				}
 				break;
 			}
 			if ((plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass != plr[pnum].HoldItem._iClass)
 			    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_RIGHT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+				newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				break;
 			}
 
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 			break;
 		}
-		if (plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
+		if (plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //Same as above, but for right hand slot
 			if ((plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_LEFT]._iLoc != ILOC_TWOHAND)
 			    || (plr[pnum]._pClass == PC_BARBARIAN && (plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype == ITYPE_SWORD || plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype == ITYPE_MACE))) {
 				if ((plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass != plr[pnum].HoldItem._iClass)
 				    || (plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 					NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
 					plr[pnum].InvBody[INVLOC_HAND_RIGHT] = plr[pnum].HoldItem;
+
+					newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 					break;
 				}
 				NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+				newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 				break;
 			}
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_LEFT);
 			NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-			SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].InvBody[INVLOC_HAND_LEFT]);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+			SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].InvBody[INVLOC_HAND_LEFT]); //Swap what's in left and right hand slots
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+			newHotbarLinkForReplacedItem = INVITEM_HAND_LEFT; //Fluffy
+
 			break;
 		}
 
 		if ((!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == plr[pnum].HoldItem._iClass)
 		    && !(plr[pnum]._pClass == PC_BARD && plr[pnum].InvBody[INVLOC_HAND_LEFT]._iClass == ICLASS_WEAPON && plr[pnum].HoldItem._iClass == ICLASS_WEAPON)) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem); //Swap what's in left hand with HoldItem
+
+			newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 			break;
 		}
 		NetSendCmdChItem(FALSE, INVLOC_HAND_RIGHT);
-		cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem);
+		cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_RIGHT], &plr[pnum].HoldItem); //Swap what's in right hand with HoldItem
+
+		newHotbarLinkForHoldItem = INVITEM_HAND_RIGHT; //Fluffy
+
 		break;
-	case ILOC_TWOHAND:
-		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
-		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
+	case ILOC_TWOHAND: //Two-handed weapons always go into left slot
+		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() && !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) { //If both slots are occupied, then one item goes into mouse slot and the other is auto-placed into inventory
 			tempitem = plr[pnum].HoldItem;
+
 			if (plr[pnum].InvBody[INVLOC_HAND_RIGHT]._itype == ITYPE_SHIELD)
 				plr[pnum].HoldItem = plr[pnum].InvBody[INVLOC_HAND_RIGHT];
 			else
@@ -1256,8 +1354,14 @@ void CheckInvPaste(int pnum, int mx, int my)
 			else
 				SetICursor(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
 			done2h = FALSE;
-			for (i = 0; i < NUM_INV_GRID_ELEM && !done2h; i++)
+			for (i = 0; i < NUM_INV_GRID_ELEM && !done2h; i++) {
 				done2h = AutoPlace(pnum, i, icursW28, icursH28, TRUE);
+
+				if (done2h) { //Fluffy: We need to do hotbar link swap here
+					Hotbar_UpdateItemLink(plr[pnum].InvBody[INVLOC_HAND_RIGHT]._itype == ITYPE_SHIELD ? INVITEM_HAND_RIGHT : INVITEM_HAND_LEFT, (i + ((icursH28 - 1) * 10)) + INVITEM_INV_FIRST);
+				}
+
+			}
 			plr[pnum].HoldItem = tempitem;
 			if (pnum == myplr)
 				SetCursor_(plr[pnum].HoldItem._iCurs + CURSOR_FIRSTITEM);
@@ -1272,10 +1376,17 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum].InvBody[INVLOC_HAND_LEFT]._itype = ITYPE_NONE;
 		}
 
+		NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
+
 		if (!plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty() || !plr[pnum].InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
-			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty())
+			if (plr[pnum].InvBody[INVLOC_HAND_LEFT].isEmpty()) {
 				SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].InvBody[INVLOC_HAND_RIGHT]);
+
+				newHotbarLinkForReplacedItem = INVITEM_HAND_RIGHT; //Fluffy
+			} else
+				newHotbarLinkForReplacedItem = INVITEM_HAND_LEFT; //Fluffy
+
 			cn = SwapItem(&plr[pnum].InvBody[INVLOC_HAND_LEFT], &plr[pnum].HoldItem);
 		} else {
 			NetSendCmdChItem(FALSE, INVLOC_HAND_LEFT);
@@ -1286,19 +1397,28 @@ void CheckInvPaste(int pnum, int mx, int my)
 			plr[pnum]._pRSplType = RSPLTYPE_CHARGES;
 			force_redraw = 255;
 		}
+
+		newHotbarLinkForHoldItem = INVITEM_HAND_LEFT; //Fluffy
+
 		break;
 	case ILOC_ARMOR:
 		NetSendCmdChItem(FALSE, INVLOC_CHEST);
 		if (plr[pnum].InvBody[INVLOC_CHEST].isEmpty())
-			plr[pnum].InvBody[INVLOC_CHEST] = plr[pnum].HoldItem;
+			plr[pnum].InvBody[INVLOC_CHEST] = plr[pnum].HoldItem; //Put HoldItem into armor slot
 		else
-			cn = SwapItem(&plr[pnum].InvBody[INVLOC_CHEST], &plr[pnum].HoldItem);
+			cn = SwapItem(&plr[pnum].InvBody[INVLOC_CHEST], &plr[pnum].HoldItem); //Swap what's in armor slot with HoldItem
+
+		newHotbarLinkForHoldItem = INVITEM_CHEST; //Fluffy
+
 		break;
-	case ILOC_UNEQUIPABLE:
-		if (plr[pnum].HoldItem._itype == ITYPE_GOLD && it == 0) {
+	case ILOC_UNEQUIPABLE: //Item goes into an inventory grid
+		if (plr[pnum].HoldItem._itype == ITYPE_GOLD && it == 0) { //Special behaviour if this is a gold item
 			ii = r - SLOTXY_INV_FIRST;
 			yy = 10 * (ii / 10);
 			xx = ii % 10;
+
+			newHotbarLinkForHoldItem = xx + yy + (10 * (sy - 1)) + INVITEM_INV_FIRST; //Fluffy
+
 			if (plr[pnum].InvGrid[yy + xx] > 0) {
 				il = plr[pnum].InvGrid[yy + xx];
 				il--;
@@ -1317,6 +1437,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 					// BUGFIX: incorrect values here are leftover from beta (fixed)
 					cn = GetGoldCursor(plr[pnum].HoldItem._ivalue);
 					cn += CURSOR_FIRSTITEM;
+
+					newHotbarLinkForHoldItem = HOLDITEM_LINK; //Fluffy: Don't change hold item
+
 				}
 			} else {
 				il = plr[pnum]._pNumInv;
@@ -1326,8 +1449,8 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum]._pGold += plr[pnum].HoldItem._ivalue;
 				SetPlrHandGoldCurs(&plr[pnum].InvList[il]);
 			}
-		} else {
-			if (it == 0) {
+		} else { //Non-gold item
+			if (it == 0) { //Slot is free, so place item and move on
 				plr[pnum].InvList[plr[pnum]._pNumInv] = plr[pnum].HoldItem;
 				plr[pnum]._pNumInv++;
 				it = plr[pnum]._pNumInv;
@@ -1335,33 +1458,31 @@ void CheckInvPaste(int pnum, int mx, int my)
 				il = it - 1;
 				if (plr[pnum].HoldItem._itype == ITYPE_GOLD)
 					plr[pnum]._pGold += plr[pnum].HoldItem._ivalue;
-				cn = SwapItem(&plr[pnum].InvList[il], &plr[pnum].HoldItem);
+				cn = SwapItem(&plr[pnum].InvList[il], &plr[pnum].HoldItem); //Swap item in slot with HoldItem
 				if (plr[pnum].HoldItem._itype == ITYPE_GOLD)
 					plr[pnum]._pGold = CalculateGold(pnum);
-				for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
+
+				newHotbarLinkForReplacedItem = FindItemOnInvGridUsingInvListIndex(il) + INVITEM_INV_FIRST; //Fluffy
+
+				for (i = 0; i < NUM_INV_GRID_ELEM; i++) { //Remove old item from invGrid
 					if (plr[pnum].InvGrid[i] == it)
 						plr[pnum].InvGrid[i] = 0;
 					if (plr[pnum].InvGrid[i] == -it)
 						plr[pnum].InvGrid[i] = 0;
 				}
 			}
-			ii = r - SLOTXY_INV_FIRST;
+
+			//Calculate topleft position of item for InvGrid and then add item to InvGrid
 			yy = 10 * (ii / 10 - ((sy - 1) >> 1));
+			xx = (ii % 10 - ((sx - 1) >> 1));
 			if (yy < 0)
 				yy = 0;
-			for (j = 0; j < sy; j++) {
-				xx = (ii % 10 - ((sx - 1) >> 1));
-				if (xx < 0)
-					xx = 0;
-				for (i = 0; i < sx; i++) {
-					if (i != 0 || j != sy - 1)
-						plr[pnum].InvGrid[xx + yy] = -it;
-					else
-						plr[pnum].InvGrid[xx + yy] = it;
-					xx++;
-				}
-				yy += 10;
-			}
+			if (xx < 0)
+				xx = 0;
+			AddItemToInvGrid(pnum, xx + yy, it, sx, sy);
+
+			newHotbarLinkForHoldItem = xx + yy + (10 * (sy - 1)) + INVITEM_INV_FIRST; //Fluffy
+
 		}
 		break;
 	case ILOC_BELT:
@@ -1401,6 +1522,9 @@ void CheckInvPaste(int pnum, int mx, int my)
 				plr[pnum]._pGold = CalculateGold(pnum);
 		}
 		drawsbarflag = TRUE;
+
+		newHotbarLinkForHoldItem = ii + INVITEM_BELT_FIRST; //Fluffy
+
 		break;
 	}
 	CalcPlrInv(pnum, TRUE);
@@ -1409,6 +1533,11 @@ void CheckInvPaste(int pnum, int mx, int my)
 			SetCursorPos(MouseX + (cursW >> 1), MouseY + (cursH >> 1));
 		SetCursor_(cn);
 	}
+
+	//Fluffy: Update hotbar links
+	Hotbar_UpdateItemLink(HOLDITEM_LINK, newHotbarLinkForHoldItem); //Fluffy: Update hotbar links to item); 
+	if (newHotbarLinkForReplacedItem != -1 && newHotbarLinkForHoldItem != newHotbarLinkForReplacedItem)
+		Hotbar_UpdateItemLink(newHotbarLinkForReplacedItem, HOLDITEM_LINK);
 }
 
 void CheckInvSwap(int pnum, BYTE bLoc, int idx, WORD wCI, int seed, BOOL bId, uint32_t dwBuff)
@@ -1460,7 +1589,7 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS && !done; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}
@@ -1495,6 +1624,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HEAD, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HEAD);
 			headItem._itype = ITYPE_NONE;
@@ -1508,6 +1640,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_RING_LEFT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_RING_LEFT);
@@ -1523,6 +1658,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_RING_RIGHT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_RING_RIGHT);
 			rightRingItem._itype = ITYPE_NONE;
@@ -1536,6 +1674,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_AMULET, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_AMULET);
@@ -1551,6 +1692,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HAND_LEFT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_LEFT);
 			leftHandItem._itype = ITYPE_NONE;
@@ -1565,6 +1709,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
 
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_HAND_RIGHT, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_HAND_RIGHT);
 			rightHandItem._itype = ITYPE_NONE;
@@ -1578,6 +1725,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			automaticallyUnequip = true;
 			automaticallyMoved = automaticallyEquipped = AutoPlaceItemInInventory(pnum, holdItem, true);
 		}
+
+		if (!automaticMove)
+			Hotbar_UpdateItemLink(INVLOC_CHEST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 		if (!automaticMove || automaticallyMoved) {
 			NetSendCmdDelItem(FALSE, INVLOC_CHEST);
@@ -1603,29 +1753,14 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 				}
 			}
 
+			if (!automaticMove) {
+				int invGridIndex = FindItemOnInvGridUsingInvListIndex(iv - 1);
+				if (invGridIndex != -1)
+					Hotbar_UpdateItemLink(invGridIndex + INVITEM_INV_FIRST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
+			}
+
 			if (!automaticMove || automaticallyMoved) {
-				for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
-					if (player.InvGrid[i] == iv || player.InvGrid[i] == -iv) {
-						player.InvGrid[i] = 0;
-					}
-				}
-
-				iv--;
-
-				player._pNumInv--;
-
-				if (player._pNumInv > 0 && player._pNumInv != iv) {
-					player.InvList[iv] = player.InvList[player._pNumInv];
-
-					for (j = 0; j < NUM_INV_GRID_ELEM; j++) {
-						if (player.InvGrid[j] == player._pNumInv + 1) {
-							player.InvGrid[j] = iv + 1;
-						}
-						if (player.InvGrid[j] == -(player._pNumInv + 1)) {
-							player.InvGrid[j] = -iv - 1;
-						}
-					}
-				}
+				RemoveInvItem(pnum, iv - 1, false); //Fluffy: Made this use a function rather than duplicated code
 			}
 		}
 	}
@@ -1637,6 +1772,9 @@ void CheckInvCut(int pnum, int mx, int my, bool automaticMove)
 			if (automaticMove) {
 				automaticallyMoved = AutoPlaceItemInInventory(pnum, holdItem, true);
 			}
+
+			if (!automaticMove)
+				Hotbar_UpdateItemLink((r - SLOTXY_BELT_FIRST) + INVITEM_BELT_FIRST, HOLDITEM_LINK); //Fluffy: Update hotbar links to item
 
 			if (!automaticMove || automaticallyMoved) {
 				beltItem._itype = ITYPE_NONE;
@@ -1725,21 +1863,26 @@ void inv_update_rem_item(int pnum, BYTE iv)
 	}
 }
 
-void RemoveInvItem(int pnum, int iv)
+void RemoveInvItem(int pnum, int iv, bool calcPlrScrolls)
 {
 	int i, j;
 
 	iv++;
 
+	//Iterate through invGrid and remove every reference to item
 	for (i = 0; i < NUM_INV_GRID_ELEM; i++) {
 		if (plr[pnum].InvGrid[i] == iv || plr[pnum].InvGrid[i] == -iv) {
+
+			if (plr[pnum].InvGrid[i] > 0)
+				Hotbar_RemoveItemLinkToInventory(i); //Fluffy: If this is linked in hotbar, remove the link
+
 			plr[pnum].InvGrid[i] = 0;
 		}
 	}
-
 	iv--;
 	plr[pnum]._pNumInv--;
 
+	//If the item at the end of inventory array isn't the one we removed, we need to swap its position in the array with the removed item
 	if (plr[pnum]._pNumInv > 0 && plr[pnum]._pNumInv != iv) {
 		plr[pnum].InvList[iv] = plr[pnum].InvList[plr[pnum]._pNumInv];
 
@@ -1753,7 +1896,8 @@ void RemoveInvItem(int pnum, int iv)
 		}
 	}
 
-	CalcPlrScrolls(pnum);
+	if (calcPlrScrolls)
+		CalcPlrScrolls(pnum);
 }
 
 void RemoveSpdBarItem(int pnum, int iv)
@@ -1766,7 +1910,9 @@ void RemoveSpdBarItem(int pnum, int iv)
 
 void CheckInvItem(bool isShiftHeld)
 {
-	if (pcurs >= CURSOR_FIRSTITEM) {
+	if (sgOptions.Gameplay.bHotbar && selectedHotbarSlot_forLinking != -1) //Fluffy
+		Hotbar_LinkItemToHotbar(pcursinvitem);
+	else if (pcurs >= CURSOR_FIRSTITEM) {
 		CheckInvPaste(myplr, MouseX, MouseY);
 	} else {
 		CheckInvCut(myplr, MouseX, MouseY, isShiftHeld);
@@ -2412,7 +2558,7 @@ char CheckInvHLight()
 	for (r = 0; (DWORD)r < NUM_XY_SLOTS; r++) {
 		int xo = RIGHT_PANEL;
 		int yo = 0;
-		if (r >= SLOTXY_BELT_FIRST) {
+		if (!sgOptions.Gameplay.bHotbar && r >= SLOTXY_BELT_FIRST) { //Fluffy: Added hotbar check
 			xo = PANEL_LEFT;
 			yo = PANEL_TOP;
 		}
