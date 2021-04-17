@@ -37,7 +37,7 @@ void Texture_UnloadTexture(int textureNum) //Unloads all frames for one texture
 }
 
 //Load one texture (a texture can have multiple frames)
-static void LoadTexture(int textureNum, char *filePath, int frameCount = 1)
+void Textures_LoadTexture(int textureNum, char *filePath, int frameCount)
 {
 	texture_s *texture = &textures[textureNum];
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
@@ -158,22 +158,22 @@ void Textures_Init()
 
 	//Load textures
 	if (sgOptions.Graphics.bAnimatedUIFlasks) {
-		LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
-		LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
+		Textures_LoadTexture(TEXTURE_HEALTHFLASK, "data/textures/ui/flasks/health.png", 48);
+		Textures_LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
 
 	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
 	if (sgOptions.Graphics.bInitHwIngameRendering) {
 		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha)
-		LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
-		LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
-		LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
-		LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
+		Textures_LoadTexture(TEXTURE_TILE_LEFTFOLIAGEMASK, "data/textures/tiles/LeftFoliageMask.png");
+		Textures_LoadTexture(TEXTURE_TILE_RIGHTFOLIAGEMASK, "data/textures/tiles/RightFoliageMask.png");
+		Textures_LoadTexture(TEXTURE_TILE_LEFTMASK, "data/textures/tiles/LeftMaskTransparent.png");
+		Textures_LoadTexture(TEXTURE_TILE_RIGHTMASK, "data/textures/tiles/RightMaskTransparent.png");
 		if (sgOptions.Graphics.bInitLightmapping) {
-			LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
-			LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
-			LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
-			LoadTexture(TEXTURE_TILE_RIGHTMASK_OPAQUE, "data/textures/tiles/RightMaskNulls.png");
+			Textures_LoadTexture(TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE, "data/textures/tiles/LeftMaskNulls-Invert.png");
+			Textures_LoadTexture(TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE, "data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
+			Textures_LoadTexture(TEXTURE_TILE_LEFTMASK_OPAQUE, "data/textures/tiles/LeftMaskNulls.png");
+			Textures_LoadTexture(TEXTURE_TILE_RIGHTMASK_OPAQUE, "data/textures/tiles/RightMaskNulls.png");
 
 			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_LEFTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
 			SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASKINVERTED_OPAQUE].frames[0].frame, blendMode);
@@ -186,8 +186,8 @@ void Textures_Init()
 		SDL_SetTextureBlendMode(textures[TEXTURE_TILE_RIGHTMASK].frames[0].frame, blendMode);
 
 		if (sgOptions.Graphics.bInitLightmapping) {
-			LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
-			LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
+			Textures_LoadTexture(TEXTURE_LIGHT_SMOOTHGRADIENT, "data/textures/light-smooth-gradient.png");
+			Textures_LoadTexture(TEXTURE_LIGHT_HALFGRADIENT_HALFGREY, "data/textures/light-half-gradient-half-grey.png");
 			SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD); //Basically normal blending
 			//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD); //Same as normal additive blending
 			//SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_MAXIMUM);

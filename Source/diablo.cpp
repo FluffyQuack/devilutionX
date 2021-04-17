@@ -13,6 +13,7 @@
 #include "textures/textures.h" //Fluffy: For texture init and deinit
 #include "textures/cel-convert.h" //Fluffy: For loading CELs as SDL textures
 #include "render/lightmap.h" //Fluffy: For lightmap debugging
+#include "textures/textures.h" //Fluffy: For loading new inventory background
 #include "ui/hotbar.h" //Fluffy: For hotbar input
 
 DEVILUTION_BEGIN_NAMESPACE
@@ -536,6 +537,7 @@ static void SaveOptions()
 	setIniInt("Graphics", "Durability Icon Gradual Change", sgOptions.Graphics.bDurabilityIconGradualChange);
 	setIniInt("Graphics", "Durability Icon Gold Value", sgOptions.Graphics.nDurabilityIconGold);
 	setIniInt("Graphics", "Durability Icon Red Value", sgOptions.Graphics.nDurabilityIconRed);
+	setIniInt("Graphics", "Paperdoll", sgOptions.Graphics.bPaperdoll);
 
 	setIniInt("Game", "Speed", sgOptions.Gameplay.nTickRate);
 	setIniInt("Game", "Run in Town", sgOptions.Gameplay.bRunInTown);
@@ -631,6 +633,7 @@ static void LoadOptions()
 	sgOptions.Graphics.bDurabilityIconGradualChange = getIniBool("Graphics", "Durability Icon Gradual Change", true);
 	sgOptions.Graphics.nDurabilityIconGold = getIniInt("Graphics", "Durability Icon Gold Value", 5);
 	sgOptions.Graphics.nDurabilityIconRed = getIniInt("Graphics", "Durability Icon Red Value", 2);
+	sgOptions.Graphics.bPaperdoll = getIniBool("Graphics", "Paperdoll", true);
 
 	//Fluffy: HW ingame rendering can't be true unless HW UI rendering is also true
 	if (sgOptions.Graphics.bInitHwIngameRendering && !sgOptions.Graphics.bInitHwUIRendering)
@@ -2264,7 +2267,10 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 	//Fluffy: Load various CELs as SDL textures here
 	if (sgOptions.Graphics.bInitHwUIRendering) { 
 		if (firstflag) {
-			Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
+			if (sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE)
+				Textures_LoadTexture(TEXTURE_INVENTORY, "data/textures/ui/paperdoll/inventorybackground.png"); //Custom inventory texture
+			else
+				Texture_ConvertCEL_SingleFrame(pInvCels, TEXTURE_INVENTORY, SPANEL_WIDTH); //Inventory texture
 			LoadQuestDialogueTextures();
 			Texture_ConvertCEL_SingleFrame(pSTextBoxCels, TEXTURE_TEXTBOX2, 271); //Narrow version of text box 2
 			Texture_ConvertCEL_MultipleFrames(pSPentSpn2Cels, TEXTURE_SPINNINGPENTAGRAM2, 12); //Tiny spinning pentagram
