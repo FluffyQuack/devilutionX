@@ -1310,13 +1310,57 @@ static void PressKey(int vkey)
 		ToggleSpell(3);
 		return;
 	} else if (vkey == DVL_VK_F9) {
-		diablo_hotkey_msg(0);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR83);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE83);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE83);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK83);
+			}
+		} else
+			diablo_hotkey_msg(0);
 	} else if (vkey == DVL_VK_F10) {
-		diablo_hotkey_msg(1);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR100);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE100);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE100);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK100);
+			}
+		} else
+			diablo_hotkey_msg(1);
 	} else if (vkey == DVL_VK_F11) {
-		diablo_hotkey_msg(2);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR51);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE51);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE51);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK51);
+			}
+		} else
+			diablo_hotkey_msg(2);
 	} else if (vkey == DVL_VK_F12) {
-		diablo_hotkey_msg(3);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR52);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE52);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE52);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK52);
+			}
+		} else
+			diablo_hotkey_msg(3);
 	} else if (vkey == DVL_VK_UP) {
 		if (stextflag) {
 			STextUp();
