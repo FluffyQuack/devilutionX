@@ -170,6 +170,11 @@ typedef struct TCmdString {
 	char str[MAX_SEND_STR_LEN];
 } TCmdString;
 
+typedef struct TCmdPlayerSpeech { //Fluffy
+	Uint8 commandId;
+	Uint32 soundEffectNum;
+} TCmdPlayerSpeech;
+
 typedef struct TFakeCmdPlr {
 	Uint8 bCmd;
 	Uint8 bPlr;
@@ -332,6 +337,7 @@ void NetSendCmdDItem(BOOL bHiPri, int ii);
 void NetSendCmdDamage(BOOL bHiPri, BYTE bPlr, DWORD dwDam);
 void NetSendCmdMonDmg(BOOL bHiPri, WORD bMon, DWORD dwDam);
 void NetSendCmdString(int pmask, const char *pszStr);
+void NetSendCmdPlayerSpeech(int speechNumber); //Fluffy
 void delta_close_portal(int pnum);
 DWORD ParseCmd(int pnum, TCmd *pCmd);
 

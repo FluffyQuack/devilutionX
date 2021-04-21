@@ -1288,6 +1288,11 @@ void PlaySFX(int psfx, bool randomizeByCategory)
 	}
 
 	PlaySFX_priv(&sgSFX[psfx], FALSE, 0, 0);
+
+	//Fluffy: Check if this is player speech, and if so, relay it to other players
+	if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && psfx >= PS_MAGE1 && psfx <= PS_MONK102) {
+		NetSendCmdPlayerSpeech(psfx);
+	}
 }
 
 void PlaySfxLoc(int psfx, int x, int y)

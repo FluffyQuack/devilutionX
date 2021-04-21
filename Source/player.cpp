@@ -1733,18 +1733,30 @@ void StartPlrHit(int pnum, int dam, BOOL forcehit)
 		return;
 	}
 
-	if (plr[pnum]._pClass == PC_WARRIOR) {
-		PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
-	} else if (plr[pnum]._pClass == PC_ROGUE) {
-		PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-	} else if (plr[pnum]._pClass == PC_SORCERER) {
-		PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
-	} else if (plr[pnum]._pClass == PC_MONK) {
-		PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
-	} else if (plr[pnum]._pClass == PC_BARD) {
-		PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-	} else if (plr[pnum]._pClass == PC_BARBARIAN) {
-		PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+	if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && pnum == myplr) { //Fluffy: Only play this sound effect on local client
+		if (plr[pnum]._pClass == PC_WARRIOR || plr[pnum]._pClass == PC_BARBARIAN) {
+			PlaySFX(PS_WARR69);
+		} else if (plr[pnum]._pClass == PC_ROGUE || plr[pnum]._pClass == PC_BARD) {
+			PlaySFX(PS_ROGUE69);
+		} else if (plr[pnum]._pClass == PC_SORCERER) {
+			PlaySFX(PS_MAGE69);
+		} else if (plr[pnum]._pClass == PC_MONK) {
+			PlaySFX(PS_MONK69);
+		}
+	} else {
+		if (plr[pnum]._pClass == PC_WARRIOR) {
+			PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+		} else if (plr[pnum]._pClass == PC_ROGUE) {
+			PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+		} else if (plr[pnum]._pClass == PC_SORCERER) {
+			PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
+		} else if (plr[pnum]._pClass == PC_MONK) {
+			PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
+		} else if (plr[pnum]._pClass == PC_BARD) {
+			PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+		} else if (plr[pnum]._pClass == PC_BARBARIAN) {
+			PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+		}
 	}
 
 	drawhpflag = TRUE;
@@ -1853,18 +1865,30 @@ StartPlayerKill(int pnum, int earflag)
 		app_fatal("StartPlayerKill: illegal player %d", pnum);
 	}
 
-	if (plr[pnum]._pClass == PC_WARRIOR) {
-		PlaySfxLoc(PS_DEAD, p->_px, p->_py); // BUGFIX: should use `PS_WARR71` like other classes
-	} else if (plr[pnum]._pClass == PC_ROGUE) {
-		PlaySfxLoc(PS_ROGUE71, p->_px, p->_py);
-	} else if (plr[pnum]._pClass == PC_SORCERER) {
-		PlaySfxLoc(PS_MAGE71, p->_px, p->_py);
-	} else if (plr[pnum]._pClass == PC_MONK) {
-		PlaySfxLoc(PS_MONK71, p->_px, p->_py);
-	} else if (plr[pnum]._pClass == PC_BARD) {
-		PlaySfxLoc(PS_ROGUE71, p->_px, p->_py);
-	} else if (plr[pnum]._pClass == PC_BARBARIAN) {
-		PlaySfxLoc(PS_WARR71, p->_px, p->_py);
+	if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && pnum == myplr) { //Fluffy: Only play this sound effect on local client
+		if (plr[pnum]._pClass == PC_WARRIOR || plr[pnum]._pClass == PC_BARBARIAN) {
+			PlaySFX(PS_WARR71);
+		} else if (plr[pnum]._pClass == PC_ROGUE || plr[pnum]._pClass == PC_BARD) {
+			PlaySFX(PS_ROGUE71);
+		} else if (plr[pnum]._pClass == PC_SORCERER) {
+			PlaySFX(PS_MAGE71);
+		} else if (plr[pnum]._pClass == PC_MONK) {
+			PlaySFX(PS_MONK71);
+		}
+	} else {
+		if (plr[pnum]._pClass == PC_WARRIOR) {
+			PlaySfxLoc(PS_DEAD, p->_px, p->_py); // BUGFIX: should use `PS_WARR71` like other classes
+		} else if (plr[pnum]._pClass == PC_ROGUE) {
+			PlaySfxLoc(PS_ROGUE71, p->_px, p->_py);
+		} else if (plr[pnum]._pClass == PC_SORCERER) {
+			PlaySfxLoc(PS_MAGE71, p->_px, p->_py);
+		} else if (plr[pnum]._pClass == PC_MONK) {
+			PlaySfxLoc(PS_MONK71, p->_px, p->_py);
+		} else if (plr[pnum]._pClass == PC_BARD) {
+			PlaySfxLoc(PS_ROGUE71, p->_px, p->_py);
+		} else if (plr[pnum]._pClass == PC_BARBARIAN) {
+			PlaySfxLoc(PS_WARR71, p->_px, p->_py);
+		}
 	}
 
 	if (p->_pgfxnum) {
