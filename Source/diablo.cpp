@@ -96,6 +96,7 @@ int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 //Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 BOOL gameSetup_allowAttacksInTown = false; //Fluffy: Allow attacking in town
 BOOL gameSetup_safetyJog = false; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown)
+bool gameSetup_relayPlayerSpeech = true;
 BOOL options_hwIngameRendering = false;               //Fluffy: If true, we render all ingame graphics via SDL (this requires options_hwUIRendering to be true)
 BOOL options_hwUIRendering = false; //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
@@ -568,6 +569,7 @@ static void SaveOptions()
 	setIniInt("Game", "Always Show Mana As Number", sgOptions.Gameplay.bAlwaysShowManaAsNumber);
 	setIniInt("Game", "Hotbar", sgOptions.Gameplay.bHotbar);
 	setIniInt("Game", "Mini Map", sgOptions.Gameplay.bMiniMap);
+	setIniInt("Game", "Relay Player Speech", sgOptions.Gameplay.bRelayPlayerSpeech);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -672,6 +674,7 @@ static void LoadOptions()
 	sgOptions.Gameplay.bAlwaysShowManaAsNumber = getIniBool("Game", "Always Show Mana As Number", false);
 	sgOptions.Gameplay.bMiniMap = getIniBool("Game", "Mini Map", true);
 	sgOptions.Gameplay.bHotbar = getIniBool("Game", "Hotbar", true);
+	sgOptions.Gameplay.bRelayPlayerSpeech = getIniBool("Game", "Relay Player Speech", true);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);

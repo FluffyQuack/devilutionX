@@ -31,6 +31,7 @@ typedef struct GameData {
 	Uint8 safetyJog;
 	Sint32 gSpeedMod;
 	Sint32 gMonsterSpeedMod;
+	Uint8 bRelayPlayerSpeech;
 } GameData;
 
 typedef struct _SNETPROGRAMDATA {
