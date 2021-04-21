@@ -1737,7 +1737,7 @@ static void PressChar(WPARAM vkey)
 		return;
 	case 'u': //Fluffy: Toggle hotbar on and off
 		sgOptions.Gameplay.bHotbar = !sgOptions.Gameplay.bHotbar;
-		CalculateBeltSlotPositions();
+		CalculateInvSlotPositions();
 		return;
 	}
 }

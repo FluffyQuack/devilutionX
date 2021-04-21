@@ -140,7 +140,7 @@ const int bottomLeftEquipmentSlots[NUM_INVLOC] = { //Fluffy: This references the
 /** Specifies the starting inventory slots for placement of 2x2 items. */
 int AP2x2Tbl[10] = { 8, 28, 6, 26, 4, 24, 2, 22, 0, 20 };
 
-void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending on the state of Hotbar
+void CalculateInvSlotPositions() //Fluffy: Change belt slot positions depending on the state of Hotbar. Also update equip slot positions for paperdoll variant of the inventory
 {
 	int startX;
 	int startY;
@@ -155,6 +155,39 @@ void CalculateBeltSlotPositions() //Fluffy: Change belt slot positions depending
 	for (int i = SLOTXY_BELT_FIRST; i <= SLOTXY_BELT_LAST; i++) {
 		InvRect[i].X = startX + ((i - SLOTXY_BELT_FIRST) * slotDiff);
 		InvRect[i].Y = startY;
+	}
+
+	//Fluffy: Populate the slot position array for the alternate paperdoll inventory interface
+	{
+		const InvXY newSizes[NUM_INVLOC] = {
+			//These correspond to the bottom left slot of each gear piece
+			{ 250, 75 },  //INVLOC_HEAD
+			{ 241, 205 }, //INVLOC_RING_LEFT
+			{ 282, 205 }, //INVLOC_RING_RIGHT
+			{ 209, 76 },  //INVLOC_AMULET
+			{ 16, 102 },  //INVLOC_HAND_LEFT
+			{ 16, 204 },  //INVLOC_HAND_RIGHT
+			{ 250, 169 }  //INVLOC_CHEST
+		};
+		int slotNum = 0;
+		for (int j = 0; j < NUM_INVLOC; j++) {
+			int baseX = newSizes[j].X;
+			int baseY = newSizes[j].Y - (INV_SLOT_SIZE_PX * (slotSize[j].Y - 1));
+			int x = 0;
+			int y = 0;
+			for (int i = 0; i < slotSize[j].X * slotSize[j].Y; i++) {
+				InvRect_PaperDollInterface[slotNum].X = baseX + (INV_SLOT_SIZE_PX * x);
+				InvRect_PaperDollInterface[slotNum].Y = baseY + (INV_SLOT_SIZE_PX * y);
+				x++;
+				if (x >= slotSize[j].X) {
+					x = 0;
+					y++;
+				}
+				slotNum++;
+			}
+		}
+		for (int i = slotNum; i < 73; i++)
+			InvRect_PaperDollInterface[i] = InvRect[i];
 	}
 }
 
@@ -182,39 +215,7 @@ void InitInv()
 		pInvCels = LoadFileInMem("Data\\Inv\\Inv.CEL", NULL);
 	}
 
-	CalculateBeltSlotPositions(); //Fluffy
-
-	//Fluffy: Populate the slot position array for the alternate paperdoll inventory interface
-	{
-		const InvXY newSizes[NUM_INVLOC] = { //These correspond to the bottom left slot of each gear piece
-			{ 250, 75 }, //INVLOC_HEAD      
-			{ 241, 205 }, //INVLOC_RING_LEFT
-			{ 282, 205 }, //INVLOC_RING_RIGHT
-			{ 209, 76 }, //INVLOC_AMULET
-			{ 16, 102 }, //INVLOC_HAND_LEFT
-			{ 16, 204 }, //INVLOC_HAND_RIGHT
-			{ 250, 169 }  //INVLOC_CHEST     
-		};
-		int slotNum = 0;
-		for (int j = 0; j < NUM_INVLOC; j++) {
-			int baseX = newSizes[j].X;
-			int baseY = newSizes[j].Y - (INV_SLOT_SIZE_PX * (slotSize[j].Y - 1));
-			int x = 0;
-			int y = 0;
-			for (int i = 0; i < slotSize[j].X * slotSize[j].Y; i++) {
-				InvRect_PaperDollInterface[slotNum].X = baseX + (INV_SLOT_SIZE_PX * x);
-				InvRect_PaperDollInterface[slotNum].Y = baseY + (INV_SLOT_SIZE_PX * y);
-				x++;
-				if (x >= slotSize[j].X) {
-					x = 0;
-					y++;
-				}
-				slotNum++;
-			}
-		}
-		for (int i = slotNum; i < 73; i++)
-			InvRect_PaperDollInterface[i] = InvRect[i];
-	}
+	CalculateInvSlotPositions(); //Fluffy
 
 	invflag = FALSE;
 	drawsbarflag = FALSE;
