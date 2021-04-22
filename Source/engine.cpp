@@ -32,6 +32,26 @@ const Uint32 RndInc = 1;
  */
 const Uint32 RndMult = 0x015A4E35;
 
+void MosaicSoftwareBuffer(CelOutputBuffer out, int sx, int sy, int width, int height, int size) //Fluffy
+{
+	width += width % size;
+	height += height % size;
+	Uint8 *dst;
+	for (int y = 0; y < height; y += size) {
+		dst = out.at(sx, sy + y);
+		for (int x = 0; x < width; x += size) {
+			for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
+					if (i == 0 && j == 0)
+						continue;
+					dst[i + (out.pitch() * j)] = dst[0];
+				}
+			}
+			dst += size;
+		}
+	}
+}
+
 void CelDrawTo(CelOutputBuffer out, int sx, int sy, BYTE *pCelBuff, int nCel, int nWidth)
 {
 	int nDataSize;
