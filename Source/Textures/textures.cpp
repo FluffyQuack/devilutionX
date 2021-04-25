@@ -162,6 +162,19 @@ void Textures_Init()
 		Textures_LoadTexture(TEXTURE_MANAFLASK, "data/textures/ui/flasks/mana.png", 48);
 	}
 
+	//Paperdoll textures
+	if (sgOptions.Graphics.bPaperdoll) {
+		Textures_LoadTexture(TEXTURE_ROGUE_NOTHING, "data/textures/ui/paperdoll/rogue-nothing.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT, "data/textures/ui/paperdoll/rogue-light.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT_DAMAGED, "data/textures/ui/paperdoll/rogue-light-damaged.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT2, "data/textures/ui/paperdoll/rogue-light2.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT2_DAMAGED, "data/textures/ui/paperdoll/rogue-light2-damaged.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_MEDIUM, "data/textures/ui/paperdoll/rogue-medium.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_MEDIUM_DAMAGED, "data/textures/ui/paperdoll/rogue-medium-damaged.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_HEAVY, "data/textures/ui/paperdoll/rogue-heavy.png");
+		Textures_LoadTexture(TEXTURE_ROGUE_HEAVY_DAMAGED, "data/textures/ui/paperdoll/rogue-heavy-damaged.png");
+	}
+
 	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
 	if (sgOptions.Graphics.bInitHwIngameRendering) {
 		SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_SRC_ALPHA, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha *= srcAlpha)
