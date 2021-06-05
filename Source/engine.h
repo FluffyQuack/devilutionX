@@ -175,6 +175,8 @@ struct CelOutputBuffer {
 	}
 };
 
+void MosaicSoftwareBuffer(CelOutputBuffer out, int sx, int sy, int width, int height, int size); //Fluffy
+
 /**
  * @brief Blit CEL sprite to the back buffer at the given coordinates
  * @param out Target buffer

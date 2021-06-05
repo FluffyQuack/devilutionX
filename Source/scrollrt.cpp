@@ -1856,6 +1856,19 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 	Lightmap_SubtilePreview();
 #endif
 
+	//Fluffy: Mosaic test on player
+	{
+		int posX = 408;
+		int posY = 133;
+		if (!zoomflag) {
+			posX -= TILE_WIDTH / 2;
+			posY -= TILE_WIDTH / 2;
+			posX /= 2;
+			posY /= 2;
+		}
+		MosaicSoftwareBuffer(out, posX, posY, 30, 28, 8);
+	}
+
 	if (!zoomflag) {
 		Zoom(full_out.subregionY(0, gnScreenHeight));
 	}
@@ -1867,6 +1880,7 @@ extern void DrawControllerModifierHints(CelOutputBuffer out);
 void DrawView(CelOutputBuffer out, int StartX, int StartY)
 {
 	DrawGame(out, StartX, StartY);
+
 	if (automapflag) {
 		DrawAutomap(out.subregionY(0, gnViewportHeight));
 	}
