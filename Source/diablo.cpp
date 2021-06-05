@@ -96,6 +96,7 @@ int gMonsterSpeedMod = 1; //Same as above, but specifically for monsters
 //Fluffy: New global variables which are updated when loading config file (gameplay-changing ones are updated via network if we joined a network game)
 BOOL gameSetup_allowAttacksInTown = false; //Fluffy: Allow attacking in town
 BOOL gameSetup_safetyJog = false; //Fluffy: If true, player will jog whenever it is safe (this overrides gbRunInTown)
+bool gameSetup_relayPlayerSpeech = true;
 BOOL options_hwIngameRendering = false;               //Fluffy: If true, we render all ingame graphics via SDL (this requires options_hwUIRendering to be true)
 BOOL options_hwUIRendering = false; //Fluffy: If true, we render everything via SDL (aka truecolour rendering)
 BOOL options_lightmapping = false;              //Fluffy: If true, we render ingame graphics at full brightness and then generate a light map for lighting
@@ -568,6 +569,7 @@ static void SaveOptions()
 	setIniInt("Game", "Always Show Mana As Number", sgOptions.Gameplay.bAlwaysShowManaAsNumber);
 	setIniInt("Game", "Hotbar", sgOptions.Gameplay.bHotbar);
 	setIniInt("Game", "Mini Map", sgOptions.Gameplay.bMiniMap);
+	setIniInt("Game", "Relay Player Speech", sgOptions.Gameplay.bRelayPlayerSpeech);
 
 	setIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress);
 	setIniInt("Network", "Port", sgOptions.Network.nPort);
@@ -672,6 +674,7 @@ static void LoadOptions()
 	sgOptions.Gameplay.bAlwaysShowManaAsNumber = getIniBool("Game", "Always Show Mana As Number", false);
 	sgOptions.Gameplay.bMiniMap = getIniBool("Game", "Mini Map", true);
 	sgOptions.Gameplay.bHotbar = getIniBool("Game", "Hotbar", true);
+	sgOptions.Gameplay.bRelayPlayerSpeech = getIniBool("Game", "Relay Player Speech", true);
 
 	getIniValue("Network", "Bind Address", sgOptions.Network.szBindAddress, sizeof(sgOptions.Network.szBindAddress), "0.0.0.0");
 	sgOptions.Network.nPort = getIniInt("Network", "Port", 6112);
@@ -1307,13 +1310,57 @@ static void PressKey(int vkey)
 		ToggleSpell(3);
 		return;
 	} else if (vkey == DVL_VK_F9) {
-		diablo_hotkey_msg(0);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR83);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE83);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE83);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK83);
+			}
+		} else
+			diablo_hotkey_msg(0);
 	} else if (vkey == DVL_VK_F10) {
-		diablo_hotkey_msg(1);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR100);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE100);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE100);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK100);
+			}
+		} else
+			diablo_hotkey_msg(1);
 	} else if (vkey == DVL_VK_F11) {
-		diablo_hotkey_msg(2);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR51);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE51);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE51);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK51);
+			}
+		} else
+			diablo_hotkey_msg(2);
 	} else if (vkey == DVL_VK_F12) {
-		diablo_hotkey_msg(3);
+		if (gameSetup_relayPlayerSpeech) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR || plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR52);
+			} else if (plr[myplr]._pClass == PC_ROGUE || plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE52);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE52);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK52);
+			}
+		} else
+			diablo_hotkey_msg(3);
 	} else if (vkey == DVL_VK_UP) {
 		if (stextflag) {
 			STextUp();

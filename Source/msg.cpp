@@ -1258,6 +1258,15 @@ void NetSendCmdString(int pmask, const char *pszStr)
 	multi_send_msg_packet(pmask, (BYTE *)&cmd.bCmd, dwStrLen + 2);
 }
 
+void NetSendCmdPlayerSpeech(int speechNumber) //Fluffy
+{
+	TCmdPlayerSpeech cmd;
+
+	cmd.commandId = CMD_PLAYERSPEECH;
+	cmd.soundEffectNum = speechNumber;
+	NetSendLoPri((BYTE *)&cmd, sizeof(cmd));
+}
+
 static DWORD On_STRING2(int pnum, TCmd *pCmd)
 {
 	TCmdString *p = (TCmdString *)pCmd;
@@ -2531,6 +2540,18 @@ static DWORD On_OPENCRYPT(TCmd *pCmd, int pnum)
 	return sizeof(*pCmd);
 }
 
+static DWORD On_PLAYERSPEECH(TCmd *pCmd, int pnum) //Fluffy
+{
+	TCmdPlayerSpeech *p = (TCmdPlayerSpeech *)pCmd;
+
+	//Fluffy TODO: What does gbBufferMsgs mean and how should it be handled?
+	if (gbBufferMsgs != 1 && currlevel == plr[pnum].plrlevel && myplr != pnum) {
+		PlaySfxLoc(p->soundEffectNum, plr[pnum]._px, plr[pnum]._py);
+	}
+
+	return sizeof(*p);
+}
+
 DWORD ParseCmd(int pnum, TCmd *pCmd)
 {
 	sbLastCmd = pCmd->bCmd;
@@ -2694,6 +2715,8 @@ DWORD ParseCmd(int pnum, TCmd *pCmd)
 		return On_OPENHIVE(pCmd, pnum);
 	case CMD_OPENCRYPT:
 		return On_OPENCRYPT(pCmd, pnum);
+	case CMD_PLAYERSPEECH: //Fluffy
+		return On_PLAYERSPEECH(pCmd, pnum);
 	}
 
 	if (pCmd->bCmd < CMD_DLEVEL_0 || pCmd->bCmd > CMD_DLEVEL_END) {

@@ -873,18 +873,30 @@ BOOL PlayerMHit(int pnum, int m, int dist, int mind, int maxd, int mtype, BOOLEA
 			if (plr[pnum]._pHitPoints >> 6 <= 0) {
 				SyncPlrKill(pnum, earflag);
 			} else {
-				if (plr[pnum]._pClass == PC_WARRIOR) {
-					PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
-				} else if (plr[pnum]._pClass == PC_ROGUE) {
-					PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-				} else if (plr[pnum]._pClass == PC_SORCERER) {
-					PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
-				} else if (plr[pnum]._pClass == PC_MONK) {
-					PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
-				} else if (plr[pnum]._pClass == PC_BARD) {
-					PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-				} else if (plr[pnum]._pClass == PC_BARBARIAN) {
-					PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+				if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && pnum == myplr) { //Fluffy: Only play this sound effect on local client
+					if (plr[pnum]._pClass == PC_WARRIOR || plr[pnum]._pClass == PC_BARBARIAN) {
+						PlaySFX(PS_WARR69);
+					} else if (plr[pnum]._pClass == PC_ROGUE || plr[pnum]._pClass == PC_BARD) {
+						PlaySFX(PS_ROGUE69);
+					} else if (plr[pnum]._pClass == PC_SORCERER) {
+						PlaySFX(PS_MAGE69);
+					} else if (plr[pnum]._pClass == PC_MONK) {
+						PlaySFX(PS_MONK69);
+					}
+				} else {
+					if (plr[pnum]._pClass == PC_WARRIOR) {
+						PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+					} else if (plr[pnum]._pClass == PC_ROGUE) {
+						PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+					} else if (plr[pnum]._pClass == PC_SORCERER) {
+						PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
+					} else if (plr[pnum]._pClass == PC_MONK) {
+						PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
+					} else if (plr[pnum]._pClass == PC_BARD) {
+						PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+					} else if (plr[pnum]._pClass == PC_BARBARIAN) {
+						PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+					}
 				}
 				drawhpflag = TRUE;
 			}
@@ -1003,18 +1015,31 @@ BOOL Plr2PlrMHit(int pnum, int p, int mindam, int maxdam, int dist, int mtype, B
 			dam -= (dam * resper) / 100;
 			if (pnum == myplr)
 				NetSendCmdDamage(TRUE, p, dam);
-			if (plr[pnum]._pClass == PC_WARRIOR) {
-				PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
-			} else if (plr[pnum]._pClass == PC_ROGUE) {
-				PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-			} else if (plr[pnum]._pClass == PC_SORCERER) {
-				PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
-			} else if (plr[pnum]._pClass == PC_MONK) {
-				PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
-			} else if (plr[pnum]._pClass == PC_BARD) {
-				PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
-			} else if (plr[pnum]._pClass == PC_BARBARIAN) {
-				PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+
+			if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && pnum == myplr) { //Fluffy: Only play this sound effect on local client
+				if (plr[pnum]._pClass == PC_WARRIOR || plr[pnum]._pClass == PC_BARBARIAN) {
+					PlaySFX(PS_WARR69);
+				} else if (plr[pnum]._pClass == PC_ROGUE || plr[pnum]._pClass == PC_BARD) {
+					PlaySFX(PS_ROGUE69);
+				} else if (plr[pnum]._pClass == PC_SORCERER) {
+					PlaySFX(PS_MAGE69);
+				} else if (plr[pnum]._pClass == PC_MONK) {
+					PlaySFX(PS_MONK69);
+				}
+			} else {
+				if (plr[pnum]._pClass == PC_WARRIOR) {
+					PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+				} else if (plr[pnum]._pClass == PC_ROGUE) {
+					PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+				} else if (plr[pnum]._pClass == PC_SORCERER) {
+					PlaySfxLoc(PS_MAGE69, plr[pnum]._px, plr[pnum]._py);
+				} else if (plr[pnum]._pClass == PC_MONK) {
+					PlaySfxLoc(PS_MONK69, plr[pnum]._px, plr[pnum]._py);
+				} else if (plr[pnum]._pClass == PC_BARD) {
+					PlaySfxLoc(PS_ROGUE69, plr[pnum]._px, plr[pnum]._py);
+				} else if (plr[pnum]._pClass == PC_BARBARIAN) {
+					PlaySfxLoc(PS_WARR69, plr[pnum]._px, plr[pnum]._py);
+				}
 			}
 			return TRUE;
 		} else {

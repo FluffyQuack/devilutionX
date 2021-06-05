@@ -1093,7 +1093,7 @@ static void stream_play(TSFX *pSFX, int lVolume, int lPan)
 	assert(pSFX->bFlags & sfx_STREAM);
 	stream_stop();
 	lVolume += sound_get_or_set_sound_volume(1);
-	if (lVolume >= VOLUME_MIN) {
+	if (gameSetup_relayPlayerSpeech || lVolume >= VOLUME_MIN) { //Fluffy: Always allow streaming sounds if gameSetup_relayPlayerSpeech is true (this is a bit of a hack since streamed relayed player speech didn't play)
 		if (lVolume > VOLUME_MAX)
 			lVolume = VOLUME_MAX;
 		if (pSFX->pSnd == NULL)
@@ -1288,6 +1288,11 @@ void PlaySFX(int psfx, bool randomizeByCategory)
 	}
 
 	PlaySFX_priv(&sgSFX[psfx], FALSE, 0, 0);
+
+	//Fluffy: Check if this is player speech, and if so, relay it to other players
+	if (gameSetup_relayPlayerSpeech && gbIsMultiplayer && psfx >= PS_MAGE1 && psfx <= PS_MONK102) {
+		NetSendCmdPlayerSpeech(psfx);
+	}
 }
 
 void PlaySfxLoc(int psfx, int x, int y)

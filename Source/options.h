@@ -112,6 +112,7 @@ struct GameplayOptions {
 	bool bAlwaysShowManaAsNumber; //Fluffy
 	bool bHotbar; //Fluffy: Replace the belt in the control bar with a hot bar
 	bool bMiniMap; //Fluffy
+	bool bRelayPlayerSpeech; //Fluffy
 };
 
 struct ControllerOptions {
