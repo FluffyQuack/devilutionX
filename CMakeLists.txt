@@ -291,6 +291,7 @@ add_library(devilution STATIC
   Source/render/sdl-render.cpp
   Source/render/lightmap.cpp
   Source/ui/hotbar.cpp
+  Source/ui/paperdoll.cpp
   )
 
 set(devilutionx_SRCS

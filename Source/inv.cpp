@@ -8,6 +8,7 @@
 #include "textures/textures.h" //Fluffy: For rendering 32-bit textures
 #include "render/sdl-render.h" //Fluffy: For rendering 32-bit textures
 #include "ui/hotbar.h" //Fluffy: For linking items to hotbar
+#include "ui/paperdoll.h" //Fluffy
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -437,6 +438,9 @@ void DrawInv(CelOutputBuffer out)
 			DrawCursorItemWrapper(out, InvRect[j + SLOTXY_INV_FIRST].X + RIGHT_PANEL_X, InvRect[j + SLOTXY_INV_FIRST].Y - 1, frame, frame_width, 0, plr[myplr].InvList[ii]._iStatFlag == 0, pcursinvitem == ii + INVITEM_INV_FIRST, color); //Fluffy
 		}
 	}
+
+	if (sgOptions.Graphics.bPaperdoll) //Fluffy
+		Paperdoll_Render(RIGHT_PANEL_X, 0);
 }
 
 void DrawInvBelt(CelOutputBuffer out)

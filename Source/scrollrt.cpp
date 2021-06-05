@@ -1856,10 +1856,11 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 	Lightmap_SubtilePreview();
 #endif
 
-	//Fluffy: Mosaic test on player
-	{
-		int posX = 408;
-		int posY = 133;
+	//Fluffy: Mosaic on player if "naked"
+	if (sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE && plr[myplr].InvBody[INVLOC_CHEST].isEmpty()) {
+		int posX = (gnScreenWidth / 2) - 16;
+		int posY = ((gnScreenHeight - PANEL_HEIGHT) / 2) - 45;
+
 		if (!zoomflag) {
 			posX -= TILE_WIDTH / 2;
 			posY -= TILE_WIDTH / 2;
