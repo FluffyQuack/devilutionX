@@ -1201,6 +1201,8 @@ void DeleteObject_(int oi, int i)
 	dObject[ox][oy] = 0;
 	objectavail[-nobjects + MAXOBJECTS] = oi;
 	nobjects--;
+	if (pcursobj == oi) //Fluffy: Unselect object if this was highlighted by player
+		pcursobj = -1;
 	if (nobjects > 0 && i != nobjects)
 		objectactive[i] = objectactive[nobjects];
 }

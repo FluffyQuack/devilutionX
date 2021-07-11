@@ -333,21 +333,20 @@ void CheckCursMove()
 		my = MAXDUNY - 1;
 	}
 
-	if (sgbMouseDown == CLICK_LEFT) { //Fluffy: While holding down left click we should keep target (but potentially lose it if it dies or goes out of view)
+	// While holding down left click we should retain target (but potentially lose it if it dies, goes out of view, etc)
+	if (sgbMouseDown == CLICK_LEFT && pcursinvitem == -1) {
 		if (pcursmonst != -1) {
-			if (monster[pcursmonst]._mDelFlag || monster[pcursmonst]._mhitpoints >> 6 <= 0 || !(dFlags[monster[pcursmonst]._mx][monster[pcursmonst]._my] & BFLAG_VISIBLE))
-				//Fluffy TODO: In DeleteMonster() we should check if selected monster is deleted and remove selection there as well as a fail safe
+			if (monster[pcursmonst]._mDelFlag || monster[pcursmonst]._mhitpoints >> 6 <= 0
+			    || !(dFlags[monster[pcursmonst]._mx][monster[pcursmonst]._my] & BFLAG_VISIBLE))
 				pcursmonst = -1;
 		} else if (pcursobj != -1) {
-			if (object[pcursobj]._oSelFlag < 1)
+			if (object[pcursobj]._oDelFlag || object[pcursobj]._oSelFlag < 1)
 				pcursobj = -1;
-			//Fluffy TODO: Check if object has been deleted?
-		} else if (pcursitem != -1) {
-			//Fluffy TODO
-		} else if (pcursinvitem != -1) {
-			//Fluffy TODO
 		} else if (pcursplr != -1) {
-			//Fluffy TODO
+			if (plr[pcursplr]._pmode == PM_DEATH || plr[pcursplr]._pmode == PM_QUIT || !plr[pcursplr].plractive
+			    || currlevel != plr[pcursplr].plrlevel || plr[pcursplr]._pHitPoints >> 6 <= 0
+			    || !(dFlags[plr[pcursplr]._px][plr[pcursplr]._px] & BFLAG_VISIBLE))
+				pcursplr = -1;
 		}
 
 		if (pcursmonst == -1 && pcursobj == -1 && pcursitem == -1 && pcursinvitem == -1 && pcursplr == -1) {

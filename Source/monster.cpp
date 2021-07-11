@@ -4675,6 +4675,8 @@ void DeleteMonsterList()
 	i = MAX_PLRS;
 	while (i < nummonsters) {
 		if (monster[monstactive[i]]._mDelFlag) {
+			if (pcursmonst == monstactive[i]) //Fluffy: Unselect monster if player highlighted it
+				pcursmonst = -1;
 			DeleteMonster(i);
 			i = 0; // TODO: check if this should be MAX_PLRS.
 		} else {

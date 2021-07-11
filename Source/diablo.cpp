@@ -2346,6 +2346,13 @@ void LoadGameLevel(BOOL firstflag, int lvldir)
 			Texture_ConvertCEL_DungeonTiles(pDungeonCels, TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE);
 		}
 	}
+
+	//Fluffy: Reset mouse selection of entities
+	pcursmonst = -1;
+	pcursobj = -1;
+	pcursitem = -1;
+	pcursinvitem = -1;
+	pcursplr = -1;
 }
 
 static void game_logic()

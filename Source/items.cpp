@@ -3224,6 +3224,8 @@ void DeleteItem(int ii, int i)
 	numitems--;
 	if (numitems > 0 && i != numitems)
 		itemactive[i] = itemactive[numitems];
+	if (pcursitem == ii) //Fluffy: Unselect item if player has it highlighted
+		pcursitem = -1;
 }
 
 void ItemDoppel()

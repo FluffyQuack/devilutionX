@@ -3985,9 +3985,8 @@ void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 				NetSendCmdLoc(TRUE, CMD_RATTACKXY, cursmx, cursmy);
 			else
 				NetSendCmdLoc(TRUE, CMD_SATTACKXY, cursmx, cursmy);
-			if (mouseClick) { //Fluffy
+			if (mouseClick) //Fluffy
 				lastRightMouseButtonAction = MOUSEACTION_ATTACK;
-			}
 		} else {
 			if (plr[myplr]._pClass == PC_WARRIOR) {
 				PlaySFX(PS_WARR34);
@@ -4074,26 +4073,29 @@ void CheckPlrSpell(bool mouseClick) //Fluffy: Added mouseClick
 			sl = GetSpellLevel(myplr, plr[myplr]._pRSpell);
 			NetSendCmdLocParam2(TRUE, CMD_SPELLXY, cursmx, cursmy, plr[myplr]._pRSpell, sl);
 		}
-		if (mouseClick) { //Fluffy
+		if (mouseClick) //Fluffy
 			lastRightMouseButtonAction = MOUSEACTION_SPELL;
-		}
 		return;
 	}
 
 	if (plr[myplr]._pRSplType == RSPLTYPE_SPELL) {
-		if (plr[myplr]._pClass == PC_WARRIOR) {
-			PlaySFX(PS_WARR35);
-		} else if (plr[myplr]._pClass == PC_ROGUE) {
-			PlaySFX(PS_ROGUE35);
-		} else if (plr[myplr]._pClass == PC_SORCERER) {
-			PlaySFX(PS_MAGE35);
-		} else if (plr[myplr]._pClass == PC_MONK) {
-			PlaySFX(PS_MONK35);
-		} else if (plr[myplr]._pClass == PC_BARD) {
-			PlaySFX(PS_ROGUE35);
-		} else if (plr[myplr]._pClass == PC_BARBARIAN) {
-			PlaySFX(PS_WARR35);
+		if (!mouseClick || lastRightMouseButtonAction != MOUSEACTION_SPELL_COMPLAINEDABOUTMANA) { //Fluffy
+			if (plr[myplr]._pClass == PC_WARRIOR) {
+				PlaySFX(PS_WARR35);
+			} else if (plr[myplr]._pClass == PC_ROGUE) {
+				PlaySFX(PS_ROGUE35);
+			} else if (plr[myplr]._pClass == PC_SORCERER) {
+				PlaySFX(PS_MAGE35);
+			} else if (plr[myplr]._pClass == PC_MONK) {
+				PlaySFX(PS_MONK35);
+			} else if (plr[myplr]._pClass == PC_BARD) {
+				PlaySFX(PS_ROGUE35);
+			} else if (plr[myplr]._pClass == PC_BARBARIAN) {
+				PlaySFX(PS_WARR35);
+			}
 		}
+		if (mouseClick) //Fluffy
+			lastRightMouseButtonAction = MOUSEACTION_SPELL_COMPLAINEDABOUTMANA;
 	}
 }
 
