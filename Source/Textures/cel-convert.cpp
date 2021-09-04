@@ -169,13 +169,16 @@ static void ConvertCELtoSDL_Outline(textureFrame_s *textureFrame, unsigned char 
 		for (int i = frameWidth; i;) {
 			if (*bufferPtr == 1) {
 				if (bufferPtr < bufferOneRow || bufferPtr[-frameWidth] == 0)
-					(int &)dst[dstPitch] = 0xFFFFFFFF;
+					(int &)dst[dstPitch] = UINT_MAX;
 				if (i == frameWidth || bufferPtr <= buffer || bufferPtr[-1] == 0)
-					(int &)dst[-4] = 0xFFFFFFFF;
+					(int &)dst[-4] = UINT_MAX;
 				if (i == 1 || bufferPtr + 1 >= bufferEnd || bufferPtr[1] == 0)
-					(int &)dst[4] = 0xFFFFFFFF;
-				if (bufferPtr + frameWidth >= bufferEnd || bufferPtr[frameWidth] == 0)
-					(int &)dst[-dstPitch] = 0xFFFFFFFF;
+					(int &)dst[4] = UINT_MAX;
+				if (bufferPtr + frameWidth >= bufferEnd || bufferPtr[frameWidth] == 0) {
+					dst -= dstPitch;
+					(int &)dst[0] = UINT_MAX;
+					dst += dstPitch;
+					}
 			}
 			bufferPtr += 1;
 			dst += 4;
