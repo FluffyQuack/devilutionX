@@ -7,8 +7,7 @@
       "buildRoot": "${workspaceRoot}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "inheritEnvironments": [ "msvc_x64" ],
-      "intelliSenseMode": "windows-msvc-x64",
-      "variables": []
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x64-Release",
@@ -18,8 +17,7 @@
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "-DBINARY_RELEASE=ON",
       "inheritEnvironments": [ "msvc_x64" ],
-      "intelliSenseMode": "windows-msvc-x64",
-      "variables": []
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x86-Debug",
@@ -28,8 +26,7 @@
       "buildRoot": "${workspaceRoot}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "inheritEnvironments": [ "msvc_x86" ],
-      "intelliSenseMode": "windows-msvc-x86",
-      "variables": []
+      "intelliSenseMode": "windows-msvc-x86"
     },
     {
       "name": "x86-Release",
@@ -39,8 +36,7 @@
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "-DBINARY_RELEASE=ON",
       "inheritEnvironments": [ "msvc_x86" ],
-      "intelliSenseMode": "windows-msvc-x86",
-      "variables": []
+      "intelliSenseMode": "windows-msvc-x86"
     }
   ]
 }
