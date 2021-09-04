@@ -3,8 +3,10 @@
 #include "../all.h"
 #include "textures.h"
 #include "../render/lightmap.h"
-#include <sdl_image.h>
 #include "../options.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -78,19 +80,20 @@ void Textures_LoadTexture(int textureNum, char *filePath, int frameCount)
 		}
 
 		//Load texture file
-		SDL_Surface *loadedSurface = IMG_Load(pathToUse);
-		//TODO: Use IMG_LoadTexture() instead?
-
-		if (loadedSurface == NULL) { //Texture load failed
+		int width, height, channels;
+		unsigned char *imgData = stbi_load(pathToUse, &width, &height, &channels, 0);
+		if (imgData == NULL) { //Texture load failed
 			ErrSdl(); //TODO Quit with proper error message
 		} else { //Successful load
-			textureFrame->frame = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-			if (textureFrame->frame == 0) {
+			textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, width, height);
+			if (textureFrame->frame == NULL) {
 				ErrSdl(); //TODO Quit with proper error message
 			}
-			textureFrame->width = loadedSurface->w;
-			textureFrame->height = loadedSurface->h;
-			textureFrame->channels = loadedSurface->format->BytesPerPixel;
+			if (SDL_UpdateTexture(textureFrame->frame, NULL, imgData, width * channels) < 0)
+				ErrSdl(); //TODO Quit with proper error message
+			textureFrame->width = width;
+			textureFrame->height = height;
+			textureFrame->channels = channels;
 			textureFrame->offsetX = 0;
 			textureFrame->offsetY = 0;
 			textureFrame->cropX1 = 0;
@@ -99,7 +102,7 @@ void Textures_LoadTexture(int textureNum, char *filePath, int frameCount)
 			textureFrame->cropY2 = 0;
 			if (SDL_SetTextureBlendMode(textureFrame->frame, SDL_BLENDMODE_BLEND) < 0)
 				ErrSdl();
-			SDL_FreeSurface(loadedSurface);
+			stbi_image_free(imgData);
 			totalTextureSize += textureFrame->height * textureFrame->width * textureFrame->channels;
 		}
 	}

@@ -2,7 +2,7 @@
 
 #include "../all.h"
 #include "textures.h"
-#include <sdl_image.h>
+#include "stb_image.h"
 
 DEVILUTION_BEGIN_NAMESPACE
 
@@ -16,7 +16,7 @@ enum {
 	//CELDATAFORMAT_TYPE5,
 };
 
-static SDL_Surface *mask1 = 0; //Fluffy debug: Mask for modifying textures we're loading
+static unsigned char *maskImgData = 0; //Fluffy debug: Mask for modifying textures we're loading
 
 static int GetCelHeight(unsigned char *src, unsigned char *dataEnd, int frameWidth)
 {
@@ -478,20 +478,17 @@ static void ConvertCELtoSDL(textureFrame_s *textureFrame, unsigned char *celData
 	}
 
 	//Fluffy debug: Use mask for ceiling tiles
-	unsigned char *pixels = 0;
-	if (mask1) {
-		pixels = (unsigned char *)mask1->pixels;
-
+	if (maskImgData) {
 		unsigned int pos = 0;
 		while (pos < textureFrame->width * textureFrame->height * textureFrame->channels) {
 			if (imgData[pos + 0] > 0) {
-				if (pixels[pos + 0] == 0) {
+				if (maskImgData[pos + 3] == 0) {
 					imgData[pos + 0] = 0;
 					imgData[pos + 1] = 0;
 					imgData[pos + 2] = 0;
 					imgData[pos + 3] = 0;
-				} else if (pixels[pos + 3] < 255) {
-					imgData[pos + 0] = pixels[pos + 3];
+				} else if (maskImgData[pos + 0] < 255) {
+					imgData[pos + 0] = maskImgData[pos + 0];
 				}
 			}
 			pos += 4;
@@ -654,22 +651,25 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 	Texture_UnloadTexture(textureNum); //Unload if it's already loaded
 
 	//Fluffy debug: Load masks
-	if (textureNum == TEXTURE_DUNGEONTILES_LEFTFOLIAGE)
-		mask1 = IMG_Load("data/textures/tiles/LeftFoliageMask.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTFOLIAGE)
-		mask1 = IMG_Load("data/textures/tiles/RightFoliageMask.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASK)
-		mask1 = IMG_Load("data/textures/tiles/LeftMaskTransparent.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASK)
-		mask1 = IMG_Load("data/textures/tiles/RightMaskTransparent.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKINVERTED)
-		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls-Invert.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED)
-		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE)
-		mask1 = IMG_Load("data/textures/tiles/LeftMaskNulls.png");
-	else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
-		mask1 = IMG_Load("data/textures/tiles/RightMaskNulls.png");
+	{
+		int width, height, channels;
+		if (textureNum == TEXTURE_DUNGEONTILES_LEFTFOLIAGE)
+			maskImgData = stbi_load("data/textures/tiles/LeftFoliageMask.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTFOLIAGE)
+			maskImgData = stbi_load("data/textures/tiles/RightFoliageMask.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASK)
+			maskImgData = stbi_load("data/textures/tiles/LeftMaskTransparent.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASK)
+			maskImgData = stbi_load("data/textures/tiles/RightMaskTransparent.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKINVERTED)
+			maskImgData = stbi_load("data/textures/tiles/LeftMaskNulls-Invert.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKINVERTED)
+			maskImgData = stbi_load("data/textures/tiles/RightMaskNulls-Invert-OneRowTaller.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_LEFTMASKOPAQUE)
+			maskImgData = stbi_load("data/textures/tiles/LeftMaskNulls.png", &width, &height, &channels, 0);
+		else if (textureNum == TEXTURE_DUNGEONTILES_RIGHTMASKOPAQUE)
+			maskImgData = stbi_load("data/textures/tiles/RightMaskNulls.png", &width, &height, &channels, 0);
+	}
 
 	//Create textureFrame_s pointer array
 	int frameCount = (int &)*celData;
@@ -739,13 +739,13 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 	}
 
 	//Debug: Output micro-tile atlas as TGA
-	if (mask1 == 0 && 0)
+	if (maskImgData == 0 && 0)
 		SaveAsTGA(atlasSizeX, atlasSizeY, atlasImgData, "MicroTiles.tga");
 
 	//Fluffy debug: Unload masks
-	if (mask1)
-		SDL_FreeSurface(mask1);
-	mask1 = 0;
+	if (maskImgData)
+		stbi_image_free(maskImgData);
+	maskImgData = 0;
 
 	texture->loaded = true;
 	texture->usesAtlas = true;
