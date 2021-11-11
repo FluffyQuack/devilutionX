@@ -179,8 +179,6 @@ void DrawXPBar(CelOutputBuffer out)
 	if (!sgOptions.Gameplay.bExperienceBar)
 		return;
 
-	//Fluffy TODO: Render this in Hardware
-
 	int barWidth = 306;
 	int barHeight = 5;
 	int yPos = gnScreenHeight - 9;                 // y position of xp bar
@@ -205,15 +203,50 @@ void DrawXPBar(CelOutputBuffer out)
 	int prevXpDelta = ExpLvlsTbl[charLevel] - prevXp;
 	int visibleBar = barWidth * prevXpDelta_1 / prevXpDelta;
 
-	FillRect(out, xPos, yPos, barWidth, barHeight, emptyBarColor);
-	FastDrawHorizLine(out, xPos - 1, yPos - 1, barWidth + 2, frameColor);
-	FastDrawHorizLine(out, xPos - 1, yPos + barHeight, barWidth + 2, frameColor);
-	FastDrawVertLine(out, xPos - 1, yPos - 1, barHeight + 2, frameColor);
-	FastDrawVertLine(out, xPos + barWidth, yPos - 1, barHeight + 2, frameColor);
-	for (int i = 1; i < numDividers; i++)
-		FastDrawVertLine(out, xPos - 1 + (barWidth * i / numDividers), yPos - dividerHeight + 3, barHeight, 245);
+	if (options_hwUIRendering) { //Fluffy: Render these lines using hardware renderer
+		//Black background
+		SDL_Rect dstRect;
+		dstRect.x = xPos;
+		dstRect.y = yPos;
+		dstRect.w = barWidth;
+		dstRect.h = barHeight;
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderFillRect(renderer, &dstRect);
 
-	FillRect(out, xPos, yPos + (space ? 1 : 0), visibleBar, barHeight - (space ? 2 : 0), barColor);
+		//Outline for the background
+		dstRect.x -= 1;
+		dstRect.y -= 1;
+		dstRect.w += 2;
+		dstRect.h += 2;
+		SDL_SetRenderDrawColor(renderer, 188, 168, 108, 255);
+		SDL_RenderDrawRect(renderer, &dstRect);
+
+		//Vertical dividers
+		SDL_SetRenderDrawColor(renderer, 148, 148, 148, 255);
+		for (int i = 1; i < numDividers; i++) {
+			int x = xPos - 1 + (barWidth * i / numDividers);
+			int y = yPos - dividerHeight + 3;
+			SDL_RenderDrawLine(renderer, x, y, x, y + barHeight);
+		}
+
+		//XP bar
+		dstRect.x = xPos;
+		dstRect.y = yPos + (space ? 1 : 0);
+		dstRect.w = visibleBar;
+		dstRect.h = barHeight - (space ? 2 : 0);
+		SDL_SetRenderDrawColor(renderer, 152, 139, 93, 255);
+		SDL_RenderFillRect(renderer, &dstRect);
+	} else {
+		FillRect(out, xPos, yPos, barWidth, barHeight, emptyBarColor);
+		FastDrawHorizLine(out, xPos - 1, yPos - 1, barWidth + 2, frameColor);
+		FastDrawHorizLine(out, xPos - 1, yPos + barHeight, barWidth + 2, frameColor);
+		FastDrawVertLine(out, xPos - 1, yPos - 1, barHeight + 2, frameColor);
+		FastDrawVertLine(out, xPos + barWidth, yPos - 1, barHeight + 2, frameColor);
+		for (int i = 1; i < numDividers; i++)
+			FastDrawVertLine(out, xPos - 1 + (barWidth * i / numDividers), yPos - dividerHeight + 3, barHeight, 245);
+
+		FillRect(out, xPos, yPos + (space ? 1 : 0), visibleBar, barHeight - (space ? 2 : 0), barColor);
+	}
 }
 
 bool HasRoomForGold()
