@@ -1403,7 +1403,6 @@ void InitMissiles()
 	plr[myplr].wReflections = 0;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddHiveExplosion(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	AddMissile(80, 62, 80, 62, midir, MIS_HIVEEXP, mienemy, id, dam, 0);
@@ -1413,7 +1412,6 @@ void AddHiveExplosion(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sin
 	missile[mi]._miDelFlag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 static bool missiles_found_target(Sint32 mi, Sint32 *x, Sint32 *y, Sint32 rad)
 {
 	int i, j, k, tx, ty, dp;
@@ -1447,7 +1445,6 @@ static bool missiles_found_target(Sint32 mi, Sint32 *x, Sint32 *y, Sint32 rad)
 	return found;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddFireRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (LineClear(sx, sy, dx, dy)) {
@@ -1465,7 +1462,6 @@ void AddFireRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 m
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddLightningRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (LineClear(sx, sy, dx, dy)) {
@@ -1483,7 +1479,6 @@ void AddLightningRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sin
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddGreatLightningRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (LineClear(sx, sy, dx, dy)) {
@@ -1501,7 +1496,6 @@ void AddGreatLightningRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddImmolationRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (LineClear(sx, sy, dx, dy)) {
@@ -1519,7 +1513,6 @@ void AddImmolationRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Si
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddStoneRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (LineClear(sx, sy, dx, dy)) {
@@ -1537,7 +1530,6 @@ void AddStoneRune(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddReflection(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int lvl;
@@ -1554,7 +1546,6 @@ void AddReflection(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32
 	missile[mi]._miDelFlag = 0;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddBerserk(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, j, k, tx, ty, dm, r;
@@ -1601,7 +1592,6 @@ void AddBerserk(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 mi
 	missile[mi]._miDelFlag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddHorkSpawn(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	GetMissileVel(mi, sx, sy, dx, dy, 8);
@@ -1610,7 +1600,6 @@ void AddHorkSpawn(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 
 	PutMissile(mi);
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddJester(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int spell;
@@ -1652,7 +1641,6 @@ void AddJester(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 mid
 	missile[mi]._mirange = 0;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddStealPotions(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, l, k, j, tx, ty, si, ii, pnum;
@@ -1732,7 +1720,6 @@ void AddStealPotions(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint
 	missile[mi]._miDelFlag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddManaTrap(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, pn, k, j, tx, ty, pid;
@@ -1765,7 +1752,6 @@ void AddManaTrap(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 m
 	missile[mi]._miDelFlag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddSpecArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int av;
@@ -1792,7 +1778,6 @@ void AddSpecArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 
 	missile[mi]._miVar3 = av;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddWarp(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int tx, ty, fx, fy, i, dist;
@@ -1834,7 +1819,6 @@ void AddWarp(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 		UseMana(id, SPL_WARP);
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddLightningWall(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	GetMissileVel(mi, sx, sy, dx, dy, 16);
@@ -1850,7 +1834,6 @@ void AddLightningWall(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sin
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddRuneExplosion(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, dmg;
@@ -1878,7 +1861,6 @@ void AddRuneExplosion(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sin
 	missile[mi]._mirange = missile[mi]._miAnimLen - 1;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddImmolation(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i;
@@ -1912,7 +1894,6 @@ void AddImmolation(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32
 	missile[mi]._mlid = AddLight(sx, sy, 8);
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddFireNova(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i;
@@ -1940,7 +1921,6 @@ void AddFireNova(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 m
 	missile[mi]._mlid = AddLight(sx, sy, 8);
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddLightningArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (sx == dx && sy == dy) {
@@ -1960,12 +1940,10 @@ void AddLightningArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Si
 	missile[mi]._midam <<= 6;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddFlashFront(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddFlashBack(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (mienemy == TARGET_MONSTERS && id != -1) {
@@ -1977,7 +1955,6 @@ void AddFlashBack(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddMana(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, ManaAmount;
@@ -2004,7 +1981,6 @@ void AddMana(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 	drawmanaflag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddMagi(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	plr[id]._pMana = plr[id]._pMaxMana;
@@ -2014,7 +1990,6 @@ void AddMagi(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 	drawmanaflag = TRUE;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddRing(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	missile[mi]._miDelFlag = TRUE;
@@ -2032,7 +2007,6 @@ void AddRing(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir
 	missile[mi]._mirange = 7;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddSearch(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i, mx, r1, r2;
@@ -2071,7 +2045,6 @@ void AddSearch(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 mid
 	}
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddCboltArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	if (mienemy == TARGET_MONSTERS) {
@@ -2097,7 +2070,6 @@ void AddCboltArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32
 	missile[mi]._mirange = 256;
 }
 
-//Fluffy TODO: Update in relation to gSpeedMod?
 void AddHboltArrow(Sint32 mi, Sint32 sx, Sint32 sy, Sint32 dx, Sint32 dy, Sint32 midir, Sint8 mienemy, Sint32 id, Sint32 dam)
 {
 	int i;
@@ -3884,14 +3856,13 @@ void MI_Firewall(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_Fireball(Sint32 i)
 {
 	int dam, id, px, py, mx, my;
 
 	id = missile[i]._misource;
 	dam = missile[i]._midam;
-	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	if (missile[i]._micaster == TARGET_MONSTERS) {
 		px = plr[id]._px;
@@ -3916,39 +3887,41 @@ void MI_Fireball(Sint32 i)
 			mx = missile[i]._mix;
 			my = missile[i]._miy;
 			ChangeLight(missile[i]._mlid, missile[i]._mix, my, missile[i]._miAnimFrame);
-			if (!CheckBlock(px, py, mx, my))
-				CheckMissileCol(i, dam, dam, 0, mx, my, 1);
-			if (!CheckBlock(px, py, mx, my + 1))
-				CheckMissileCol(i, dam, dam, 0, mx, my + 1, 1);
-			if (!CheckBlock(px, py, mx, my - 1))
-				CheckMissileCol(i, dam, dam, 0, mx, my - 1, 1);
-			if (!CheckBlock(px, py, mx + 1, my))
-				CheckMissileCol(i, dam, dam, 0, mx + 1, my, 1);
-			if (!CheckBlock(px, py, mx + 1, my - 1))
-				CheckMissileCol(i, dam, dam, 0, mx + 1, my - 1, 1);
-			if (!CheckBlock(px, py, mx + 1, my + 1))
-				CheckMissileCol(i, dam, dam, 0, mx + 1, my + 1, 1);
-			if (!CheckBlock(px, py, mx - 1, my))
-				CheckMissileCol(i, dam, dam, 0, mx - 1, my, 1);
-			if (!CheckBlock(px, py, mx - 1, my + 1))
-				CheckMissileCol(i, dam, dam, 0, mx - 1, my + 1, 1);
-			if (!CheckBlock(px, py, mx - 1, my - 1))
-				CheckMissileCol(i, dam, dam, 0, mx - 1, my - 1, 1);
-			if (!TransList[dTransVal[mx][my]]
-			    || (missile[i]._mixvel < 0 && ((TransList[dTransVal[mx][my + 1]] && nSolidTable[dPiece[mx][my + 1]]) || (TransList[dTransVal[mx][my - 1]] && nSolidTable[dPiece[mx][my - 1]])))) {
-				missile[i]._mix++;
-				missile[i]._miy++;
-				missile[i]._miyoff -= 32;
-			}
-			if (missile[i]._miyvel > 0
-			    && (TransList[dTransVal[mx + 1][my]] && nSolidTable[dPiece[mx + 1][my]]
-			        || TransList[dTransVal[mx - 1][my]] && nSolidTable[dPiece[mx - 1][my]])) {
-				missile[i]._miyoff -= 32;
-			}
-			if (missile[i]._mixvel > 0
-			    && (TransList[dTransVal[mx][my + 1]] && nSolidTable[dPiece[mx][my + 1]]
-			        || TransList[dTransVal[mx][my - 1]] && nSolidTable[dPiece[mx][my - 1]])) {
-				missile[i]._mixoff -= 32;
+			if (newGameplayTick) { //Fluffy: This code should only happen every 50ms like the original game (related to gSpeedMod)
+				if (!CheckBlock(px, py, mx, my))
+					CheckMissileCol(i, dam, dam, 0, mx, my, 1);
+				if (!CheckBlock(px, py, mx, my + 1))
+					CheckMissileCol(i, dam, dam, 0, mx, my + 1, 1);
+				if (!CheckBlock(px, py, mx, my - 1))
+					CheckMissileCol(i, dam, dam, 0, mx, my - 1, 1);
+				if (!CheckBlock(px, py, mx + 1, my))
+					CheckMissileCol(i, dam, dam, 0, mx + 1, my, 1);
+				if (!CheckBlock(px, py, mx + 1, my - 1))
+					CheckMissileCol(i, dam, dam, 0, mx + 1, my - 1, 1);
+				if (!CheckBlock(px, py, mx + 1, my + 1))
+					CheckMissileCol(i, dam, dam, 0, mx + 1, my + 1, 1);
+				if (!CheckBlock(px, py, mx - 1, my))
+					CheckMissileCol(i, dam, dam, 0, mx - 1, my, 1);
+				if (!CheckBlock(px, py, mx - 1, my + 1))
+					CheckMissileCol(i, dam, dam, 0, mx - 1, my + 1, 1);
+				if (!CheckBlock(px, py, mx - 1, my - 1))
+					CheckMissileCol(i, dam, dam, 0, mx - 1, my - 1, 1);
+				if (!TransList[dTransVal[mx][my]]
+					|| (missile[i]._mixvel < 0 && ((TransList[dTransVal[mx][my + 1]] && nSolidTable[dPiece[mx][my + 1]]) || (TransList[dTransVal[mx][my - 1]] && nSolidTable[dPiece[mx][my - 1]])))) {
+					missile[i]._mix++;
+					missile[i]._miy++;
+					missile[i]._miyoff -= 32;
+				}
+				if (missile[i]._miyvel > 0
+					&& (TransList[dTransVal[mx + 1][my]] && nSolidTable[dPiece[mx + 1][my]]
+						|| TransList[dTransVal[mx - 1][my]] && nSolidTable[dPiece[mx - 1][my]])) {
+					missile[i]._miyoff -= 32;
+				}
+				if (missile[i]._mixvel > 0
+					&& (TransList[dTransVal[mx][my + 1]] && nSolidTable[dPiece[mx][my + 1]]
+						|| TransList[dTransVal[mx][my - 1]] && nSolidTable[dPiece[mx][my - 1]])) {
+					missile[i]._mixoff -= 32;
+				}
 			}
 			missile[i]._mimfnum = 0;
 			SetMissAnim(i, MFILE_BIGEXP);
@@ -3963,12 +3936,11 @@ void MI_Fireball(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_HorkSpawn(Sint32 i)
 {
 	int t, j, k, tx, ty, dp;
 
-	missile[i]._mirange--;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	CheckMissileCol(i, 0, 0, 0, missile[i]._mix, missile[i]._miy, 0);
 	if (missile[i]._mirange <= 0) {
 		missile[i]._miDelFlag = TRUE;
@@ -3989,7 +3961,8 @@ void MI_HorkSpawn(Sint32 i)
 			}
 		}
 	} else {
-		missile[i]._midist++;
+		if(missile[i].tickCount == 0) //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+			missile[i]._midist++;
 		missile[i]._mitxoff += missile[i]._mixvel;
 		missile[i]._mityoff += missile[i]._miyvel;
 		GetMissilePos(i);
@@ -3997,7 +3970,6 @@ void MI_HorkSpawn(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_Rune(Sint32 i)
 {
 	int mid, pid, dir, mx, my;
@@ -4027,12 +3999,11 @@ void MI_Rune(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_LightningWall(Sint32 i)
 {
 	int range;
 
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	range = missile[i]._mirange;
 	CheckMissileCol(i, missile[i]._midam, missile[i]._midam, 1, missile[i]._mix, missile[i]._miy, 0);
 	if (missile[i]._miHitFlag == TRUE)
@@ -4042,10 +4013,9 @@ void MI_LightningWall(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_HiveExplode(Sint32 i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange <= 0) {
 		missile[i]._miDelFlag = TRUE;
 		AddUnLight(missile[i]._mlid);
@@ -4053,7 +4023,6 @@ void MI_HiveExplode(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_Immolation(Sint32 i)
 {
 	int dam, id, px, py, mx, my, xof, yof;
@@ -4061,15 +4030,19 @@ void MI_Immolation(Sint32 i)
 	id = missile[i]._misource;
 	dam = missile[i]._midam;
 
-	if (missile[i]._miVar7 < 0) {
-		int v = 2 * missile[i]._miVar6;
-		missile[i]._miVar6 = v;
-		missile[i]._miVar7 = v;
-		missile[i]._mimfnum--;
-		if (missile[i]._mimfnum < 0)
-			missile[i]._mimfnum = 7;
-	} else {
-		missile[i]._miVar7--;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+		if (missile[i]._miVar7 < 0) {
+			int v = 2 * missile[i]._miVar6;
+			missile[i]._miVar6 = v;
+			missile[i]._miVar7 = v;
+			missile[i]._mimfnum--;
+			if (missile[i]._mimfnum < 0)
+				missile[i]._mimfnum = 7;
+		} else {
+			missile[i]._miVar7--;
+		}
 	}
 
 	switch (missile[i]._mimfnum) {
@@ -4106,7 +4079,6 @@ void MI_Immolation(Sint32 i)
 		yof = missile[i]._miyvel;
 		break;
 	}
-	missile[i]._mirange--;
 
 	if (missile[i]._micaster == TARGET_MONSTERS) {
 		px = plr[id]._px;
@@ -4179,12 +4151,11 @@ void MI_Immolation(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_LightningArrow(Sint32 i)
 {
 	int pn, dam, mx, my;
 
-	missile[i]._mirange--;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	missile[i]._mitxoff += missile[i]._mixvel;
 	missile[i]._mityoff += missile[i]._miyvel;
 	GetMissilePos(i);
@@ -4204,51 +4175,53 @@ void MI_LightningArrow(Sint32 i)
 		missile[i]._mirange = 0;
 	}
 
-	if (!nMissileTable[pn]) {
-		if ((mx != missile[i]._miVar1 || my != missile[i]._miVar2) && mx > 0 && my > 0 && mx < MAXDUNX && my < MAXDUNY) {
-			if (missile[i]._misource != -1) {
-				if (missile[i]._micaster == TARGET_PLAYERS
-				    && monster[missile[i]._misource].MType->mtype >= MT_STORM
-				    && monster[missile[i]._misource].MType->mtype <= MT_MAEL) {
-					AddMissile(
-					    missile[i]._mix,
-					    missile[i]._miy,
-					    missile[i]._misx,
-					    missile[i]._misy,
-					    i,
-					    MIS_LIGHTNING2,
-					    missile[i]._micaster,
-					    missile[i]._misource,
-					    missile[i]._midam,
-					    missile[i]._mispllvl);
+	if (newGameplayTick) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+		if (!nMissileTable[pn]) {
+			if ((mx != missile[i]._miVar1 || my != missile[i]._miVar2) && mx > 0 && my > 0 && mx < MAXDUNX && my < MAXDUNY) {
+				if (missile[i]._misource != -1) {
+					if (missile[i]._micaster == TARGET_PLAYERS
+						&& monster[missile[i]._misource].MType->mtype >= MT_STORM
+						&& monster[missile[i]._misource].MType->mtype <= MT_MAEL) {
+						AddMissile(
+							missile[i]._mix,
+							missile[i]._miy,
+							missile[i]._misx,
+							missile[i]._misy,
+							i,
+							MIS_LIGHTNING2,
+							missile[i]._micaster,
+							missile[i]._misource,
+							missile[i]._midam,
+							missile[i]._mispllvl);
+					} else {
+						AddMissile(
+							missile[i]._mix,
+							missile[i]._miy,
+							missile[i]._misx,
+							missile[i]._misy,
+							i,
+							MIS_LIGHTNING,
+							missile[i]._micaster,
+							missile[i]._misource,
+							missile[i]._midam,
+							missile[i]._mispllvl);
+					}
 				} else {
 					AddMissile(
-					    missile[i]._mix,
-					    missile[i]._miy,
-					    missile[i]._misx,
-					    missile[i]._misy,
-					    i,
-					    MIS_LIGHTNING,
-					    missile[i]._micaster,
-					    missile[i]._misource,
-					    missile[i]._midam,
-					    missile[i]._mispllvl);
+						missile[i]._mix,
+						missile[i]._miy,
+						missile[i]._misx,
+						missile[i]._misy,
+						i,
+						MIS_LIGHTNING,
+						missile[i]._micaster,
+						missile[i]._misource,
+						missile[i]._midam,
+						missile[i]._mispllvl);
 				}
-			} else {
-				AddMissile(
-				    missile[i]._mix,
-				    missile[i]._miy,
-				    missile[i]._misx,
-				    missile[i]._misy,
-				    i,
-				    MIS_LIGHTNING,
-				    missile[i]._micaster,
-				    missile[i]._misource,
-				    missile[i]._midam,
-				    missile[i]._mispllvl);
+				missile[i]._miVar1 = missile[i]._mix;
+				missile[i]._miVar2 = missile[i]._miy;
 			}
-			missile[i]._miVar1 = missile[i]._mix;
-			missile[i]._miVar2 = missile[i]._miy;
 		}
 	}
 
@@ -4257,10 +4230,11 @@ void MI_LightningArrow(Sint32 i)
 	}
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_FlashFront(Sint32 i)
 {
 	int src;
+
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
 	src = missile[i]._misource;
 	if (missile[i]._micaster == TARGET_MONSTERS && src != -1) {
@@ -4269,7 +4243,6 @@ void MI_FlashFront(Sint32 i)
 		missile[i]._mitxoff = plr[src]._pxoff * 65536;
 		missile[i]._mityoff = plr[src]._pyoff * 65536;
 	}
-	missile[i]._mirange--;
 	if (missile[i]._mirange == 0) {
 		missile[i]._miDelFlag = TRUE;
 		if (missile[i]._micaster == TARGET_MONSTERS) {
@@ -4281,22 +4254,21 @@ void MI_FlashFront(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_FlashBack(Sint32 i)
 {
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
 	if (missile[i]._micaster == TARGET_MONSTERS) {
 		if (missile[i]._misource != -1) {
 			missile[i]._mix = plr[missile[i]._misource]._pfutx;
 			missile[i]._miy = plr[missile[i]._misource]._pfuty;
 		}
 	}
-	missile[i]._mirange--;
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_Reflect(Sint32 i)
 {
 	int src;
@@ -4312,11 +4284,13 @@ void MI_Reflect(Sint32 i)
 		missile[i]._misy = plr[src]._py - 1;
 	}
 	GetMissilePos(i);
-	if (plr[src]._pmode == PM_WALK3) {
-		if (plr[src]._pdir == DIR_W)
-			missile[i]._mix++;
-		else
-			missile[i]._miy++;
+	if (missile[i].tickCount == 0) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+		if (plr[src]._pmode == PM_WALK3) {
+			if (plr[src]._pdir == DIR_W)
+				missile[i]._mix++;
+			else
+				missile[i]._miy++;
+		}
 	}
 	if (src != myplr && currlevel != plr[src].plrlevel)
 		missile[i]._miDelFlag = TRUE;
@@ -4327,7 +4301,6 @@ void MI_Reflect(Sint32 i)
 	PutMissile(i);
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_FireRing(Sint32 i)
 {
 	int src, tx, ty, dmg, k, j, dp, b;
@@ -4359,7 +4332,6 @@ void MI_FireRing(Sint32 i)
 	}
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_LightningRing(Sint32 i)
 {
 	int src, tx, ty, dmg, k, j, dp, b;
@@ -4391,10 +4363,9 @@ void MI_LightningRing(Sint32 i)
 	}
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_Search(Sint32 i)
 {
-	missile[i]._mirange--;
+	UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	if (missile[i]._mirange == 0) {
 		missile[i]._miDelFlag = TRUE;
 		PlaySfxLoc(IS_CAST7, plr[missile[i]._miVar1]._px, plr[missile[i]._miVar1]._py);
@@ -4402,117 +4373,122 @@ void MI_Search(Sint32 i)
 	}
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_LightningWallC(Sint32 i)
 {
-	missile[i]._mirange--;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 	int id = missile[i]._misource;
 	int lvl = 0;
 	if (id > 0)
 		lvl = plr[id]._pLevel;
-	int dmg = 16 * (random_(53, 10) + random_(53, 10) + lvl + 2);
 	if (missile[i]._mirange == 0) {
 		missile[i]._miDelFlag = TRUE;
 	} else {
-		int dp = dPiece[missile[i]._miVar1][missile[i]._miVar2];
-		assert(dp <= MAXTILES && dp >= 0);
-		int tx = missile[i]._miVar1 + XDirAdd[missile[i]._miVar3];
-		int ty = missile[i]._miVar2 + YDirAdd[missile[i]._miVar3];
-		if (!nMissileTable[dp] && missile[i]._miVar8 == 0 && tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY) {
-			AddMissile(missile[i]._miVar1, missile[i]._miVar2, missile[i]._miVar1, missile[i]._miVar2, plr[id]._pdir, MIS_LIGHTWALL, TARGET_BOTH, id, dmg, missile[i]._mispllvl);
-			missile[i]._miVar1 = tx;
-			missile[i]._miVar2 = ty;
-		} else {
-			missile[i]._miVar8 = 1;
-		}
-		dp = dPiece[missile[i]._miVar5][missile[i]._miVar6];
-		assert(dp <= MAXTILES && dp >= 0);
-		tx = missile[i]._miVar5 + XDirAdd[missile[i]._miVar4];
-		ty = missile[i]._miVar6 + YDirAdd[missile[i]._miVar4];
-		if (!nMissileTable[dp] && missile[i]._miVar7 == 0 && tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY) {
-			AddMissile(missile[i]._miVar5, missile[i]._miVar6, missile[i]._miVar5, missile[i]._miVar6, plr[id]._pdir, MIS_LIGHTWALL, TARGET_BOTH, id, dmg, missile[i]._mispllvl);
-			missile[i]._miVar5 = tx;
-			missile[i]._miVar6 = ty;
-		} else {
-			missile[i]._miVar7 = 1;
+		if (newGameplayTick) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+			int dmg = 16 * (random_(53, 10) + random_(53, 10) + lvl + 2);
+			int dp = dPiece[missile[i]._miVar1][missile[i]._miVar2];
+			assert(dp <= MAXTILES && dp >= 0);
+			int tx = missile[i]._miVar1 + XDirAdd[missile[i]._miVar3];
+			int ty = missile[i]._miVar2 + YDirAdd[missile[i]._miVar3];
+			if (!nMissileTable[dp] && missile[i]._miVar8 == 0 && tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY) {
+				AddMissile(missile[i]._miVar1, missile[i]._miVar2, missile[i]._miVar1, missile[i]._miVar2, plr[id]._pdir, MIS_LIGHTWALL, TARGET_BOTH, id, dmg, missile[i]._mispllvl);
+				missile[i]._miVar1 = tx;
+				missile[i]._miVar2 = ty;
+			} else {
+				missile[i]._miVar8 = 1;
+			}
+			dp = dPiece[missile[i]._miVar5][missile[i]._miVar6];
+			assert(dp <= MAXTILES && dp >= 0);
+			tx = missile[i]._miVar5 + XDirAdd[missile[i]._miVar4];
+			ty = missile[i]._miVar6 + YDirAdd[missile[i]._miVar4];
+			if (!nMissileTable[dp] && missile[i]._miVar7 == 0 && tx > 0 && tx < MAXDUNX && ty > 0 && ty < MAXDUNY) {
+				AddMissile(missile[i]._miVar5, missile[i]._miVar6, missile[i]._miVar5, missile[i]._miVar6, plr[id]._pdir, MIS_LIGHTWALL, TARGET_BOTH, id, dmg, missile[i]._mispllvl);
+				missile[i]._miVar5 = tx;
+				missile[i]._miVar6 = ty;
+			} else {
+				missile[i]._miVar7 = 1;
+			}
 		}
 	}
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_FireNova(Sint32 i)
 {
 	int k, id, sx, sy, dir, en, sx1, sy1, dam;
 
-	sx1 = 0;
-	sy1 = 0;
-	id = missile[i]._misource;
-	dam = missile[i]._midam;
-	sx = missile[i]._mix;
-	sy = missile[i]._miy;
-	if (id != -1) {
-		dir = plr[id]._pdir;
-		en = TARGET_MONSTERS;
-	} else {
-		dir = 0;
-		en = TARGET_PLAYERS;
-	}
-	for (k = 0; k < 23; k++) {
-		if (sx1 != vCrawlTable[k][6] || sy1 != vCrawlTable[k][7]) {
-			AddMissile(sx, sy, sx + vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx - vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx - vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
-			AddMissile(sx, sy, sx + vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
-			sx1 = vCrawlTable[k][6];
-			sy1 = vCrawlTable[k][7];
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
+
+	if (newGameplayTick) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+		sx1 = 0;
+		sy1 = 0;
+		id = missile[i]._misource;
+		dam = missile[i]._midam;
+		sx = missile[i]._mix;
+		sy = missile[i]._miy;
+		if (id != -1) {
+			dir = plr[id]._pdir;
+			en = TARGET_MONSTERS;
+		} else {
+			dir = 0;
+			en = TARGET_PLAYERS;
+		}
+		for (k = 0; k < 23; k++) {
+			if (sx1 != vCrawlTable[k][6] || sy1 != vCrawlTable[k][7]) {
+				AddMissile(sx, sy, sx + vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx - vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx - vCrawlTable[k][6], sy + vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
+				AddMissile(sx, sy, sx + vCrawlTable[k][6], sy - vCrawlTable[k][7], dir, MIS_FIRENOVA, en, id, dam, missile[i]._mispllvl);
+				sx1 = vCrawlTable[k][6];
+				sy1 = vCrawlTable[k][7];
+			}
 		}
 	}
-	missile[i]._mirange--;
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
 
-//Fluffy TODO: Make sure this works in relation to gSpeedMod
 void MI_SpecArrow(Sint32 i)
 {
 	int dir, src, dam, sx, sy, dx, dy, spllvl, mitype, micaster;
 
-	src = missile[i]._misource;
-	dam = missile[i]._midam;
-	sx = missile[i]._mix;
-	sy = missile[i]._miy;
-	dx = missile[i]._miVar1;
-	dy = missile[i]._miVar2;
-	spllvl = missile[i]._miVar3;
-	mitype = 0;
-	if (src != -1) {
-		dir = plr[src]._pdir;
-		micaster = TARGET_MONSTERS;
+	BOOL newGameplayTick = UpdateMissileRangeAndDist(&missile[i], true, false); //Fluffy
 
-		switch (plr[src]._pILMinDam) {
-		case 0:
-			mitype = MIS_FIRENOVA;
-			break;
-		case 1:
-			mitype = MIS_LIGHTARROW;
-			break;
-		case 2:
-			mitype = MIS_CBOLTARROW;
-			break;
-		case 3:
-			mitype = MIS_HBOLTARROW;
-			break;
+	if (newGameplayTick) { //Fluffy: Only update dist once every 50ms like the original game (related to gSpeedMod)
+		src = missile[i]._misource;
+		dam = missile[i]._midam;
+		sx = missile[i]._mix;
+		sy = missile[i]._miy;
+		dx = missile[i]._miVar1;
+		dy = missile[i]._miVar2;
+		spllvl = missile[i]._miVar3;
+		mitype = 0;
+		if (src != -1) {
+			dir = plr[src]._pdir;
+			micaster = TARGET_MONSTERS;
+
+			switch (plr[src]._pILMinDam) {
+			case 0:
+				mitype = MIS_FIRENOVA;
+				break;
+			case 1:
+				mitype = MIS_LIGHTARROW;
+				break;
+			case 2:
+				mitype = MIS_CBOLTARROW;
+				break;
+			case 3:
+				mitype = MIS_HBOLTARROW;
+				break;
+			}
+		} else {
+			dir = 0;
+			micaster = TARGET_PLAYERS;
 		}
-	} else {
-		dir = 0;
-		micaster = TARGET_PLAYERS;
-	}
-	AddMissile(sx, sy, dx, dy, dir, mitype, micaster, src, dam, spllvl);
-	if (mitype == MIS_CBOLTARROW) {
 		AddMissile(sx, sy, dx, dy, dir, mitype, micaster, src, dam, spllvl);
-		AddMissile(sx, sy, dx, dy, dir, mitype, micaster, src, dam, spllvl);
+		if (mitype == MIS_CBOLTARROW) {
+			AddMissile(sx, sy, dx, dy, dir, mitype, micaster, src, dam, spllvl);
+			AddMissile(sx, sy, dx, dy, dir, mitype, micaster, src, dam, spllvl);
+		}
 	}
-	missile[i]._mirange--;
 	if (missile[i]._mirange == 0)
 		missile[i]._miDelFlag = TRUE;
 }
