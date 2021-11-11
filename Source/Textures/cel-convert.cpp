@@ -768,7 +768,9 @@ void Texture_ConvertCEL_DungeonTiles(BYTE *celData, int textureNum, int textureN
 		width = 64;
 		int frame2Count = 452;
 		if (leveltype == DTYPE_TOWN)
-			frame2Count = 1257;
+			//TODO: Choose the value dynamically based on if we're running Diablo or Hellfire
+			//frame2Count = 1257; //Count for normal Diablo
+			frame2Count = 1378; //Count for normal Diablo + Hellfire
 		else if (leveltype == DTYPE_CATHEDRAL && currlevel < 21)
 			frame2Count = 452;
 		else if (leveltype == DTYPE_CATACOMBS)

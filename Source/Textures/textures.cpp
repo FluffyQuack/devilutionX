@@ -214,7 +214,7 @@ void Textures_Init()
 
 		//Generate tile intermediate render target
 		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE, 32, 32, true);
-		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 160, true);
+		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_PIECE, 64, 256, true); //Most dungeon pieces have a height of 160, but they're 256 in Hell and Town tilesets, so we set this height to that
 		GenerateRenderTarget(TEXTURE_TILE_INTERMEDIATE_BIG, gnScreenWidth, gnScreenHeight, true);
 
 		if (sgOptions.Graphics.bInitLightmapping) {

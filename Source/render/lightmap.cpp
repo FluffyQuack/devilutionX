@@ -96,6 +96,8 @@ void Lightmap_LoadSubtileData()
 			goto skipFileLoad;
 		}
 
+		//TODO: Verify the size of the file is what we except for the current tileset (the town expects a different number depending on if this is Hellfire or not)
+
 		fread(&lightInfo_subTilesSize, sizeof(int), 1, file);
 		lightInfo_subTiles = new unsigned char[lightInfo_subTilesSize];
 		fread(lightInfo_subTiles, 1, lightInfo_subTilesSize, file);
@@ -107,7 +109,9 @@ void Lightmap_LoadSubtileData()
 	if (loadedFromFile == false) {
 		lightInfo_subTilesSize = 452;
 		if (leveltype == DTYPE_TOWN)
-			lightInfo_subTilesSize = 1257;
+			//TODO: We need to set this dynamically based on if Diablo or Diablo + Hellfire is loaded
+			//lightInfo_subTilesSize = 1257; //Count for normal Diablo
+			lightInfo_subTilesSize = 1378; //Count for normal Diablo + Hellfire
 		else if (leveltype == DTYPE_CATHEDRAL && currlevel < 21)
 			lightInfo_subTilesSize = 452;
 		else if (leveltype == DTYPE_CATACOMBS)

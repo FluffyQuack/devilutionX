@@ -258,6 +258,11 @@ void UiOkDialog(const char *text, const char *caption, bool error, std::vector<U
 {
 	static bool inDialog = false;
 
+	//Fluffy: Turn off hardware rendering to ensure error message is visible
+	options_hwIngameRendering = false;
+	options_hwUIRendering = false;
+	options_lightmapping = false;
+
 	if (!gbActive || inDialog) {
 		if (SDL_ShowCursor(SDL_ENABLE) <= -1) {
 			SDL_Log(SDL_GetError());
