@@ -85,7 +85,10 @@ void Textures_LoadTexture(int textureNum, char *filePath, int frameCount)
 		if (imgData == NULL) { //Texture load failed
 			ErrSdl(); //TODO Quit with proper error message
 		} else { //Successful load
-			textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, width, height);
+			if(channels == 4)
+				textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, width, height);
+			else
+				textureFrame->frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_BGR888, SDL_TEXTUREACCESS_STATIC, width, height);
 			if (textureFrame->frame == NULL) {
 				ErrSdl(); //TODO Quit with proper error message
 			}
