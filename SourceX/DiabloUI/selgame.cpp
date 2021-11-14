@@ -453,20 +453,27 @@ void selgame_Password_Select(int value)
 		return;
 	}
 
+	//Fluffy: I think this is where gameplay settings are defined for a network game on the host's side (for singleplayer, it's defined in NetInit())
 	GameData *data = m_client_info->initdata;
 	data->nDifficulty = nDifficulty;
-	data->nTickRate = nTickRate;
+	data->nTickRate = sgOptions.Gameplay.nTickRate;
 	data->bRunInTown = sgOptions.Gameplay.bRunInTown;
 	data->bTheoQuest = sgOptions.Gameplay.bTheoQuest;
 	data->bCowQuest = sgOptions.Gameplay.bCowQuest;
+	data->bFriendlyFire = sgOptions.Gameplay.bFriendlyFire;
 
 	//Fluffy
-	data->allowAttacksInTown = gameSetup_allowAttacksInTown;
-	data->safetyJog = gameSetup_safetyJog;
+	data->allowAttacksInTown = sgOptions.Gameplay.bAllowAttacksInTown;
+	data->safetyJog = sgOptions.Gameplay.bSafetyJog;
+	data->bRelayPlayerSpeech = sgOptions.Gameplay.bRelayPlayerSpeech;
 
 	//Fluffy TODO: Should we make it possible to customize these for multiplayer?
-	data->gSpeedMod = nTickRate / 20;
-	data->gMonsterSpeedMod = nTickRate / 20;
+	data->gSpeedMod = sgOptions.Gameplay.nTickRate / 20;
+	data->gMonsterSpeedMod = sgOptions.Gameplay.nTickRate / 20;
+	if (data->gSpeedMod < 1)
+		data->gSpeedMod = 1;
+	if (data->gMonsterSpeedMod < 1)
+		data->gMonsterSpeedMod = 1;
 
 	if (SNetCreateGame(NULL, selgame_Password, NULL, 0, (char *)data, sizeof(GameData), MAX_PLRS, NULL, NULL, gdwPlayerId)) {
 		UiInitList_clear();
