@@ -8,6 +8,12 @@
 
 DEVILUTION_BEGIN_NAMESPACE
 
+//Fluffy: Defines the parts of the sprite that we apply mosaic to if the player is "naked" (these values are based on 96x96 sprites)
+#define MOSAIC_CENSOR_X1 35
+#define MOSAIC_CENSOR_X2 57
+#define MOSAIC_CENSOR_Y1 31
+#define MOSAIC_CENSOR_Y2 60
+
 typedef enum PLR_MODE {
 	PM_STAND,
 	PM_WALK,  //Movement towards N, NW, or NE
@@ -79,6 +85,7 @@ typedef struct PlayerStruct {
 	direction _pdir; // Direction faced by player (direction enum)
 	Sint32 _pgfxnum; // Bitmask indicating what variant of the sprite the player is using. Lower byte define weapon (anim_weapon_id) and higher values define armour (starting with anim_armor_id)
 	Uint8 *_pAnimData;
+	Uint8 *_pAnimData_trn; //Fluffy
 	Sint32 _pAnimDelay; // Tick length of each frame in the current animation
 	Sint32 _pAnimCnt;   // Increases by one each game tick, counting how close we are to _pAnimDelay
 	Sint32 _pAnimLen;   // Number of frames in current animation
@@ -192,6 +199,30 @@ typedef struct PlayerStruct {
 	bool walking;      //If true, player is currently walking slowly aka combat walk (not jogging)
 	int tickCount;     //So we can do safety check at 50ms interval
 
+	//Fluffy: This and the following are for TRN'ed player sprite
+	Uint8 *_pNAnim_trn[8]; // Stand animations
+	Uint8 *_pWAnim_trn[8]; // Walk animations
+	Uint8 *_pAAnim_trn[8]; // Attack animations
+	Uint8 *_pLAnim_trn[8]; // Lightning spell cast animations
+	Uint8 *_pFAnim_trn[8]; // Fire spell cast animations
+	Uint8 *_pTAnim_trn[8]; // Generic spell cast animations
+	Uint8 *_pHAnim_trn[8]; // Getting hit animations
+	Uint8 *_pDAnim_trn[8]; // Death animations
+	Uint8 *_pBAnim_trn[8]; // Block animations
+	Uint8 *_pNAnim_c_trn[8]; //Casual standing animation
+	Uint8 *_pWAnim_c_trn[8]; //Casual walking animation
+	Uint8 *_pNData_trn;
+	Uint8 *_pWData_trn;
+	Uint8 *_pAData_trn;
+	Uint8 *_pLData_trn;
+	Uint8 *_pFData_trn;
+	Uint8 *_pTData_trn;
+	Uint8 *_pHData_trn;
+	Uint8 *_pDData_trn;
+	Uint8 *_pBData_trn;
+	Uint8 *_pNData_c_trn;
+	Uint8 *_pWData_c_trn;
+
 	ItemStruct InvBody[NUM_INVLOC];
 	ItemStruct InvList[NUM_INV_GRID_ELEM];
 	Sint32 _pNumInv;
@@ -265,6 +296,7 @@ extern PlayerStruct plr[MAX_PLRS];
 extern BOOL deathflag;
 extern int ToBlkTbl[NUM_CLASSES];
 
+bool IsPlayerNaked(int pnum); //Fluffy: This is used in relation to the paperdoll feature
 void LoadPlrGFX(int pnum, player_graphic gfxflag);
 void InitPlayerGFX(int pnum);
 void InitPlrGFXMem(int pnum);

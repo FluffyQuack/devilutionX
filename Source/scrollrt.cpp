@@ -533,14 +533,19 @@ static void DrawPlayer(CelOutputBuffer out, int pnum, int x, int y, int px, int 
 	if (pnum == pcursplr)
 		Cl2DrawOutline(out, 165, px, py, pCelBuff, nCel, nWidth);
 
+	//Fluffy: If this is a "naked" Rogue then draw Rogue with modified TRN
+	BYTE *animData = pCelBuff;
+	if (IsPlayerNaked(myplr) && plr[pnum]._pAnimData_trn)
+		animData = plr[pnum]._pAnimData_trn;
+
 	if (pnum == myplr) {
-		Cl2Draw(out, px, py, pCelBuff, nCel, nWidth);
+		Cl2Draw(out, px, py, animData, nCel, nWidth);
 		DrawManaShield(out, pnum, px, py, true);
 		return;
 	}
 
 	if (!(dFlags[x][y] & BFLAG_LIT) || (plr[myplr]._pInfraFlag && light_table_index > 8)) {
-		Cl2DrawLightTbl(out, px, py, pCelBuff, nCel, nWidth, 1);
+		Cl2DrawLightTbl(out, px, py, animData, nCel, nWidth, 1);
 		DrawManaShield(out, pnum, px, py, true);
 		return;
 	}
@@ -551,7 +556,7 @@ static void DrawPlayer(CelOutputBuffer out, int pnum, int x, int y, int px, int 
 	else
 		light_table_index -= 5;
 
-	Cl2DrawLight(out, px, py, pCelBuff, nCel, nWidth);
+	Cl2DrawLight(out, px, py, animData, nCel, nWidth);
 	DrawManaShield(out, pnum, px, py, false);
 
 	light_table_index = l;
@@ -578,7 +583,15 @@ void DrawDeadPlayer(CelOutputBuffer out, int x, int y, int sx, int sy)
 			dFlags[x][y] |= BFLAG_DEAD_PLAYER;
 			px = sx + p->_pxoff - p->_pAnimWidth2;
 			py = sy + p->_pyoff;
-			DrawPlayer(out, i, x, y, px, py, p->_pAnimData, p->_pAnimFrame, p->_pAnimWidth);
+
+			//Fluffy: If this is a "naked" Rogue then draw Rogue with modified TRN
+			BYTE *animData;
+			if (IsPlayerNaked(i) && p->_pAnimData_trn)
+				animData = p->_pAnimData_trn;
+			else
+				animData = p->_pAnimData;
+
+			DrawPlayer(out, i, x, y, px, py, animData, p->_pAnimFrame, p->_pAnimWidth);
 		}
 	}
 }
@@ -1856,18 +1869,30 @@ static void DrawGame(CelOutputBuffer full_out, int x, int y)
 	Lightmap_SubtilePreview();
 #endif
 
-	//Fluffy: Mosaic on player if "naked"
-	if (sgOptions.Graphics.bPaperdoll && plr[myplr]._pClass == PC_ROGUE && plr[myplr].InvBody[INVLOC_CHEST].isEmpty()) {
-		int posX = (gnScreenWidth / 2) - 16;
-		int posY = ((gnScreenHeight - PANEL_HEIGHT) / 2) - 45;
+	//Fluffy: Mosaic on any player if they're "naked"
+	for (int pl = 0; pl < MAX_PLRS; pl++) {
+		if (plr[pl].plractive && currlevel == plr[pl].plrlevel && IsPlayerNaked(pl)) {
 
-		if (!zoomflag) {
-			posX -= TILE_WIDTH / 2;
-			posY -= TILE_WIDTH / 2;
-			posX /= 2;
-			posY /= 2;
+			//Update screen space coordinates based on tile position (also apply exact player offset)
+			int xDiff = plr[pl]._px - x;
+			int yDiff = plr[pl]._py - y;
+			int px = sx + plr[pl]._pxoff + (xDiff * (TILE_WIDTH / 2)) - (yDiff * (TILE_WIDTH / 2));
+			int py = sy + plr[pl]._pyoff + (xDiff * (TILE_HEIGHT / 2)) + (yDiff * (TILE_HEIGHT / 2));
+
+			//We have to adjust position if player is moving horizontally because Diablo's movement system is stupid
+			if (plr[pl]._pmode == PM_WALK3) {
+				if (plr[pl]._pxvel > 0) //Movement towards right
+					px += TILE_WIDTH / 2;
+				else //Movement towards left
+					px -= TILE_WIDTH / 2;
+				py += TILE_HEIGHT / 2;
+			}
+
+			if(plr[pl]._pHitPoints == 0) //If player is dead then render mosaic larger as the sprite will cover a larger part of their image data
+				MosaicSoftwareBuffer(out, px + MOSAIC_CENSOR_X1 - 20, py - MOSAIC_CENSOR_Y2, 32 + 16, 32 + 16, 8);
+			else
+				MosaicSoftwareBuffer(out, px + MOSAIC_CENSOR_X1 - 20, py - MOSAIC_CENSOR_Y2, 32, 32, 8);
 		}
-		MosaicSoftwareBuffer(out, posX, posY, 30, 28, 8);
 	}
 
 	if (!zoomflag) {

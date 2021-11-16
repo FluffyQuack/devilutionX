@@ -34,17 +34,47 @@ const Uint32 RndMult = 0x015A4E35;
 
 void MosaicSoftwareBuffer(CelOutputBuffer out, int sx, int sy, int width, int height, int size) //Fluffy
 {
+	//Alignment to size (round up)
 	width += width % size;
 	height += height % size;
+
+	//Stop if x or y coordinate is too high
+	if (sx >= out.w() || sy >= out.h())
+		return;
+
+	//Crop values to ensure they're all inbounds
+	if(sx < 0)
+		width += sx, sx = 0;
+	else if (sx + width >= out.w())
+		width -= (sx + width) - out.w();
+	if (sy < 0)
+		height += sy, sy = 0;
+	else if (sy + height >= out.h())
+		height -= (sy + height) - out.h();
+
+	//Stop if the cropping means we'd actually not change any pixels
+	if((height == 1 && width == 1) || height < 0 || width < 0)
+		return;
+
 	Uint8 *dst;
+	BYTE *end = out.end();
 	for (int y = 0; y < height; y += size) {
+		if(y >= out.h())
+			break;
 		dst = out.at(sx, sy + y);
 		for (int x = 0; x < width; x += size) {
+			if (x >= out.w())
+				break;
 			for (int i = 0; i < size; i++) {
+				Uint8 blockColor;
+				if (&dst[size / 2] >= end)
+					blockColor = end[-1];
+				else
+					blockColor = dst[size / 2];
+				int yCoord = out.pitch() * i;
 				for (int j = 0; j < size; j++) {
-					if (i == 0 && j == 0)
-						continue;
-					dst[i + (out.pitch() * j)] = dst[0];
+					if (&dst[j + yCoord] < end)
+						dst[j + yCoord] = blockColor;
 				}
 			}
 			dst += size;
@@ -1154,6 +1184,67 @@ DWORD LoadFileWithMem(const char *pszName, BYTE *p)
 	SFileCloseFile(hsFile);
 
 	return dwFileLen;
+}
+
+//Fluffy: Used by Cl2ApplyTransCrop()
+static void UpdateWidthAndHeight(int *curWidth, int *curHeight, int frameWidth, int frameHeight)
+{
+	*curWidth += 1;
+	if (*curWidth == frameWidth) {
+		*curWidth = 0;
+		*curHeight += 1;
+		if (*curHeight == frameHeight)
+			*curHeight = 0;
+	}
+}
+
+//Fluffy: Variant of Cl2ApplyTrans() that lets you specify vertical start and end points of the edit (note, y == 0 is the bottom of the texture)
+void Cl2ApplyTransCrop(BYTE *p, BYTE *ttbl, int nCel, int frameWidth, int frameHeight, int startX, int endX, int startY, int endY)
+{
+	int i, nDataSize, curWidth = 0, curHeight = 0;
+	char width;
+	BYTE *dst;
+
+	assert(p != NULL);
+	assert(ttbl != NULL);
+
+	for (i = 1; i <= nCel; i++) {
+		dst = CelGetFrame(p, i, &nDataSize) + 10;
+		curWidth = 0;
+		curHeight = 0;
+		nDataSize -= 10;
+		while (nDataSize) {
+			width = *dst++;
+			if(width == 0)
+				break;
+			nDataSize--;
+			assert(nDataSize >= 0);
+			if (width < 0) {
+				width = -width;
+				if (width > 65) {
+					nDataSize--;
+					assert(nDataSize >= 0);
+					if (curWidth >= startX && curWidth <= endX && curHeight >= startY && curHeight <= endY)
+						*dst = ttbl[*dst];
+					dst++;
+					for (int i = 0; i < width - 65; i++)
+						UpdateWidthAndHeight(&curWidth, &curHeight, frameWidth, frameHeight);
+				} else {
+					nDataSize -= width;
+					assert(nDataSize >= 0);
+					while (width--) {
+						if (curWidth >= startX && curWidth <= endX && curHeight >= startY && curHeight <= endY)
+							*dst = ttbl[*dst];
+						dst++;
+						UpdateWidthAndHeight(&curWidth, &curHeight, frameWidth, frameHeight);
+					}
+				}
+			} else { //Transparent pixels (no image data)
+				for (int i = 0; i < width; i++)
+					UpdateWidthAndHeight(&curWidth, &curHeight, frameWidth, frameHeight);
+			}
+		}
+	}
 }
 
 /**

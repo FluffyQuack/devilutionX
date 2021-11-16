@@ -223,6 +223,11 @@ Sint32 PlayerStruct::GetMaximumAttributeValue(attribute_id attribute) const
 	return MaxStats[_pClass][attribute];
 }
 
+bool IsPlayerNaked(int pnum) //Fluffy: This is used for paperdoll-relevant code
+{
+	return sgOptions.Graphics.bPaperdoll && plr[pnum]._pClass == PC_ROGUE && plr[pnum].InvBody[INVLOC_CHEST].isEmpty();
+}
+
 void SetPlayerGPtrs(BYTE *pData, BYTE **pAnim)
 {
 	int i;
@@ -238,7 +243,7 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 	char pszName[256];
 	const char *szCel;
 	PlayerStruct *p;
-	BYTE *pData, *pAnim;
+	BYTE *pData, *pAnim, *pData_trn, *pAnim_trn; //Fluffy: Added pointers for TRN variants of sprite
 	DWORD i;
 
 	if ((DWORD)pnum >= MAX_PLRS) {
@@ -257,6 +262,7 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 	sprintf(prefix, "%c%c%c", CharChar[c], ArmourChar[p->_pgfxnum >> 4], WepChar[p->_pgfxnum & 0xF]);
 	const char *cs = ClassPathTbl[c];
 
+	int frameCount, frameWidth; //Fluffy: For TRN
 	for (i = 1; i <= PFILE_NONDEATH; i <<= 1) {
 		if (!(i & gfxflag)) {
 			continue;
@@ -267,36 +273,78 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			szCel = "AS";
 			pData = p->_pNData;
 			pAnim = (BYTE *)p->_pNAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pNFrames;
+			frameWidth = p->_pNWidth;
+			pData_trn = p->_pNData_trn;
+			pAnim_trn = (BYTE *)p->_pNAnim_trn;
 			break;
 		case PFILE_WALK: //Fluffy: This now always loads combat walk animation
 			szCel = "AW";
 			pData = p->_pWData;
 			pAnim = (BYTE *)p->_pWAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pWFrames;
+			frameWidth = p->_pWWidth;
+			pData_trn = p->_pWData_trn;
+			pAnim_trn = (BYTE *)p->_pWAnim_trn;
 			break;
 		case PFILE_ATTACK: //Fluffy: Modified this and all the other animations to let them be loaded in town
 			szCel = "AT";
 			pData = p->_pAData;
 			pAnim = (BYTE *)p->_pAAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pAFrames;
+			frameWidth = p->_pAWidth;
+			pData_trn = p->_pAData_trn;
+			pAnim_trn = (BYTE *)p->_pAAnim_trn;
 			break;
 		case PFILE_HIT:
 			szCel = "HT";
 			pData = p->_pHData;
 			pAnim = (BYTE *)p->_pHAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pHFrames;
+			frameWidth = p->_pHWidth;
+			pData_trn = p->_pHData_trn;
+			pAnim_trn = (BYTE *)p->_pHAnim_trn;
 			break;
 		case PFILE_LIGHTNING:
 			szCel = "LM";
 			pData = p->_pLData;
 			pAnim = (BYTE *)p->_pLAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pSFrames;
+			frameWidth = p->_pSWidth;
+			pData_trn = p->_pLData_trn;
+			pAnim_trn = (BYTE *)p->_pLAnim_trn;
 			break;
 		case PFILE_FIRE:
 			szCel = "FM";
 			pData = p->_pFData;
 			pAnim = (BYTE *)p->_pFAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pSFrames;
+			frameWidth = p->_pSWidth;
+			pData_trn = p->_pFData_trn;
+			pAnim_trn = (BYTE *)p->_pFAnim_trn;
 			break;
 		case PFILE_MAGIC:
 			szCel = "QM";
 			pData = p->_pTData;
 			pAnim = (BYTE *)p->_pTAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pSFrames;
+			frameWidth = p->_pSWidth;
+			pData_trn = p->_pTData_trn;
+			pAnim_trn = (BYTE *)p->_pTAnim_trn;
 			break;
 		case PFILE_DEATH:
 			if (p->_pgfxnum & 0xF) {
@@ -305,6 +353,12 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			szCel = "DT";
 			pData = p->_pDData;
 			pAnim = (BYTE *)p->_pDAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pDFrames;
+			frameWidth = p->_pDWidth;
+			pData_trn = p->_pDData_trn;
+			pAnim_trn = (BYTE *)p->_pDAnim_trn;
 			break;
 		case PFILE_BLOCK:
 			if (!p->_pBlockFlag) {
@@ -314,6 +368,12 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			szCel = "BL";
 			pData = p->_pBData;
 			pAnim = (BYTE *)p->_pBAnim;
+
+			//Fluffy: For TRN
+			frameCount = p->_pBFrames;
+			frameWidth = p->_pBWidth;
+			pData_trn = p->_pBData_trn;
+			pAnim_trn = (BYTE *)p->_pBAnim_trn;
 			break;
 
 		//Fluffy: Load casual standing and walking animations
@@ -321,19 +381,44 @@ void LoadPlrGFX(int pnum, player_graphic gfxflag)
 			szCel = "ST";
 			pData = p->_pNData_c;
 			pAnim = (BYTE *)p->_pNAnim_c;
+
+			//Fluffy: For TRN
+			frameCount = p->_pNFrames_c;
+			frameWidth = p->_pNWidth_c;
+			pData_trn = p->_pNData_c_trn;
+			pAnim_trn = (BYTE *)p->_pNAnim_c_trn;
 			break;
 		case PFILE_WALK_CASUAL:
 			szCel = "WL";
 			pData = p->_pWData_c;
 			pAnim = (BYTE *)p->_pWAnim_c;
+
+			//Fluffy: For TRN
+			frameCount = p->_pWFrames_c;
+			frameWidth = p->_pWWidth_c;
+			pData_trn = p->_pWData_c_trn;
+			pAnim_trn = (BYTE *)p->_pWAnim_c_trn;
 			break;
 		default:
 			app_fatal("PLR:2");
 		}
 
 		sprintf(pszName, "PlrGFX\\%s\\%s\\%s%s.CL2", cs, prefix, prefix, szCel);
-		LoadFileWithMem(pszName, pData);
+		DWORD fileSize = LoadFileWithMem(pszName, pData); //Fluffy: Make note of the file size
+
+		//Fluffy: If this is a potentially "naked" Rogue, then load a TRN we'll use for a mosaic effect
+		if (sgOptions.Graphics.bPaperdoll && plr[pnum]._pClass == PC_ROGUE && p->_pgfxnum >> 4 == 0) {
+			memcpy(pData_trn, pData, fileSize);
+			sprintf(pszName, "Data\\TRNs\\RogueForMosaic.trn");
+			BYTE trnData[256];
+			LoadFileWithMem(pszName, trnData);
+			for(int j = 0; j < 8; j++) { //We have to get the start point of each sub-CEL in the CEL (one for each direction the character can face)
+				Cl2ApplyTransCrop(CelGetFrameStart(pData_trn, j), trnData, frameCount, frameWidth, frameWidth, frameWidth == 128 ? MOSAIC_CENSOR_X1 + 16 : MOSAIC_CENSOR_X1, frameWidth == 128 ? MOSAIC_CENSOR_X2 + 16 : MOSAIC_CENSOR_X2, MOSAIC_CENSOR_Y1, MOSAIC_CENSOR_Y2); //Character sprites are either 128 or 96 in width, so we alter the X crop position accordingly if it's 128 in width
+			}
+		}
+		
 		SetPlayerGPtrs((BYTE *)pData, (BYTE **)pAnim);
+		SetPlayerGPtrs((BYTE *)pData_trn, (BYTE **)pAnim_trn); //Fluffy
 		p->_pGFXLoad |= i;
 
 		if (sgOptions.Graphics.bInitHwIngameRendering) { //Fluffy: Load player graphics as SDL textures
@@ -359,6 +444,12 @@ void InitPlayerGFX(int pnum)
 	if ((DWORD)pnum >= MAX_PLRS) {
 		app_fatal("InitPlayerGFX: illegal player %d", pnum);
 	}
+
+	//Fluffy: This is needed in relation to the paperdoll mod in order to avoid a potential crashing bug.
+	//When loading player sprite image data, the game might not necessarily have set the correct player animation data yet
+	//I had this happen when starting a multiplayer game, though it seemed fine in singleplayer
+	//Calling SetPlrAnims() just before we load the image data fixes the problem.
+	SetPlrAnims(pnum); 
 
 	if (plr[pnum]._pHitPoints >> 6 == 0) {
 		plr[pnum]._pgfxnum = 0;
@@ -427,6 +518,8 @@ void InitPlrGFXMem(int pnum)
 	}
 	plr[pnum]._pNData = DiabloAllocPtr(plr_sframe_size);
 	plr[pnum]._pNData_c = DiabloAllocPtr(plr_sframe_size);
+	plr[pnum]._pNData_trn = DiabloAllocPtr(plr_sframe_size); //Fluffy
+	plr[pnum]._pNData_c_trn = DiabloAllocPtr(plr_sframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x2)) { //WALK
 		plr_gfx_flag |= 0x2;
@@ -435,48 +528,73 @@ void InitPlrGFXMem(int pnum)
 	}
 	plr[pnum]._pWData = DiabloAllocPtr(plr_wframe_size);
 	plr[pnum]._pWData_c = DiabloAllocPtr(plr_wframe_size);
+	plr[pnum]._pWData_trn = DiabloAllocPtr(plr_wframe_size); //Fluffy
+	plr[pnum]._pWData_c_trn = DiabloAllocPtr(plr_wframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x4)) { //ATTACK
 		plr_gfx_flag |= 0x4;
 		plr_aframe_size = GetPlrGFXSize("AT");
 	}
 	plr[pnum]._pAData = DiabloAllocPtr(plr_aframe_size);
+	plr[pnum]._pAData_trn = DiabloAllocPtr(plr_aframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x8)) { //HIT
 		plr_gfx_flag |= 0x8;
 		plr_hframe_size = GetPlrGFXSize("HT");
 	}
 	plr[pnum]._pHData = DiabloAllocPtr(plr_hframe_size);
+	plr[pnum]._pHData_trn = DiabloAllocPtr(plr_hframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x10)) { //LIGHTNING
 		plr_gfx_flag |= 0x10;
 		plr_lframe_size = GetPlrGFXSize("LM");
 	}
 	plr[pnum]._pLData = DiabloAllocPtr(plr_lframe_size);
+	plr[pnum]._pLData_trn = DiabloAllocPtr(plr_lframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x20)) { //FIRE
 		plr_gfx_flag |= 0x20;
 		plr_fframe_size = GetPlrGFXSize("FM");
 	}
 	plr[pnum]._pFData = DiabloAllocPtr(plr_fframe_size);
+	plr[pnum]._pFData_trn = DiabloAllocPtr(plr_fframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x40)) { //MAGIC
 		plr_gfx_flag |= 0x40;
 		plr_qframe_size = GetPlrGFXSize("QM");
 	}
 	plr[pnum]._pTData = DiabloAllocPtr(plr_qframe_size);
+	plr[pnum]._pTData_trn = DiabloAllocPtr(plr_qframe_size); //Fluffy
 
 	if (!(plr_gfx_flag & 0x80)) { //DEATH
 		plr_gfx_flag |= 0x80;
 		plr_dframe_size = GetPlrGFXSize("DT");
 	}
 	plr[pnum]._pDData = DiabloAllocPtr(plr_dframe_size);
+	plr[pnum]._pDData_trn = DiabloAllocPtr(plr_dframe_size); //Fluffy
 
 	if (!(plr_gfx_bflag & 0x1)) { //BLOCK
 		plr_gfx_bflag |= 0x1;
 		plr_bframe_size = GetPlrGFXSize("BL");
 	}
 	plr[pnum]._pBData = DiabloAllocPtr(plr_bframe_size);
+	plr[pnum]._pBData_trn = DiabloAllocPtr(plr_bframe_size); //Fluffy
+
+	//Fluffy: Set all animation TRN pointers to null
+	for(int i = 0; i < 8; i++) {
+		plr[pnum]._pNAnim_trn[i] = 0;
+		plr[pnum]._pWAnim_trn[i] = 0;
+		plr[pnum]._pAAnim_trn[i] = 0;
+		plr[pnum]._pLAnim_trn[i] = 0;
+		plr[pnum]._pFAnim_trn[i] = 0;
+		plr[pnum]._pTAnim_trn[i] = 0;
+		plr[pnum]._pHAnim_trn[i] = 0;
+		plr[pnum]._pDAnim_trn[i] = 0;
+		plr[pnum]._pBAnim_trn[i] = 0;
+		plr[pnum]._pNAnim_c_trn[i] = 0;
+		plr[pnum]._pWAnim_c_trn[i] = 0;
+	}
+	plr[pnum]._pAnimData_trn = 0;
 
 	plr[pnum]._pGFXLoad = 0;
 }
@@ -498,6 +616,20 @@ void FreePlayerGFX(int pnum)
 	MemFreeDbg(plr[pnum]._pBData);
 	MemFreeDbg(plr[pnum]._pNData_c); //Fluffy: Free data for casual walk/stand animations
 	MemFreeDbg(plr[pnum]._pWData_c);
+
+	//Fluffy: Free the data reserved for TRN'ed sprite
+	MemFreeDbg(plr[pnum]._pNData_trn);
+	MemFreeDbg(plr[pnum]._pWData_trn);
+	MemFreeDbg(plr[pnum]._pAData_trn);
+	MemFreeDbg(plr[pnum]._pLData_trn);
+	MemFreeDbg(plr[pnum]._pFData_trn);
+	MemFreeDbg(plr[pnum]._pTData_trn);
+	MemFreeDbg(plr[pnum]._pHData_trn);
+	MemFreeDbg(plr[pnum]._pDData_trn);
+	MemFreeDbg(plr[pnum]._pBData_trn);
+	MemFreeDbg(plr[pnum]._pNData_c_trn);
+	MemFreeDbg(plr[pnum]._pWData_c_trn);
+
 	plr[pnum]._pGFXLoad = 0;
 
 	if (sgOptions.Graphics.bInitHwIngameRendering) { //Fluffy: Free SDL texture variants too
@@ -520,6 +652,37 @@ void NewPlrAnim(int pnum, BYTE *Peq, int numFrames, int Delay, int width)
 	plr[pnum]._pAnimDelay = Delay;
 	plr[pnum]._pAnimWidth = width;
 	plr[pnum]._pAnimWidth2 = (width - 64) >> 1;
+
+	//Fluffy: If this is a potentially naked Rogue, then update animData_trn pointer with data that was modified with a TRN
+	if (sgOptions.Graphics.bPaperdoll && plr[pnum]._pClass == PC_ROGUE && plr[pnum]._pgfxnum >> 4 == 0 && plr[pnum]._pNAnim_trn[0] != 0) {
+			for (int i = 0; i < 8; i++) { //TODO: We should probably use a way better way to figure out what animation we're in. A better system would be for the player struct to store current animation and facing, and have both normal and SDL rendering code reference that rather than using player->_pAnimData
+				if (plr[pnum]._pAnimData == plr[pnum]._pNAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pNAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pWAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pWAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pAAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pAAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pLAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pLAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pFAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pFAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pTAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pTAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pHAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pHAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pDAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pDAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pBAnim[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pBAnim_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pNAnim_c[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pNAnim_c_trn[i];
+				else if (plr[pnum]._pAnimData == plr[pnum]._pWAnim_c[i])
+					plr[pnum]._pAnimData_trn = plr[pnum]._pWAnim_c_trn[i];
+				else
+					continue;
+				break;
+			}
+	}
 }
 
 void ClearPlrPVars(int pnum)
@@ -4112,45 +4275,64 @@ void SyncPlrAnim(int pnum) //Fluffy: This is called when setting up the state of
 	case PM_NEWLVL:
 	case PM_QUIT:
 	case PM_STAND: //Fluffy: Change animation depending on if we're in the town or not
-		if (leveltype == DTYPE_TOWN)
+		if (leveltype == DTYPE_TOWN) {
 			plr[pnum]._pAnimData = plr[pnum]._pNAnim_c[dir];
-		else
+			plr[pnum]._pAnimData_trn = plr[pnum]._pNAnim_c_trn[dir]; //Fluffy
+		}
+		else {
 			plr[pnum]._pAnimData = plr[pnum]._pNAnim[dir];
+			plr[pnum]._pAnimData_trn = plr[pnum]._pNAnim_trn[dir]; //Fluffy
+		}
 		break;
 	case PM_WALK:
 	case PM_WALK2:
 	case PM_WALK3:
-		if (leveltype == DTYPE_TOWN) //Fluffy
+		if (leveltype == DTYPE_TOWN) { //Fluffy
 			plr[pnum]._pAnimData = plr[pnum]._pWAnim_c[dir];
-		else
+			plr[pnum]._pAnimData_trn = plr[pnum]._pWAnim_c_trn[dir]; //Fluffy
+		}
+		else {
 			plr[pnum]._pAnimData = plr[pnum]._pWAnim[dir];
+			plr[pnum]._pAnimData_trn = plr[pnum]._pWAnim_trn[dir]; //Fluffy
+		}
 		break;
 	case PM_ATTACK:
 		plr[pnum]._pAnimData = plr[pnum]._pAAnim[dir];
+		plr[pnum]._pAnimData_trn = plr[pnum]._pAAnim_trn[dir]; //Fluffy
 		break;
 	case PM_RATTACK:
 		plr[pnum]._pAnimData = plr[pnum]._pAAnim[dir];
+		plr[pnum]._pAnimData_trn = plr[pnum]._pAAnim_trn[dir]; //Fluffy
 		break;
 	case PM_BLOCK:
 		plr[pnum]._pAnimData = plr[pnum]._pBAnim[dir];
+		plr[pnum]._pAnimData_trn = plr[pnum]._pBAnim_trn[dir]; //Fluffy
 		break;
 	case PM_SPELL:
 		if (pnum == myplr)
 			sType = spelldata[plr[pnum]._pSpell].sType;
 		else
 			sType = STYPE_FIRE;
-		if (sType == STYPE_FIRE)
+		if (sType == STYPE_FIRE) {
 			plr[pnum]._pAnimData = plr[pnum]._pFAnim[dir];
-		if (sType == STYPE_LIGHTNING)
+			plr[pnum]._pAnimData_trn = plr[pnum]._pFAnim_trn[dir]; //Fluffy
+		}
+		if (sType == STYPE_LIGHTNING) {
 			plr[pnum]._pAnimData = plr[pnum]._pLAnim[dir];
-		if (sType == STYPE_MAGIC)
+			plr[pnum]._pAnimData_trn = plr[pnum]._pLAnim_trn[dir]; //Fluffy
+		}
+		if (sType == STYPE_MAGIC) {
 			plr[pnum]._pAnimData = plr[pnum]._pTAnim[dir];
+			plr[pnum]._pAnimData_trn = plr[pnum]._pTAnim_trn[dir]; //Fluffy
+		}
 		break;
 	case PM_GOTHIT:
 		plr[pnum]._pAnimData = plr[pnum]._pHAnim[dir];
+		plr[pnum]._pAnimData_trn = plr[pnum]._pHAnim_trn[dir]; //Fluffy
 		break;
 	case PM_DEATH:
 		plr[pnum]._pAnimData = plr[pnum]._pDAnim[dir];
+		plr[pnum]._pAnimData_trn = plr[pnum]._pDAnim_trn[dir]; //Fluffy
 		break;
 	default:
 		app_fatal("SyncPlrAnim");
