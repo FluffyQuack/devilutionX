@@ -101,6 +101,47 @@ const char *const szPlrModeAssert[] = {
 	"quitting"
 };
 
+static void RenderTextureWithLightmapLighting(int textureNum, int frameNum, int x, int y, int lightX, int lightY, bool horizontalLine = 1) //Fluffy
+{
+	//Switch to the intermediate tile render target
+	SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+	Render_Texture(0, 0, textureNum, frameNum);
+	SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
+
+	SDL_Rect srcRect, dstRect;
+	dstRect.x = 0;
+	dstRect.y = 0;
+	dstRect.h = textures[textureNum].frames[frameNum].height;
+	srcRect.x = lightX;
+	srcRect.w = dstRect.w = textures[textureNum].frames[frameNum].width;
+	if(horizontalLine) { //If true, we'll apply lighting from a horizontal line matching up with the bottom position of the sprite (which I feel makes sense for objects that are supposed to be standing up)
+		srcRect.h = 1;
+		srcRect.y = lightY;
+	}
+	else { //We'll apply lighting in a straightforward way. This is the same way the floor is lit
+		srcRect.h = textures[textureNum].frames[frameNum].height;
+		srcRect.y = lightY - (srcRect.h - 1);
+	}
+	SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
+	SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
+
+	srcRect.x = 0;
+	srcRect.y = 0;
+	srcRect.w = textures[textureNum].frames[frameNum].width;
+	srcRect.h = textures[textureNum].frames[frameNum].height;
+	dstRect.x = x;
+	dstRect.y = y - (srcRect.h - 1);
+	dstRect.w = srcRect.w;
+	dstRect.h = srcRect.h;
+	SDL_SetRenderTarget(renderer, texture_intermediate);
+	SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_BIG].frames[0].frame, &srcRect, &dstRect);
+
+	//Debug: Show what pixels from the lightmap we're using for lighting:
+	/*SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderDrawLine(renderer, lightX, lightY, textures[textureNum].frames[frameNum].width + lightX, lightY);*/
+}
+
 /**
  * @brief Clear cursor state
  */
@@ -293,17 +334,21 @@ void DrawMissilePrivate(CelOutputBuffer out, MissileStruct *m, int sx, int sy, B
 	foundTexture:
 
 		//Render missile
-		int brightness;
-		if (m->_miLightFlag)
-			brightness = 255;
-		else
-			brightness = Render_IndexLightToBrightness();
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(mx, my, textureNum, frameNum);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-		//TODO: Handle m->_miUniqTrans
+		if (options_lightmapping && !m->_miLightFlag) {
+			RenderTextureWithLightmapLighting(textureNum, frameNum, mx, my, mx, my); //Fluffy TODO: Lightmap coordinates should be lower?
+		} else {
+			int brightness;
+			if (m->_miLightFlag)
+				brightness = 255;
+			else
+				brightness = Render_IndexLightToBrightness();
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+			Render_Texture_FromBottom(mx, my, textureNum, frameNum);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+			//TODO: Handle m->_miUniqTrans
+		}
 		return;
 	}
 
@@ -481,11 +526,16 @@ static void DrawPlayer_SDL(int p, int x, int y, int px, int py) //Fluffy
 		break;
 	}
 	int frameNum = (pPlayer->_pAnimFrame - 1) + (facing * pPlayer->_pAnimLen);
-	if (brightness < 255)
-		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-	Render_Texture_FromBottom(px, py, textureNum, frameNum);
-	if (brightness < 255)
-		SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+	if (options_lightmapping && p != myplr) {
+		RenderTextureWithLightmapLighting(textureNum, frameNum, px, py, px, py); //Fluffy TODO: Lightmap coordinates should be lower?
+	} else {
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+		Render_Texture_FromBottom(px, py, textureNum, frameNum);
+		if (brightness < 255)
+			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+	}
 
 	//TODO: Render outline (if player is selected) and Mana Shield if it's on
 }
@@ -652,17 +702,23 @@ static void DrawObject(CelOutputBuffer out, int x, int y, int ox, int oy, BOOL p
 		int objectType = object[bv]._otype;
 		int textureNum = TEXTURE_OBJECTS + AllObjects[objectType].ofindex;
 		int frameNum = nCel - 1;
-		if (!object[bv]._oLight)
-			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_ADD);
 		if (bv == pcursobj)
 			Render_TextureOutline_FromBottom(sx, sy, 221, 196, 126, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(sx, sy, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
-		if (!object[bv]._oLight)
-			SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
+
+		if (options_lightmapping) {
+			//Fluffy TODO: Handle _oLight for rendering with lightmap
+			RenderTextureWithLightmapLighting(textureNum, frameNum, sx, sy, sx, sy); //Fluffy TODO: Lightmap coordinates should be lower?
+		} else {
+			if (!object[bv]._oLight)
+				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_ADD);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+			Render_Texture_FromBottom(sx, sy, TEXTURE_OBJECTS + AllObjects[objectType].ofindex, nCel - 1);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+			if (!object[bv]._oLight)
+				SDL_SetTextureBlendMode(textures[textureNum].frames[frameNum].frame, SDL_BLENDMODE_BLEND);
+		}
 		return;
 	}
 
@@ -724,112 +780,73 @@ static void drawCell(CelOutputBuffer out, int x, int y, int sx, int sy, bool imp
 	}
 
 	//Fluffy: Render cell as one whole dungeon piece
+	//Fluffy TODO: We probably need to handle this "cel_foliage_active = !nSolidTable[level_piece_id];" for lightmap rendering
 	if (1 && nSolidTable[level_piece_id] && options_hwIngameRendering && options_lightmapping) {
 		level_piece_id--;
 		SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[0].frame;
 		textureFrame_s *textureFrame = &textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id];
-		int brightness;
 
 		if (1 && (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND)) {
+			//Switch to the intermediate tile render target
+			SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
+			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+			Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
 
-			if (1) { //Render target render
-				//Switch to the intermediate tile render target
-				SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
-				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
-				Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
-				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
-
-				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
-					lightx = lightmap_lightx - (TILE_WIDTH / 2);
-					lighty = lightmap_lighty + (TILE_HEIGHT / 2);
-				} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
-					lightx = lightmap_lightx - (TILE_WIDTH / 2);
-					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
-				}
-
-				//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
-				SDL_Rect dstRect, srcRect;
-				dstRect.x = 0;
-				dstRect.y = textureFrame->cropY1;
-				srcRect.w = dstRect.w = 2;
-				dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
-				srcRect.x = lightx;
-				srcRect.y = lighty;
-				srcRect.h = 1;
-
-				SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
-				for (int i = 0; i < textureFrame->width; i += 2) {
-					SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
-					dstRect.x += 2;
-					srcRect.x += 2;
-					if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
-					    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < textureFrame->width / 2)
-					    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= textureFrame->width / 2)) {
-						srcRect.y -= 1;
-					} else {
-						srcRect.y += 1;
-					}
-				}
-
-				if (0) { //Go through nearby tiles and render any important entity as a silhouette
-					//TODO: Finish this code. Right now it's only a basic stress test
-					//Render player as solid colour
-					Render_Texture(0, 0, TEXTURE_PLAYERS, 0);
-
-					//Render alpha from wall texture
-					SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ZERO, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha = srcAlpha)
-					SDL_SetTextureBlendMode(tex, blendMode);
-					Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
-					SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
-				}
-
-				//Switch render target back to intermediate texture and render final result
-				SDL_SetRenderTarget(renderer, texture_intermediate);
-				dstRect.x = sx;
-				dstRect.y = (sy - (textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height - 1)) + textureFrame->cropY1;
-				srcRect.w = dstRect.w = textureFrame->width;
-				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
-				srcRect.x = 0;
-				srcRect.y = textureFrame->cropY1;
-				SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
-			} else {                                                                                                  //Render using light info from lightmap in RAM
-				if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
-					lightx = lightmap_lightx - (TILE_WIDTH / 2);
-					lighty = lightmap_lighty + (TILE_HEIGHT / 2);
-				} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
-					lightx = lightmap_lightx - (TILE_WIDTH / 2);
-					lighty = lightmap_lighty - (TILE_HEIGHT / 2);
-				}
-
-				//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
-				SDL_Rect dstRect, srcRect;
-				dstRect.x = sx;
-				dstRect.y = (sy - (textureFrame->height - 1)) + textureFrame->cropY1;
-				srcRect.w = dstRect.w = 1;
-				srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
-				srcRect.x = textureFrame->offsetX;
-				srcRect.y = textureFrame->offsetY + textureFrame->cropY1;
-
-				for (int i = 0; i < textureFrame->width; i++) {
-					brightness = Lightmap_ReturnBrightness(lightx, lighty);
-					SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
-					SDL_RenderCopy(renderer, tex, &srcRect, &dstRect);
-					dstRect.x += 1;
-					srcRect.x += 1;
-					lightx += 1;
-					if (i > 0 && i % 2 == 0) {
-						if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < textureFrame->width / 2)
-						    || (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= textureFrame->width / 2)) {
-							lighty -= 1;
-						} else {
-							lighty += 1;
-						}
-					}
-				}
-				SDL_SetTextureColorMod(tex, 255, 255, 255);
+			if (lightType == LIGHTING_SUBTILE_DIAGONALFORWARD || lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND) { //Start bottomleft
+				lightx = lightmap_lightx - (TILE_WIDTH / 2);
+				lighty = lightmap_lighty + (TILE_HEIGHT / 2);
+			} else if (lightType == LIGHTING_SUBTILE_DIAGONALBACKWARD || lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND) { //Start topleft
+				lightx = lightmap_lightx - (TILE_WIDTH / 2);
+				lighty = lightmap_lighty - (TILE_HEIGHT / 2);
 			}
-		} else if (1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) {
+
+			//TODO: We need to handle cropX1/cropX2 if it's ever non-0 for dungeon pieces
+			SDL_Rect dstRect, srcRect;
+			dstRect.x = 0;
+			dstRect.y = textureFrame->cropY1;
+			srcRect.w = dstRect.w = 2;
+			dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
+			srcRect.x = lightx;
+			srcRect.y = lighty;
+			srcRect.h = 1;
+
+			SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
+			for (int i = 0; i < textureFrame->width; i += 2) {
+				SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
+				dstRect.x += 2;
+				srcRect.x += 2;
+				if ((lightType == LIGHTING_SUBTILE_DIAGONALFORWARD)
+					|| (lightType == LIGHTING_SUBTILE_MIXEDBACKGROUND && i < textureFrame->width / 2)
+					|| (lightType == LIGHTING_SUBTILE_MIXEDFOREGROUND && i >= textureFrame->width / 2)) {
+					srcRect.y -= 1;
+				} else {
+					srcRect.y += 1;
+				}
+			}
+
+			if (0) { //Go through nearby tiles and render any important entity as a silhouette
+				//TODO: Finish this code. Right now it's only a basic stress test
+				//Render player as solid colour
+				Render_Texture(0, 0, TEXTURE_PLAYERS, 0);
+
+				//Render alpha from wall texture
+				SDL_BlendMode blendMode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ZERO, SDL_BLENDFACTOR_ONE, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ZERO, SDL_BLENDOPERATION_ADD); // (dstColor = dstColor; dstAlpha = srcAlpha)
+				SDL_SetTextureBlendMode(tex, blendMode);
+				Render_Texture(0, 0, TEXTURE_DUNGEONTILES_DUNGEONPIECES, level_piece_id);
+				SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+			}
+
+			//Switch render target back to intermediate texture and render final result
+			SDL_SetRenderTarget(renderer, texture_intermediate);
+			dstRect.x = sx;
+			dstRect.y = (sy - (textures[TEXTURE_DUNGEONTILES_DUNGEONPIECES].frames[level_piece_id].height - 1)) + textureFrame->cropY1;
+			srcRect.w = dstRect.w = textureFrame->width;
+			srcRect.h = dstRect.h = textureFrame->height - (textureFrame->cropY1 + textureFrame->cropY2);
+			srcRect.x = 0;
+			srcRect.y = textureFrame->cropY1;
+			SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
+		} else if (1 || lightType == LIGHTING_SUBTILE_LIGHTMAP) { //Fluffy TODO: Does this always result in wonky lighting? Should it never be used?
 			//Switch to the intermediate tile render target
 			SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
 			SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
@@ -978,12 +995,17 @@ static void DrawItem(CelOutputBuffer out, int x, int y, int sx, int sy, BOOL pre
 		int frameNum = nCel - 1;
 		if (bItem - 1 == pcursitem || AutoMapShowItems)
 			Render_TextureOutline_FromBottom(px, sy, 121, 127, 160, textureNum, frameNum);
-		int brightness = Render_IndexLightToBrightness();
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(px, sy, textureNum, frameNum);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+		if (options_lightmapping) {
+			RenderTextureWithLightmapLighting(textureNum, frameNum, px, sy, px, sy); //Fluffy TODO: Lightmap coordinates should be lower?
+		} else {
+			int brightness = Render_IndexLightToBrightness();
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+			Render_Texture_FromBottom(px, sy, textureNum, frameNum);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		}
 		return;
 	}
 
@@ -1073,12 +1095,17 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 			}
 			if (mi == pcursmonst)
 				Render_TextureOutline_FromBottom(px, sy, 165, 90, 90, textureNum, frameNum);
-			int brightness = Render_IndexLightToBrightness();
-			if (brightness < 255)
-				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-			Render_Texture_FromBottom(px, sy, textureNum, frameNum);
-			if (brightness < 255)
-				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+			if (options_lightmapping) {
+				RenderTextureWithLightmapLighting(textureNum, frameNum, px, sy, px, sy); //Fluffy TODO: Lightmap coordinates should be lower?
+			} else {
+				int brightness = Render_IndexLightToBrightness();
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+				Render_Texture_FromBottom(px, sy, textureNum, frameNum);
+				if (brightness < 255)
+					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+			}
 			return;
 		}
 
@@ -1134,11 +1161,16 @@ static void DrawMonsterHelper(CelOutputBuffer out, int x, int y, int oy, int sx,
 		int frameNum = (pMonster->_mAnimFrame - 1) + (facing * pMonster->_mAnimLen);
 		if (mi == pcursmonst)
 			Render_TextureOutline_FromBottom(px, py, 147, 30, 30, textureNum, frameNum);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-		Render_Texture_FromBottom(px, py, textureNum, frameNum);
-		if (brightness < 255)
-			SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+
+		if (options_lightmapping) {
+			RenderTextureWithLightmapLighting(textureNum, frameNum, px, py, px, py); //Fluffy TODO: Lightmap coordinates should be lower?
+		} else {
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+			Render_Texture_FromBottom(px, py, textureNum, frameNum);
+			if (brightness < 255)
+				SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+		}
 		//TODO: Do rendering differently if trans is non-zero
 		return;
 	}
@@ -1191,28 +1223,19 @@ static void DrawPlayerHelper(CelOutputBuffer out, int x, int y, int sx, int sy)
 
 static void RenderArchViaSDL(int x, int y, int archNum, bool transparent) //Fluffy
 {
+	archNum -= 1;
+	SDL_Texture *tex = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame;
+
 	if (options_lightmapping) {
 		bool forward = true;
 		if (leveltype == DTYPE_CATHEDRAL && currlevel < 21) { //Cathedral
 			if (archNum == 2 || archNum == 3 || archNum == 8)
 				forward = false;
 		}
-		archNum -= 1;
 
-		SDL_Rect srcRect;
-		srcRect.x = 0;
-		srcRect.y = 0;
-		srcRect.w = 1;
-		srcRect.h = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].height;
-
-		SDL_Rect dstRect;
-		dstRect.x = x;
-		dstRect.y = y - (srcRect.h - 1);
-		dstRect.w = 1;
-		dstRect.h = srcRect.h;
-
-		if (transparent)
-			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);
+		//Fluffy: Temporarily turned this off as we're not currently applying transparency to dungeon pieces, so this would look inconsistent
+		/*if (transparent)
+			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);*/
 
 		int lightx, lighty, brightness;
 		if (forward) {
@@ -1223,37 +1246,59 @@ static void RenderArchViaSDL(int x, int y, int archNum, bool transparent) //Fluf
 			lighty = lightmap_lighty - (TILE_HEIGHT / 2);
 		}
 
-		for (int i = 0; i < textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width; i++) {
-			brightness = Lightmap_ReturnBrightness(lightx, lighty);
-			SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
-			SDL_RenderCopy(renderer, textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, &srcRect, &dstRect);
-			dstRect.x += 1;
-			srcRect.x += 1;
-			lightx += 1;
-			if (i > 0 && i % 2 == 0) {
-				if (forward) {
-					lighty -= 1;
-				} else {
-					lighty += 1;
-				}
+		//Switch to the intermediate tile render target
+		SDL_SetRenderTarget(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE); //Switch to "none" blend mode so we overwrite everything in the render target
+		Render_Texture(0, 0, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
+		SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND); //Revert blend mode for the texture
+
+		SDL_Rect srcRect, dstRect;
+		srcRect.x = lightx;
+		srcRect.y = lighty;
+		srcRect.w = dstRect.w = 2;
+		srcRect.h = 1;
+		dstRect.x = 0;
+		dstRect.y = 0;
+		dstRect.h = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].height;
+		SDL_Texture *texLight = textures[TEXTURE_LIGHT_FRAMEBUFFER].frames[0].frame;
+		for (int i = 0; i < textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width; i += 2) {
+			SDL_RenderCopy(renderer, texLight, &srcRect, &dstRect);
+			dstRect.x += 2;
+			srcRect.x += 2;
+			if (forward) {
+				srcRect.y -= 1;
+			} else {
+				srcRect.y += 1;
 			}
 		}
-		if (transparent)
-			SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255);
+		
+		srcRect.x = 0;
+		srcRect.y = 0;
+		srcRect.w = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].width;
+		srcRect.h = textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].height;
+		dstRect.x = x;
+		dstRect.y = y - (srcRect.h - 1);
+		dstRect.w = srcRect.w;
+		dstRect.h = srcRect.h;
+		SDL_SetRenderTarget(renderer, texture_intermediate);
+		SDL_RenderCopy(renderer, textures[TEXTURE_TILE_INTERMEDIATE_PIECE].frames[0].frame, &srcRect, &dstRect);
+
+		//Fluffy: Temporarily disabled. See above
+		/*if (transparent)
+			SDL_SetTextureAlphaMod(tex, 255);*/
 		return;
 	}
-
-	archNum -= 1;
+	
 	int brightness = Render_IndexLightToBrightness();
 	if (brightness < 255)
-		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, brightness, brightness, brightness);
+		SDL_SetTextureColorMod(tex, brightness, brightness, brightness);
 	if (transparent)
-		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 191);
+		SDL_SetTextureAlphaMod(tex, 191);
 	Render_Texture_FromBottom(x, y, TEXTURE_DUNGEONTILES_SPECIAL, archNum);
 	if (brightness < 255)
-		SDL_SetTextureColorMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255, 255, 255);
+		SDL_SetTextureColorMod(tex, 255, 255, 255);
 	if (transparent)
-		SDL_SetTextureAlphaMod(textures[TEXTURE_DUNGEONTILES_SPECIAL].frames[archNum].frame, 255);
+		SDL_SetTextureAlphaMod(tex, 255);
 }
 
 /**
@@ -1356,12 +1401,16 @@ static void scrollrt_draw_dungeon(CelOutputBuffer out, int sx, int sy, int dx, i
 				assert(textureNum != -1);
 
 				//Render
-				int brightness = Render_IndexLightToBrightness();
-				if (brightness < 255)
-					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
-				Render_Texture_FromBottom(px, dy, textureNum, frameNum);
-				if (brightness < 255)
-					SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				if(options_lightmapping) {
+					RenderTextureWithLightmapLighting(textureNum, frameNum, px, dy, px, dy, 0); //Fluffy TODO: Lightmap coordinates should be lower?
+				} else {
+					int brightness = Render_IndexLightToBrightness();
+					if (brightness < 255)
+						SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, brightness, brightness, brightness);
+					Render_Texture_FromBottom(px, dy, textureNum, frameNum);
+					if (brightness < 255)
+						SDL_SetTextureColorMod(textures[textureNum].frames[frameNum].frame, 255, 255, 255);
+				}
 				//TODO: Do rendering differently if pDeadGuy->_deadtrans is non-zero
 				break;
 			} else {
