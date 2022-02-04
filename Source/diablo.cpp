@@ -575,6 +575,9 @@ void GetMousePos(int32_t lParam)
 	MousePosition = { (std::int16_t)(lParam & 0xffff), (std::int16_t)((lParam >> 16) & 0xffff) };
 }
 
+static unsigned long long mouseHeldDownFor = 0; //For tracking how long we've held down a mouse button for
+static uint32_t wParamLast = 0; //Remember argument for the auto-clicker
+
 void GameEventHandler(uint32_t uMsg, int32_t wParam, int32_t lParam)
 {
 	switch (uMsg) {
@@ -603,8 +606,10 @@ void GameEventHandler(uint32_t uMsg, int32_t wParam, int32_t lParam)
 		gmenu_on_mouse_move();
 		return;
 	case DVL_WM_LBUTTONDOWN:
+		wParamLast = wParam; //Remember argument for last mouse click
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_NONE) {
+			mouseHeldDownFor = SDL_GetTicks(); //Remember at which tick we started holding down mouse button
 			sgbMouseDown = CLICK_LEFT;
 			LeftMouseDown(wParam);
 		}
@@ -618,8 +623,10 @@ void GameEventHandler(uint32_t uMsg, int32_t wParam, int32_t lParam)
 		}
 		return;
 	case DVL_WM_RBUTTONDOWN:
+		wParamLast = wParam; //Remember argument for last mouse click
 		GetMousePos(lParam);
 		if (sgbMouseDown == CLICK_NONE) {
+			mouseHeldDownFor = SDL_GetTicks(); //Remember at which tick we started holding down mouse button
 			sgbMouseDown = CLICK_RIGHT;
 			RightMouseDown((wParam & DVL_MK_SHIFT) != 0);
 		}
@@ -742,6 +749,26 @@ void RunGameLoop(interface_mode uMsg)
 
 		discord_manager::UpdateGame();
 
+		//Auto-Clicker 2000 Deluxe (TM)
+		if (sgbMouseDown == CLICK_LEFT || sgbMouseDown == CLICK_RIGHT) {
+
+			//Calculate how long we've been holding down a mouse button
+			int currentTickCount = SDL_GetTicks();
+			int ticksElapsed = currentTickCount - mouseHeldDownFor;
+
+			//Check if 200ms has elapsed (aka 4 gameplay ticks)
+			if (ticksElapsed > gnTickDelay * 4) { //TODO: We should also check mouse position to verify it's not on any UI, as otherwise, this auto-clicker will go down in history as the most frustrating creation of all time
+				mouseHeldDownFor = SDL_GetTicks(); //Reset our timer
+
+				//Fool Diablo into thinking mouse button was just re-pressed. Oh, Diablo, you silly gullible goose!
+				if (sgbMouseDown == CLICK_LEFT) {
+					LeftMouseDown(wParamLast);
+				} else {
+					RightMouseDown(wParamLast);
+				}
+			}
+		}
+
 		if (!runGameLoop) {
 			if (processInput)
 				ProcessInput();
@@ -776,6 +803,7 @@ void RunGameLoop(interface_mode uMsg)
 	force_redraw = 255;
 	scrollrt_draw_game_screen();
 	saveProc = SetWindowProc(saveProc);
+
 	assert(saveProc == GameEventHandler);
 	FreeGame();
 

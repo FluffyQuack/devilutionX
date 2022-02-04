@@ -334,34 +334,34 @@ void CheckCursMove()
 
 	const Point currentTile { mx, my };
 
-	// While holding the button down we should retain target (but potentially lose it if it dies, goes out of view, etc)
-	if (sgbMouseDown != CLICK_NONE && IsNoneOf(LastMouseButtonAction, MouseActionType::None, MouseActionType::Attack, MouseActionType::Spell)) {
-		if (pcursmonst != -1) {
-			const auto &monster = Monsters[pcursmonst];
-			if (monster._mDelFlag || monster._mhitpoints >> 6 <= 0
-			    || (monster._mFlags & MFLAG_HIDDEN) != 0
-			    || !IsTileLit(monster.position.tile)) {
-				pcursmonst = -1;
-			}
-		} else if (pcursobj != -1) {
-			if (Objects[pcursobj]._oSelFlag < 1)
-				pcursobj = -1;
-		} else if (pcursplr != -1) {
-			auto &targetPlayer = Players[pcursplr];
-			if (targetPlayer._pmode == PM_DEATH || targetPlayer._pmode == PM_QUIT || !targetPlayer.plractive
-			    || currlevel != targetPlayer.plrlevel || targetPlayer._pHitPoints >> 6 <= 0
-			    || !IsTileLit(targetPlayer.position.tile))
-				pcursplr = -1;
-		}
-
-		if (pcursmonst == -1 && pcursobj == -1 && pcursitem == -1 && pcursinvitem == -1 && pcursplr == -1) {
-			cursPosition = { mx, my };
-			CheckTrigForce();
-			CheckTown();
-			CheckRportal();
-		}
-		return;
-	}
+	//Commented this away so it doesn't interfere with the almighty Auto-Clicker 2000 Deluxe (TM)
+	//// While holding the button down we should retain target (but potentially lose it if it dies, goes out of view, etc)
+	//if (sgbMouseDown != CLICK_NONE && IsNoneOf(LastMouseButtonAction, MouseActionType::None, MouseActionType::Attack, MouseActionType::Spell)) {
+	//	if (pcursmonst != -1) {
+	//		const auto &monster = Monsters[pcursmonst];
+	//		if (monster._mDelFlag || monster._mhitpoints >> 6 <= 0
+	//		    || (monster._mFlags & MFLAG_HIDDEN) != 0
+	//		    || !IsTileLit(monster.position.tile)) {
+	//			pcursmonst = -1;
+	//		}
+	//	} else if (pcursobj != -1) {
+	//		if (Objects[pcursobj]._oSelFlag < 1)
+	//			pcursobj = -1;
+	//	} else if (pcursplr != -1) {
+	//		auto &targetPlayer = Players[pcursplr];
+	//		if (targetPlayer._pmode == PM_DEATH || targetPlayer._pmode == PM_QUIT || !targetPlayer.plractive
+	//		    || currlevel != targetPlayer.plrlevel || targetPlayer._pHitPoints >> 6 <= 0
+	//		    || !IsTileLit(targetPlayer.position.tile))
+	//			pcursplr = -1;
+	//	}
+	//	if (pcursmonst == -1 && pcursobj == -1 && pcursitem == -1 && pcursinvitem == -1 && pcursplr == -1) {
+	//		cursPosition = { mx, my };
+	//		CheckTrigForce();
+	//		CheckTown();
+	//		CheckRportal();
+	//	}
+	//	return;
+	//}
 
 	bool flipflag = (flipy && flipx) || ((flipy || flipx) && px < TILE_WIDTH / 2);
 
