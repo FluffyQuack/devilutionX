@@ -201,6 +201,7 @@ enum {
 	TEXTURE_TILE_RIGHTMASK_OPAQUE,
 
 	//This is used for multiple render passes
+	//Fluffy TODO: Should we replace TEXTURE_TILE_INTERMEDIATE and TEXTURE_TILE_INTERMEDIATE_PIECE with TEXTURE_TILE_INTERMEDIATE_BIG? I don't think there's any performance benefit to using the smaller ones
 	TEXTURE_TILE_INTERMEDIATE, //32x32
 	TEXTURE_TILE_INTERMEDIATE_PIECE, //64x160
 	TEXTURE_TILE_INTERMEDIATE_BIG, //gnScreenWidth * gnScreenHeight
