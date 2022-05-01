@@ -170,15 +170,41 @@ void Textures_Init()
 
 	//Paperdoll textures
 	if (sgOptions.Graphics.bPaperdoll) {
-		Textures_LoadTexture(TEXTURE_ROGUE_NOTHING, "data/textures/ui/paperdoll/rogue-nothing.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT, "data/textures/ui/paperdoll/rogue-light.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT_DAMAGED, "data/textures/ui/paperdoll/rogue-light-damaged.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT2, "data/textures/ui/paperdoll/rogue-light2.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_LIGHT2_DAMAGED, "data/textures/ui/paperdoll/rogue-light2-damaged.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_MEDIUM, "data/textures/ui/paperdoll/rogue-medium.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_MEDIUM_DAMAGED, "data/textures/ui/paperdoll/rogue-medium-damaged.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_HEAVY, "data/textures/ui/paperdoll/rogue-heavy.png");
-		Textures_LoadTexture(TEXTURE_ROGUE_HEAVY_DAMAGED, "data/textures/ui/paperdoll/rogue-heavy-damaged.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_AXE, "data/textures/ui/paperdoll/Rogue-axe.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_SWORD, "data/textures/ui/paperdoll/Rogue-sword.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_STAFF, "data/textures/ui/paperdoll/Rogue-staff.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_MACE, "data/textures/ui/paperdoll/Rogue-mace.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BOW_BACK, "data/textures/ui/paperdoll/Rogue-bow-back.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BASE, "data/textures/ui/paperdoll/Rogue-base.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_TOPLESS, "data/textures/ui/paperdoll/Rogue-topless.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PANTY, "data/textures/ui/paperdoll/Rogue-panty.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BASEOUTFIT, "data/textures/ui/paperdoll/Rogue-baseoutfit.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BASEOUTFIT_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-baseoutfit-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BASEOUTFIT_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-baseoutfit-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHEROUTFIT, "data/textures/ui/paperdoll/Rogue-leather.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHEROUTFIT_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-leather-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHEROUTFIT_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-leather-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BELTS, "data/textures/ui/paperdoll/Rogue-belts.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_GLOVES, "data/textures/ui/paperdoll/Rogue-gloves.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BOOTS, "data/textures/ui/paperdoll/Rogue-boots.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINMAIL, "data/textures/ui/paperdoll/Rogue-chainmail.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINMAIL_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-chainmail-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINMAIL_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-chainmail-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEMAIL, "data/textures/ui/paperdoll/Rogue-platemail.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEMAIL_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-platemail-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEMAIL_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-platemail-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_FACE, "data/textures/ui/paperdoll/Rogue-face.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHERHELM, "data/textures/ui/paperdoll/Rogue-leatherhelm.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHERHELM_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-leatherhelm-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_LEATHERHELM_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-leatherhelm-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINHELM, "data/textures/ui/paperdoll/Rogue-chainhelm.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINHELM_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-chainhelm-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_CHAINHELM_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-chainhelm-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEHELM, "data/textures/ui/paperdoll/Rogue-platehelm.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEHELM_DAMAGELAYER1, "data/textures/ui/paperdoll/Rogue-platehelm-damagelayer1.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_PLATEHELM_DAMAGELAYER2, "data/textures/ui/paperdoll/Rogue-platehelm-damagelayer2.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_ROGUE_BOW_FRONT, "data/textures/ui/paperdoll/Rogue-bow-front.png");
+		Textures_LoadTexture(TEXTURE_PAPERDOLL_CENSORED, "data/textures/ui/paperdoll/Rogue-censored.png");
 	}
 
 	//Generate alpha masks used during tile rendering. These are all given a custom blending mode
