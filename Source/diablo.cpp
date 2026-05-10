@@ -55,7 +55,7 @@ WORD gnTickDelay = 50;
 Options sgOptions;
 
 unsigned long long tick_delay_highResolution = 50 * 10000; //Fluffy: High resolution tick delay. The value we set here shouldn't matter as it gets calculated in other code
-unsigned int gameplayTickCount = 0; ///Fluffy: How many gameplay ticks have elapsed in total. We use for animating the new UI flasks
+unsigned int gameplayTickCount = 0; //Fluffy: How many gameplay ticks have elapsed in total. We use for animating the new UI flasks
 unsigned int gameplayTickCount_progress = 0; //Fluffy: Progress towards the above gameplayTickCount (related to gSpeedMod)
 
 /*
