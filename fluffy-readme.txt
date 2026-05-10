@@ -1,6 +1,7 @@
 - I followed this guide for setting up the source code: https://github.com/diasurgical/devilutionX/tree/4e8843ee7ca23bb30cb4920378c32bfa5f269c21
 - These are the steps I did:
 -- Install dependencies via vcpkg (make sure to also install sdl2-image:x64-windows and sdl2-image:x86-windows)
+--- vcpkg install sdl2:x64-windows sdl2-mixer:x64-windows sdl2-ttf:x64-windows libsodium:x64-windows
 -- Run "vcpkg integrate install" so Visual Studio can access to everything vcpkg installed
 -- Set up project by selecting cmakelists.txt in Visual Studio
 
